@@ -10,6 +10,10 @@ import { ApiError } from './api';
 declare global {
   interface Window {
     openbotFiles?: {
+      downloadWebsiteProject?(input: {
+        path: string;
+        expectedUser: string;
+      }): Promise<{ status: 'saved' | 'cancelled' }>;
       downloadSharedFile(input: {
         path: string;
         expectedUser: string;

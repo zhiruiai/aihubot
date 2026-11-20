@@ -7,3 +7,18 @@
   background: #fff;
   color-scheme: light;
 }
+
+.website-file-save {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+.website-file-save button {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

@@ -6,6 +6,9 @@ import { ArrowLeft, Info, Loader2, X } from 'lucide-react';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessages } from './ChatMessages';
+import { ChatStarter } from './ChatStarter';
+import { StudyLessonShelf } from './StudyLessonShelf';
+import { hasStudyPractice } from './studyLessons';
 import { ConversationDetails } from './ConversationDetails';
 import type { WorkspaceModel } from './types';
 import { WorkspaceSidebar } from './WorkspaceSidebar';
@@ -46,6 +49,19 @@ export function WorkspaceLayout(model: WorkspaceModel) {
     threadRoot,
     closeThread,
   } = model;
+  const study = !threadRoot && hasStudyPractice(model.conversation, model.skills);
+  const ticket = model.sendScope.ticket();
+  function writeReflection(prompt: string, words?: string) {
+    if (!model.sendScope.current(ticket)) return;
+    const field = model.composerRef.current;
+    model.updateComposer(model.composerKey, (previous) => {
+      const text = previous.text;
+      if (!words) return text.trim() ? previous : { ...previous, text: prompt };
+      const reflection = prompt + '\n' + words;
+      return { ...previous, text: text.trim() ? text + '\n\n' + reflection : reflection };
+    });
+    if (field?.isConnected) field.focus();
+  }
   function closeLoadingDialog() {
     if (model.routineChatPending) {
       if (!model.routineChatBusy) {
@@ -99,6 +115,12 @@ export function WorkspaceLayout(model: WorkspaceModel) {
               : model.toggleDetails
           }
         />
+        {study && (
+          <StudyLessonShelf
+            key={model.navigationScope + ':' + selected}
+            reflect={writeReflection}
+          />
+        )}
         {threadRoot && (
           <div className="reply-thread-bar">
             <button type="button" onClick={closeThread}>
@@ -110,6 +132,19 @@ export function WorkspaceLayout(model: WorkspaceModel) {
         )}
         <ChatMessages
           {...model}
+          starter={
+            <ChatStarter
+              lead={model.lead}
+              study={study}
+              choose={(prompt) => {
+                if (study) writeReflection(prompt);
+                else {
+                  model.setDraft(prompt);
+                  model.composerRef.current?.focus();
+                }
+              }}
+            />
+          }
           voice={
             call.active || (model.mobileHome && !mobileChat)
               ? { ...model.voice, blocked: true }

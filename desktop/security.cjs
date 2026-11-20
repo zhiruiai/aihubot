@@ -242,6 +242,70 @@ function sharedFileDownloadRequest(value, pageUrl, origin) {
   if (recipient && !workspace && page !== `/shared-bots/${recipient[1]}`) return null;
   return { path: value.path, expectedUser: value.expectedUser, name: safeFilename(value.name) };
 }
+function websiteDownloadRequest(value, pageUrl, origin) {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.keys(value).sort().join(',') !== 'expectedUser,path' ||
+    typeof value.expectedUser !== 'string' ||
+    !/^[a-zA-Z0-9_-]{1,128}$/.test(value.expectedUser) ||
+    typeof value.path !== 'string' ||
+    value.path.length > 400 ||
+    !sameOrigin(pageUrl, origin)
+  )
+    return null;
+  const match =
+    /^\/api\/workspaces\/([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})\/website-projects\/([a-f0-9]{64})\/(?:download|files\/(.+))$/.exec(
+      value.path,
+    );
+  if (!match || new URL(pageUrl).pathname.replace(/\/$/, '') !== '/w/' + match[1]) return null;
+  const [, , projectId, assetPath] = match;
+  const manifestPath = `/api/workspaces/${match[1]}/website-projects/${projectId}`;
+  if (!assetPath)
+    return {
+      path: value.path,
+      expectedUser: value.expectedUser,
+      name: `website-${projectId.slice(0, 12)}.zip`,
+      projectId,
+      manifestPath,
+    };
+  const parts = assetPath.split('/');
+  if (
+    assetPath.length > 240 ||
+    parts.length > 12 ||
+    parts.some(
+      (part) =>
+        !/^[a-z0-9_-][a-z0-9._-]{0,79}$/i.test(part) ||
+        part.endsWith('.') ||
+        /^(?:con|prn|aux|nul|node_modules|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part),
+    )
+  )
+    return null;
+  const name = parts.at(-1);
+  const extension = /\.(csv|ics|txt|md|mp4|png|jpe?g|webp)$/i.exec(name)?.[1].toLowerCase();
+  if (!extension) return null;
+  const fileTypes = {
+    csv: 'text/csv',
+    ics: 'text/calendar',
+    txt: 'text/plain',
+    md: 'text/plain',
+    mp4: 'video/mp4',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+  };
+  return {
+    path: value.path,
+    expectedUser: value.expectedUser,
+    name,
+    manifestPath,
+    projectId,
+    assetPath,
+    mime: fileTypes[extension],
+  };
+}
 function safeFilename(value) {
   return (
     String(value || 'download')
@@ -342,6 +406,7 @@ module.exports = {
   allowedResource,
   allowedDownload,
   sharedFileDownloadRequest,
+  websiteDownloadRequest,
   safeFilename,
   rendererPreferences,
   ConnectionState,

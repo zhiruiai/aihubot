@@ -10,6 +10,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent,
+  type ReactNode,
 } from 'react';
 import type { Message } from '../../../shared/types';
 import { activeAvatarMessageIds } from '../avatarActivity';
@@ -26,7 +27,6 @@ import { historicalAuthor, removedAuthor } from '../messageAuthors';
 import type { WorkspaceModel } from './types';
 import { ChatMessageBody } from './ChatMessageBody';
 import { ChatMessageAuthorView } from './ChatMessageAuthorView';
-import { ChatStarter } from './ChatStarter';
 import { WebResearchCard } from '../components/WebResearchCard';
 import { VoiceCallCard } from '../components/VoiceCallControls';
 import { useWebsiteUpdates } from '../components/WebsiteProjectCard';
@@ -42,8 +42,7 @@ export function ChatMessages({
   openPrimary,
   messages,
   lead,
-  setDraft,
-  composerRef,
+  starter,
   clockNow,
   highlightedMessage,
   ownMessage,
@@ -92,8 +91,6 @@ export function ChatMessages({
   | 'openPrimary'
   | 'messages'
   | 'lead'
-  | 'setDraft'
-  | 'composerRef'
   | 'clockNow'
   | 'highlightedMessage'
   | 'ownMessage'
@@ -126,6 +123,7 @@ export function ChatMessages({
   | 'currentWorker'
   | 'voice'
 > & {
+  starter: ReactNode;
   openWebsiteProject?: OpenWebsiteProject;
   threadRoot?: Message;
   threadReplies?: ReadonlyMap<string, number>;
@@ -249,13 +247,7 @@ export function ChatMessages({
           ) : !conversation && data.primaryBot?.available && !data.primaryBot.agentId ? (
             <PrimaryBotIntroduction onManage={openPrimary} />
           ) : timeline.rows.length === 0 && !timelineWorking ? (
-            <ChatStarter
-              lead={lead}
-              choose={(prompt) => {
-                setDraft(prompt);
-                composerRef.current?.focus();
-              }}
-            />
+            starter
           ) : (
             timeline.rows.map(
               ({

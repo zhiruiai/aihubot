@@ -310,6 +310,13 @@
       '请在当前页面点击共享资料的下载按钮。',
       'Click the shared file download button on the current page.',
     ],
+    websiteDownloadClick: ['请在当前页面点击网站文件的下载按钮。', 'Click the website download button on the current page.'],
+    websiteVersionInvalid: ['网站交付版本校验失败。', 'The website version could not be verified.'],
+    websiteAssetInvalid: ['网站交付文件校验失败。', 'The website file could not be verified.'],
+    websiteArchiveInvalid: [
+      '网站交付压缩包校验失败。',
+      'The website archive could not be verified.',
+    ],
     downloadCancelled: [
       '下载已取消，页面或账户已变化。',
       'Download cancelled because the page or account changed.',

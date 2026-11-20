@@ -35,7 +35,7 @@ export default defineConfig([
   },
   { files: ['**/*.cjs'], languageOptions: { globals: globals.node } },
   {
-    files: ['desktop/ui/**/*.js', 'docs/showcase/**/*.mjs', 'web/public/offline.js'],
+    files: ['desktop/ui/**/*.js', 'docs/showcase/**/*.mjs', 'examples/education/*.js', 'web/public/offline.js'],
     languageOptions: { globals: globals.browser },
   },
   { files: ['web/public/sw.js'], languageOptions: { globals: globals.serviceworker } },

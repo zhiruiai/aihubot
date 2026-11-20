@@ -6,8 +6,10 @@ import { uiText } from '../i18n';
 export function ChatStarter({
   lead,
   choose,
+  study,
 }: {
   lead?: BotAgent;
+  study?: boolean;
   choose: (prompt: string) => void;
 }) {
   return (
@@ -20,12 +22,19 @@ export function ChatStarter({
       </h2>
       <p>{lead?.description || uiText('workspace:text_c892f4226aae')}</p>
       <div className="starter-prompts">
-        {[
-          uiText('workspace:text_4a7b2a8febae'),
-          uiText('workspace:text_418ceb9c923a'),
-          uiText('workspace:text_69a9881ceaa9'),
-        ].map((prompt) => (
-          <button key={prompt} onClick={() => choose(prompt)}>
+        {(study
+          ? [uiText('workspace:studyBringProblem')]
+          : [
+              uiText('workspace:text_4a7b2a8febae'),
+              uiText('workspace:text_418ceb9c923a'),
+              uiText('workspace:text_69a9881ceaa9'),
+            ]
+        ).map((prompt) => (
+          <button
+            key={prompt}
+            type="button"
+            onClick={() => choose(study ? uiText('workspace:studyProblemDraft') : prompt)}
+          >
             {prompt}
             <ArrowUp size={13} />
           </button>

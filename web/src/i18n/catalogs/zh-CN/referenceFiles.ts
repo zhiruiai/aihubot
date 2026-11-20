@@ -66,6 +66,8 @@ export default {
   websiteFileCount_other: '{{count}} 个文件',
   websiteDownload: '下载 ZIP',
   websiteDownloading: '正在准备 ZIP…',
+  websiteSaveFile: '保存 {{name}}',
+  websiteSaveFileFailed: '文件未能保存，请重试。',
   websiteDownloadFailed: 'ZIP 下载失败，请重试。',
   websiteEditVersion: '修改此版本',
   websiteVersionNumber: '版本 {{number}}',

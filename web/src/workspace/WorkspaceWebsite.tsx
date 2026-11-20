@@ -267,6 +267,7 @@ function WorkspaceWebsite({
         onDiscuss={onDiscuss}
         onRetry={() => setAttempt((value) => value + 1)}
         onDownload={() => void download()}
+        onSaveFile={client.saveFile}
         downloading={downloading}
         downloadFailed={downloadFailed}
         versions={versions}

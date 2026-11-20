@@ -12,7 +12,7 @@ const {
 } = require('./session-policy.cjs');
 const { createInputPermissions } = require('./input-permissions.cjs');
 const { createAuthorizationHandler } = require('./authorization.cjs');
-const { createSharedDownloadHandler } = require('./shared-download.cjs');
+const { createFileDownloadHandlers } = require('./shared-download.cjs');
 const { createNotifications } = require('./notifications.cjs');
 const { createMenus } = require('./menus.cjs');
 const { createClientLanguage } = require('./language.cjs');
@@ -116,7 +116,7 @@ function createController(
     now,
     shell,
   });
-  const downloadSharedFile = createSharedDownloadHandler({
+  const fileDownloads = createFileDownloadHandlers({
     getConnection,
     getWindow,
     foregroundFrame,
@@ -342,7 +342,10 @@ function createController(
     localized(() => openAppAuthorization(event, value)),
   );
   ipcMain.handle('openbot-files:download-shared', (event, value) =>
-    localized(() => downloadSharedFile(event, value)),
+    localized(() => fileDownloads.shared(event, value)),
+  );
+  ipcMain.handle('openbot-files:download-website', (event, value) =>
+    localized(() => fileDownloads.website(event, value)),
   );
   for (const method of ['permission', 'requestPermission', 'show', 'clear'])
     ipcMain.handle(`openbot-notifications:${method}`, (event, value) =>

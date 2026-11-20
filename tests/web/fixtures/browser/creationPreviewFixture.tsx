@@ -96,7 +96,6 @@ function Fixture() {
   const appearance = useAppearance();
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
-  const composerRef = useRef<HTMLTextAreaElement>(null);
   const running = stage < 3 || stage === 5;
   const awaitingAnswer = stage === 4;
   const chatMessages = [
@@ -202,8 +201,7 @@ function Fixture() {
             openPrimary={noOp}
             messages={chatMessages}
             lead={agent}
-            setDraft={noOp}
-            composerRef={composerRef}
+            starter={null}
             clockNow={clockNow}
             highlightedMessage=""
             ownMessage={(value) => value.userId === userId}

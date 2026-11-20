@@ -216,7 +216,23 @@ pub async fn edit_settings(
         ));
     }
     if let Some(brief) = body.get("teamBrief") {
-        crate::error::only_fields(brief, &["goal", "summary", "leadAgentId", "assignments"])?;
+        crate::error::only_fields(
+            brief,
+            &[
+                "goal",
+                "summary",
+                "leadAgentId",
+                "assignments",
+                "starterTemplateId",
+            ],
+        )?;
+        let template = chat["teamBrief"].get("starterTemplateId").cloned();
+        if brief
+            .get("starterTemplateId")
+            .is_some_and(|id| Some(id) != template.as_ref())
+        {
+            return Err(ApiError::bad("不能更改团队模板来源。"));
+        }
         if brief["leadAgentId"] != chat["agentIds"][0] {
             return Err(ApiError::bad("工作组负责人必须是名单首位Bot。"));
         }
@@ -246,6 +262,9 @@ pub async fn edit_settings(
             let _ = crate::error::text(&item["assignment"], "分工", 2000)?;
         }
         chat["teamBrief"] = brief.clone();
+        if let Some(template) = template {
+            chat["teamBrief"]["starterTemplateId"] = template;
+        }
     }
     reconcile(&mut chat);
     chat["updatedAt"] = json!(iso(now()));

@@ -103,6 +103,7 @@ export function WebsiteProjectPanel({
   onDiscuss,
   onRetry,
   onDownload,
+  onSaveFile,
   downloading,
   downloadFailed,
   versions,
@@ -116,6 +117,7 @@ export function WebsiteProjectPanel({
   onDiscuss: () => void;
   onRetry: () => void;
   onDownload: () => void;
+  onSaveFile?: (path: string) => Promise<void>;
   downloading: boolean;
   downloadFailed: boolean;
   versions?: WebsiteProjectVersion[];
@@ -307,7 +309,12 @@ export function WebsiteProjectPanel({
                   <span>{entry}</span>
                 </div>
               )}
-              <WebsiteProjectPreview files={state.files} entryPath={entry} onNavigate={goTo} />
+              <WebsiteProjectPreview
+                files={state.files}
+                entryPath={entry}
+                onNavigate={goTo}
+                onSaveFile={onSaveFile}
+              />
             </div>
             {mode === 'source' && (
               <WebsiteSource files={state.files} selected={selected} onSelect={setSelected} />

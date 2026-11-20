@@ -33,6 +33,24 @@ pub async fn initialize(conn: &mut SqliteConnection) -> Result<()> {
                 json!("服务已重新启动，方案生成已中断。目标已保留，请重新生成。");
             stamp(&mut saved);
             save(conn, &saved).await?;
+        } else if saved["plan"]["status"] == "committed" {
+            let (Some(template), Some(id)) = (
+                super::starters::template_id(&saved),
+                saved["plan"]["result"]["conversationId"].as_str(),
+            ) else {
+                continue;
+            };
+            let Some(mut chat) = WorkspaceStore::get_in(conn, Table::Conversations, id).await?
+            else {
+                continue;
+            };
+            if chat["isGroup"] == true
+                && chat["teamBrief"].is_object()
+                && chat["teamBrief"].get("starterTemplateId").is_none()
+            {
+                chat["teamBrief"]["starterTemplateId"] = json!(template);
+                WorkspaceStore::put_in(conn, Table::Conversations, &chat).await?;
+            }
         }
     }
     Ok(())

@@ -28,6 +28,8 @@ if (process.isMainFrame && /^https?:$/.test(globalThis.location.protocol)) {
     'openbotFiles',
     Object.freeze({
       downloadSharedFile: (request) => ipcRenderer.invoke('openbot-files:download-shared', request),
+      downloadWebsiteProject: (request) =>
+        ipcRenderer.invoke('openbot-files:download-website', request),
     }),
   );
   contextBridge.exposeInMainWorld(

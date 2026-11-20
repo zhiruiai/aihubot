@@ -10,6 +10,8 @@ const html = `<!doctype html><html><head><style>.hidden { display: none }</style
     data-ob-project-private="must not cross">Sunset</button>
   <article class="route" data-tags="forest"><h2>Forest trail</h2></article>
   <article class="route" data-tags="forest sunset"><h2>Sunset meadow</h2></article>
+  <label for="answer">Your answer</label><input id="answer">
+  <label for="missing">Missing input</label><label for="status">Paragraph</label>
   <p id="status">Waiting</p><script src="app.js"></script></body></html>`;
 const script = `
   const status = document.getElementById('status');
@@ -79,6 +81,11 @@ test(
       });
       const frame = page.frameLocator('iframe');
       await frame.getByText('Ready', { exact: true }).waitFor();
+      const input = frame.getByRole('textbox', { name: 'Your answer' });
+      await frame.getByText('Your answer', { exact: true }).click();
+      assert.equal(await input.evaluate((node) => node === document.activeElement), true);
+      assert.equal(await frame.getByText('Missing input').getAttribute('for'), null);
+      assert.equal(await frame.getByText('Paragraph').getAttribute('for'), null);
       assert.equal(await frame.getByRole('heading').count(), 2);
       await frame.getByRole('button', { name: 'Sunset routes' }).click();
       await frame.getByText('Selected: sunset', { exact: true }).waitFor();

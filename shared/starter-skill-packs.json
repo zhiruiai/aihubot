@@ -34,9 +34,9 @@
       "docs": ["editorial-review"]
     },
     "study": {
-      "guide": ["guided-learning"],
-      "lab": ["guided-learning"],
-      "review": ["editorial-review"]
+      "guide": ["guided-learning", "pep-math-practice"],
+      "lab": ["guided-learning", "pep-math-practice"],
+      "review": ["editorial-review", "pep-math-practice"]
     },
     "creator": {
       "producer": ["content-production"],

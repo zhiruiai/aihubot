@@ -72,6 +72,8 @@ export default {
   websiteFileCount_other: '{{count}} files',
   websiteDownload: 'Download ZIP',
   websiteDownloading: 'Preparing ZIP…',
+  websiteSaveFile: 'Save {{name}}',
+  websiteSaveFileFailed: 'The file could not be saved. Try again.',
   websiteDownloadFailed: 'The ZIP could not be downloaded. Try again.',
   websiteEditVersion: 'Edit this version',
   websiteVersionNumber: 'Version {{number}}',

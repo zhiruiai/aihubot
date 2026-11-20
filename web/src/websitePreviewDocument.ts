@@ -1,6 +1,7 @@
 import { copyPreviewSvg, SVG_NAMESPACE } from './htmlPreviewSvg';
 import {
   websiteAssetResolver,
+  websiteDownloadPath,
   websitePage,
   websiteRelativePath,
   websiteScripts,
@@ -35,7 +36,7 @@ const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 const BASELINE =
   'html{font-size:14px}body{min-width:0}small,sub,sup{font-size:12px!important}' +
   'img,video,canvas,svg{max-width:100%}canvas[hidden]{display:none!important}' +
-  '[data-ob-project-link]{cursor:pointer;text-decoration:underline;color:LinkText}' +
+  '[data-ob-project-link],[data-ob-project-download]{cursor:pointer;text-decoration:underline;color:LinkText}' +
   '#ob-project-status{font:14px/1.5 system-ui,sans-serif;padding:12px}' +
   '#ob-project-status:empty{display:none}';
 
@@ -58,7 +59,13 @@ export function websitePreviewToken() {
 export function websitePreviewDocument(
   files: Map<string, WebsitePreviewFile>,
   entryPath: string,
-  options: { channel: string; scriptError: string; partial: string },
+  options: {
+    channel: string;
+    scriptError: string;
+    partial: string;
+    desktopDownloads?: Set<string>;
+    studyReturnLabel?: string;
+  },
 ) {
   const entry = files.get(entryPath);
   if (!entry || entry.mime !== 'text/html') throw Error('Invalid website preview entry.');
@@ -111,7 +118,11 @@ export function websitePreviewDocument(
         value.startsWith('ob-project-')
       )
         continue;
-      if (attributes.has(name) || /^(?:data|aria)-[a-z0-9_-]{1,50}$/.test(name)) {
+      if (
+        attributes.has(name) ||
+        /^(?:data|aria)-[a-z0-9_-]{1,50}$/.test(name) ||
+        (name === 'for' && element.localName === 'label')
+      ) {
         element.setAttribute(name, value);
       }
     }
@@ -196,12 +207,18 @@ export function websitePreviewDocument(
         const fragment = /^#[a-z0-9_-]{1,160}$/i.test(href) ? href : undefined;
         const target = fragment ?? websitePage(files, entryPath, href);
         if (node.hasAttribute('download')) {
-          const url = assets(entryPath, href, 'download');
-          const path = websiteRelativePath(entryPath, href);
-          if (url && path) {
-            element.setAttribute('href', url);
+          const path = websiteDownloadPath(files, entryPath, href);
+          if (!path) {
+            partial = true;
+          } else if (options.desktopDownloads) {
+            options.desktopDownloads.add(path);
+            element.setAttribute('data-ob-project-download', path);
+            element.setAttribute('role', 'link');
+            element.setAttribute('tabindex', '0');
+          } else {
+            element.setAttribute('href', assets(entryPath, href, 'download')!);
             element.setAttribute('download', path.split('/').pop()!);
-          } else partial = true;
+          }
         } else if (target) {
           element.setAttribute('data-ob-project-link', target);
           element.setAttribute('role', 'link');
@@ -234,6 +251,10 @@ export function websitePreviewDocument(
   }
 
   for (const child of Array.from(parsed.content.childNodes)) copy(child, output.body, 0);
+  for (const label of output.body.querySelectorAll('label[for]')) {
+    const target = output.getElementById(label.getAttribute('for')!);
+    if (target?.localName !== 'input') label.removeAttribute('for');
+  }
   if (!canvas && scripts.entries.length) {
     canvas = output.createElement('canvas');
     canvas.setAttribute('data-ob-project-canvas', '');
@@ -251,6 +272,7 @@ export function websitePreviewDocument(
   payload.type = 'application/json';
   payload.textContent = JSON.stringify({
     channel: options.channel,
+    studyReturnLabel: options.studyReturnLabel,
     scriptError: options.scriptError,
     entries: scripts.entries,
     scripts: scripts.scripts,

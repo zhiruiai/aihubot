@@ -6,6 +6,10 @@
 
 [Open the six interactive projects](https://zhiruiai.github.io/aihubot/work/) · [Recordings and evidence](docs/office-workflows.md) · [Quick start](#quick-start) · [Download](https://github.com/zhiruiai/aihubot/releases/latest)
 
+## Start with one math problem
+
+Use the After-School Adventure Crew in the Bot Gallery. Try a ten-frame for Grade 1 arithmetic or a balance for Grade 7 linear equations. Work through a different example and explain your reasoning in the original conversation. [Learning guide](docs/education.md)
+
 ## The rain shells will miss opening day
 
 There are 72 hours until a pop-up opens. Its main supplier now needs 96 hours and the buyer has ¥1,400 less to spend. The Bot changes the three orders from **3 / 1 / 2 cartons to 1 / 3 / 2**. Switch lead times and budgets, inspect the projected margin and download the matching order.

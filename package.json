@@ -40,7 +40,7 @@
     "lint:js": "node scripts/run.mjs node_modules/eslint/bin/eslint.js --max-warnings 0 eslint.config.mjs \"{desktop,docs/showcase,examples,operations,scripts,server/workers,shared,tests,web}/**/*.{js,cjs,mjs}\"",
     "format": "prettier --write web operations shared scripts server/workers desktop examples tests",
     "sync:app-catalog": "node scripts/sync-app-catalog.mjs",
-    "check:source": "npm run lint:js && node scripts/run.mjs node_modules/typescript/bin/tsc --project tsconfig.tests.json && node scripts/run.mjs scripts/source/check-source-policy.mjs && node scripts/sync-app-catalog.mjs --check && node scripts/avatars/sync-community-packs.mjs --check",
+    "check:source": "npm run lint:js && node scripts/run.mjs node_modules/typescript/bin/tsc --project tsconfig.tests.json && node scripts/run.mjs scripts/source/check-source-policy.mjs && node scripts/sync-app-catalog.mjs --check && node scripts/avatars/sync-community-packs.mjs --check && node scripts/sync-learning-assets.mjs --check",
     "test:pi-worker": "node scripts/run.mjs --test tests/workers/pi-worker/*.test.ts",
     "test:source-policy": "node scripts/run.mjs --test tests/scripts/source/source-policy.test.mjs tests/scripts/source/test-layout.test.mjs",
     "check:privacy": "node scripts/run.mjs scripts/source/check-private-config.mjs",

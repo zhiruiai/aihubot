@@ -125,7 +125,10 @@ test('remote preload exposes bounded task methods in a main HTTP frame, without 
     'openbotVersion',
   ]);
   assert.deepEqual(Object.keys(remote.exposed.openbotAuthorization), ['open']);
-  assert.deepEqual(Object.keys(remote.exposed.openbotFiles), ['downloadSharedFile']);
+  assert.deepEqual(Object.keys(remote.exposed.openbotFiles), [
+    'downloadSharedFile',
+    'downloadWebsiteProject',
+  ]);
   remote.exposed.openbotAuthorization.open({ flowId: 'test' });
   assert.deepEqual(remote.calls, [['openbot-app:authorize', { flowId: 'test' }]]);
   remote.exposed.openbotFiles.downloadSharedFile({ path: '/not-trusted-until-main-validation' });
@@ -141,4 +144,8 @@ test('remote preload exposes bounded task methods in a main HTTP frame, without 
   assert.deepEqual(Object.keys(remote.exposed.openbotVersion), ['getVersion']);
   remote.exposed.openbotVersion.getVersion('ignored-renderer-value');
   assert.deepEqual(remote.calls[3], ['openbot-client:get-version']);
+  remote.exposed.openbotFiles.downloadWebsiteProject({
+    path: '/not-trusted-until-main-validation',
+  });
+  assert.equal(remote.calls[4][0], 'openbot-files:download-website');
 });

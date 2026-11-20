@@ -2,9 +2,55 @@
 const { lstatSync, realpathSync, renameSync, linkSync, unlinkSync } = require('node:fs');
 const { open } = require('node:fs/promises');
 const { join, dirname, basename, isAbsolute } = require('node:path');
-const { randomUUID } = require('node:crypto');
-const { sharedFileDownloadRequest } = require('./security.cjs');
-function createSharedDownloadHandler({
+const { randomUUID, createHash } = require('node:crypto');
+const { sharedFileDownloadRequest, websiteDownloadRequest } = require('./security.cjs');
+async function readWebsiteDownload(request, read, signal) {
+  const body = await read(request.manifestPath, 64 * 1024, signal, 'application/json');
+  const manifest = JSON.parse(body.toString('utf8'));
+  if (
+    manifest?.id !== request.projectId ||
+    !Array.isArray(manifest.files) ||
+    manifest.files.length < 1 ||
+    manifest.files.length > 64 ||
+    !Number.isSafeInteger(manifest.totalBytes) ||
+    manifest.totalBytes < 0 ||
+    manifest.totalBytes > 10 * 1024 * 1024
+  )
+    throw new Error('网站交付版本校验失败。');
+  if (!request.assetPath) {
+    // Rust revalidates every archived file against this immutable version before building its ZIP.
+    const bytes = await read(
+      request.path,
+      manifest.totalBytes + 128 * 1024,
+      signal,
+      'application/zip',
+    );
+    if (bytes.length < 4 || bytes.readUInt32LE(0) !== 0x04034b50)
+      throw new Error('网站交付压缩包校验失败。');
+    return bytes;
+  }
+  const asset = manifest.files.find((file) => file?.path === request.assetPath);
+  if (
+    !asset ||
+    asset.mime !== request.mime ||
+    !Number.isSafeInteger(asset.size) ||
+    asset.size < 0 ||
+    asset.size > 4 * 1024 * 1024 ||
+    asset.size > manifest.totalBytes ||
+    typeof asset.sha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(asset.sha256)
+  )
+    throw new Error('网站交付文件校验失败。');
+  const bytes = await read(request.path, asset.size, signal, 'application/octet-stream');
+  if (
+    bytes.length !== asset.size ||
+    createHash('sha256').update(bytes).digest('hex') !== asset.sha256
+  )
+    throw new Error('网站交付文件校验失败。');
+  return bytes;
+}
+
+function createFileDownloadHandlers({
   getConnection,
   getWindow,
   foregroundFrame,
@@ -13,13 +59,13 @@ function createSharedDownloadHandler({
   dialog,
   t,
 }) {
-  async function downloadSharedFile(event, value) {
+  async function download(event, value, validateRequest) {
     const current = getConnection();
     const window = getWindow();
     const frame = current && foregroundFrame(event.sender, current.origin);
     const token = current?.sharedFileInput;
     if (current) current.sharedFileInput = undefined;
-    const request = frame && sharedFileDownloadRequest(value, frame.url, current.origin);
+    const request = frame && validateRequest(value, frame.url, current.origin);
     if (
       !request ||
       !token ||
@@ -29,7 +75,11 @@ function createSharedDownloadHandler({
       event.senderFrame !== frame ||
       current.sharedFileDownload
     )
-      throw new Error('请在当前页面点击共享资料的下载按钮。');
+      throw new Error(
+        validateRequest === websiteDownloadRequest
+          ? '请在当前页面点击网站文件的下载按钮。'
+          : '请在当前页面点击共享资料的下载按钮。',
+      );
     const abort = new AbortController();
     current.sharedFileDownload = abort;
     const contents = current.view.webContents;
@@ -65,7 +115,7 @@ function createSharedDownloadHandler({
       )
         throw new Error('下载已取消，页面或账户已变化。');
     };
-    const requestBytes = async (path, maximum, signal) => {
+    const requestBytes = async (path, maximum, signal, expectedMime) => {
       check(signal);
       const response = await ses.fetch(current.origin + path, {
         method: 'GET',
@@ -78,7 +128,12 @@ function createSharedDownloadHandler({
       try {
         check(signal);
         if (
-          !response.ok ||
+          response.status !== 200 ||
+          (expectedMime && response.headers.get('content-type')?.split(';')[0] !== expectedMime) ||
+          (expectedMime &&
+            path === request.path &&
+            response.headers.get('content-disposition') !==
+              `attachment; filename="${request.name}"`) ||
           response.redirected ||
           !response.body ||
           (response.url && response.url !== current.origin + path)
@@ -154,7 +209,7 @@ function createSharedDownloadHandler({
     try {
       await verifyAccount(AbortSignal.any([abort.signal, AbortSignal.timeout(10000)]));
       const selected = await dialog.showSaveDialog(window, {
-        title: t('saveShared'),
+        title: t(request.projectId ? 'saveFile' : 'saveShared'),
         defaultPath: request.name,
         buttonLabel: t('save'),
         // macOS/Windows use the native replacement confirmation; Linux requires
@@ -184,7 +239,9 @@ function createSharedDownloadHandler({
       const existing = statTarget();
       const signal = AbortSignal.any([abort.signal, AbortSignal.timeout(45000)]);
       await verifyAccount(signal);
-      const bytes = await requestBytes(request.path, 10 * 1024 * 1024, signal);
+      const bytes = request.projectId
+        ? await readWebsiteDownload(request, requestBytes, signal)
+        : await requestBytes(request.path, 10 * 1024 * 1024, signal);
       await verifyAccount(signal);
       check(signal);
       temporary = join(directory, `.openbot-download-${randomUUID()}.tmp`);
@@ -242,6 +299,7 @@ function createSharedDownloadHandler({
         '共享资料或账户权限',
         '下载内容超过',
         '无法确认当前账户',
+        '网站交付',
       ];
       throw new Error(
         safe.some((prefix) => error?.message?.startsWith(prefix))
@@ -293,6 +351,9 @@ function createSharedDownloadHandler({
         throw new Error('下载未保存，但本机临时文件的清理未能确认，请检查保存位置后重试。');
     }
   }
-  return downloadSharedFile;
+  return {
+    shared: (event, value) => download(event, value, sharedFileDownloadRequest),
+    website: (event, value) => download(event, value, websiteDownloadRequest),
+  };
 }
-module.exports = { createSharedDownloadHandler };
+module.exports = { createFileDownloadHandlers };

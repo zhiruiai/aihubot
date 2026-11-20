@@ -37,6 +37,7 @@ export interface Conversation {
   pinned: boolean;
   demo?: boolean;
   teamBrief?: {
+    readonly starterTemplateId?: string;
     goal: string;
     summary: string;
     leadAgentId: string;

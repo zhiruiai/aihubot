@@ -37,6 +37,17 @@ async fn group_settings_allow_members_but_require_complete_consistent_assignment
         .await;
     assert_eq!(status, 200, "{saved}");
     body["expectedRevision"] = saved["revision"].clone();
+    body["teamBrief"]["starterTemplateId"] = json!("study");
+    assert_eq!(
+        f.request("PATCH", &path, Some(body.clone()), true, Some(&f.member))
+            .await
+            .0,
+        400
+    );
+    body["teamBrief"]
+        .as_object_mut()
+        .unwrap()
+        .remove("starterTemplateId");
     body["teamBrief"]["assignments"] =
         json!([{ "agentId":agents[0]["id"],"assignment":"Incomplete"}]);
     let (status, _) = f

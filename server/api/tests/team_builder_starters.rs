@@ -146,6 +146,8 @@ async fn starter_is_an_editable_idempotent_plan_without_model_or_implicit_work()
         .unwrap();
     assert_eq!(group["title"], "Edited Launch");
     assert_eq!(group["agentIds"][0], committed["result"]["leadAgentId"]);
+    assert_eq!(group["teamBrief"]["starterTemplateId"], "launch");
+    verify_template_origin(&f, group).await;
     assert_eq!(after["messages"], before["messages"]);
     assert_eq!(after["routines"], before["routines"]);
 
@@ -160,4 +162,68 @@ async fn starter_is_an_editable_idempotent_plan_without_model_or_implicit_work()
         "Launch Coordinator 2"
     );
     f.close().await;
+}
+
+async fn verify_template_origin(f: &Fixture, group: &serde_json::Value) {
+    use openbot_backend::workspace::Table;
+    let id = group["id"].as_str().unwrap();
+    let path = f.path(&format!("/conversations/{id}/settings"));
+    let (_, current) = f.request("GET", &path, None, false, Some(&f.owner)).await;
+    let mut patch = json!({"expectedRevision":current["revision"],"title":"Renamed team","agentIds":group["agentIds"],"teamBrief":group["teamBrief"]});
+    patch["teamBrief"]["starterTemplateId"] = json!("study");
+    assert_eq!(
+        f.request("PATCH", &path, Some(patch.clone()), false, Some(&f.owner))
+            .await
+            .0,
+        400
+    );
+    patch["teamBrief"]
+        .as_object_mut()
+        .unwrap()
+        .remove("starterTemplateId");
+    let (status, updated) = f
+        .request("PATCH", &path, Some(patch), false, Some(&f.owner))
+        .await;
+    assert_eq!(status, 200, "{updated}");
+    assert_eq!(
+        updated["conversation"]["teamBrief"]["starterTemplateId"],
+        "launch"
+    );
+
+    let store = f
+        .state
+        .workspace
+        .get(&f.workspace, &f.workspace)
+        .await
+        .unwrap();
+    let mut tx = store.begin().await.unwrap();
+    let mut legacy = updated["conversation"].clone();
+    legacy["teamBrief"]
+        .as_object_mut()
+        .unwrap()
+        .remove("starterTemplateId");
+    openbot_backend::workspace::WorkspaceStore::put_in(&mut tx, Table::Conversations, &legacy)
+        .await
+        .unwrap();
+    let mut untracked = legacy.clone();
+    untracked["id"] = json!(uuid::Uuid::new_v4().to_string());
+    openbot_backend::workspace::WorkspaceStore::put_in(&mut tx, Table::Conversations, &untracked)
+        .await
+        .unwrap();
+    openbot_backend::team_builder::initialize(&mut tx)
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    legacy["teamBrief"]["starterTemplateId"] = json!("launch");
+    assert_eq!(
+        store.get(Table::Conversations, id).await.unwrap(),
+        Some(legacy)
+    );
+    assert_eq!(
+        store
+            .get(Table::Conversations, untracked["id"].as_str().unwrap())
+            .await
+            .unwrap(),
+        Some(untracked)
+    );
 }

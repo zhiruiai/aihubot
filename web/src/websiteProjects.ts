@@ -202,8 +202,10 @@ export async function readWebsiteProjectResponse(
 type ProjectAccess = { workspaceId: string; userId: string; current: () => boolean };
 export function websiteProjectClient(project: WebsiteProjectSummary, access: ProjectAccess) {
   const root = `/api/workspaces/${access.workspaceId}/website-projects/${project.id}`;
-  function check(signal: AbortSignal) {
-    signal.throwIfAborted();
+  const nativeDownload =
+    typeof window === 'undefined' ? undefined : window.openbotFiles?.downloadWebsiteProject;
+  function check(signal?: AbortSignal) {
+    signal?.throwIfAborted();
     if (
       !workspaceId.test(access.workspaceId) ||
       !versionId.test(project.id) ||
@@ -236,6 +238,14 @@ export function websiteProjectClient(project: WebsiteProjectSummary, access: Pro
 
   return {
     manifest,
+    saveFile:
+      typeof nativeDownload === 'function'
+        ? async (path: string) => {
+            check();
+            if (!isPath(path)) throw Error('Invalid website project file');
+            await nativeDownload({ expectedUser: access.userId, path: root + '/files/' + path });
+          }
+        : undefined,
     async file(asset: WebsiteAsset, signal: AbortSignal): Promise<WebsiteProjectFile> {
       check(signal);
       if (
@@ -261,6 +271,11 @@ export function websiteProjectClient(project: WebsiteProjectSummary, access: Pro
       );
     },
     async download(signal: AbortSignal) {
+      if (typeof nativeDownload === 'function') {
+        check(signal);
+        await nativeDownload({ expectedUser: access.userId, path: root + '/download' });
+        return;
+      }
       const bytes = await read(
         '/download',
         'application/zip',

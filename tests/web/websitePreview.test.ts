@@ -129,7 +129,9 @@ test('worker runs local classic code against bounded handles without network or 
     importScripts() {
       runInContext(
         'if (fetch || WebSocket || RTCPeerConnection || Worker || importScripts || window !== self) throw Error();' +
-          'document.getElementById("status").textContent = "Local update";',
+          'document.getElementById("status").textContent = "Local update";' +
+          'const input = document.getElementById("answer");' +
+          'input.oninput = () => document.getElementById("status").textContent = input.value;',
         context,
       );
     },
@@ -141,7 +143,10 @@ test('worker runs local classic code against bounded handles without network or 
   await init({
     data: {
       kind: 'init',
-      elements: [{ key: '1', tag: 'p', id: 'status', classes: [], data: {}, text: '', value: '' }],
+      elements: [
+        { key: '1', tag: 'p', id: 'status', classes: [], data: {}, text: '', value: '' },
+        { key: '2', tag: 'input', id: 'answer', classes: [], data: {}, text: '', value: '' },
+      ],
       entries: [{ url: 'blob:null/synthetic', module: false }],
       width: 960,
       height: 540,
@@ -150,6 +155,17 @@ test('worker runs local classic code against bounded handles without network or 
   assert.deepEqual(JSON.parse(JSON.stringify(messages)), [
     { kind: 'op', op: 'text', id: '1', value: 'Local update' },
     { kind: 'ready' },
+  ]);
+  messages.length = 0;
+  const dispatch = [...listeners.get('message')!][0];
+  for (const value of ['两', '两边']) {
+    await dispatch({ data: { kind: 'event', type: 'input', key: '2', value } });
+  }
+  runInContext('document.getElementById("answer").value = "reset"', context);
+  assert.deepEqual(JSON.parse(JSON.stringify(messages)), [
+    { kind: 'op', op: 'text', id: '1', value: '两' },
+    { kind: 'op', op: 'text', id: '1', value: '两边' },
+    { kind: 'op', op: 'value', id: '2', value: 'reset' },
   ]);
   assert.doesNotThrow(() => new Function(WEBSITE_FRAME_RUNTIME));
 });

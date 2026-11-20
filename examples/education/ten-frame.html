@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>把种子盘种满 · aihubot</title>
+    <link rel="stylesheet" href="./lesson.css" />
+    <link rel="stylesheet" href="./ten-frame.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <b class="brand"><i class="icon" aria-hidden="true"></i>数学实验桌</b
+        ><span>一年级上册</span>
+      </header>
+      <section class="intro">
+        <p class="sub">6～10 的认识和加、减法</p>
+        <h1>把种子盘种满</h1>
+        <p>先猜一猜，再一颗一颗种。</p>
+      </section>
+      <div class="lesson">
+        <figure aria-label="两排十格的种子盘">
+          <figcaption class="cap"><span>种子盘</span><small>2 × 5</small></figcaption>
+          <div class="tray">
+            <span id="c1" class="cell filled" aria-hidden="true"></span
+            ><span id="c2" class="cell filled" aria-hidden="true"></span
+            ><span id="c3" class="cell filled" aria-hidden="true"></span
+            ><span id="c4" class="cell filled" aria-hidden="true"></span
+            ><span id="c5" class="cell filled" aria-hidden="true"></span
+            ><span id="c6" class="cell filled" aria-hidden="true"></span
+            ><span id="c7" class="cell filled" aria-hidden="true"></span
+            ><span id="c8" class="cell" aria-hidden="true"></span
+            ><span id="c9" class="cell" aria-hidden="true"></span
+            ><span id="c10" class="cell" aria-hidden="true"></span>
+          </div>
+          <p class="legend"><b></b>原来的种子 <b></b>新种下的种子</p>
+          <div class="reading">
+            <span id="trayCount" aria-live="polite">盘里有 7 颗</span
+            ><strong id="formula">7 + ? = 10</strong>
+          </div>
+        </figure>
+        <section class="card" aria-label="交互练习">
+          <section id="s0" class="">
+            <p class="step">第一步 · 先猜</p>
+            <h2>还差几颗种子？</h2>
+            <p class="instruction">每一格种一颗。盘里已经有 7 颗，先猜还要几颗才能种满。</p>
+            <div class="buttons">
+              <button type="button" id="p2" class="number">2</button
+              ><button type="button" id="p3" class="number">3</button
+              ><button type="button" id="p4" class="number">4</button>
+            </div>
+          </section>
+          <section id="s1" class="hidden">
+            <p class="step">第二步 · 动手种</p>
+            <h2>把空格种满。</h2>
+            <p class="instruction">点一次种一颗，看看你刚才猜的数。</p>
+            <div class="buttons">
+              <button type="button" id="plant" class="main">种下一颗</button
+              ><button type="button" id="nextTray" class="main hidden">试试另一个种子盘 →</button>
+            </div>
+          </section>
+          <section id="s2" class="hidden">
+            <p class="step">第三步 · 换你来</p>
+            <h2>这次只有 6 颗。</h2>
+            <p class="instruction">换了一个种子盘。要种满 10 格，还要种几颗？</p>
+            <div class="buttons">
+              <button type="button" id="a3" class="number">3</button
+              ><button type="button" id="a4" class="number">4</button
+              ><button type="button" id="a5" class="number">5</button>
+            </div>
+          </section>
+          <section id="s3" class="hidden">
+            <p class="step">第四步 · 说给教练听</p>
+            <h2>你是怎样看出来的？</h2>
+            <p class="instruction">可以说说你先看了哪一排，又是怎样数空格的。</p>
+            <div class="ending">
+              <label for="explain">我知道 6 还差 4 才到 10，因为……</label
+              ><input
+                class="answer"
+                id="explain"
+                type="text"
+                maxlength="180"
+                autocomplete="off"
+                placeholder="用自己的话说一句"
+              /><button type="button" id="save" class="main">整理我的回答</button>
+              <p class="hidden summary" id="summary" aria-live="polite"></p>
+              <p class="instruction hidden" id="back">
+                选中上面的话，复制回原对话，让教练听听你的理由。本页刷新后会重新开始。
+              </p>
+            </div>
+          </section>
+          <p id="feedback" class="feedback" aria-live="polite"></p>
+        </section>
+      </div>
+    </main>
+    <script src="./ten-frame.js"></script>
+  </body>
+</html>

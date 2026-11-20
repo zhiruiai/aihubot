@@ -1,0 +1,76 @@
+.study-lesson-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px clamp(12px, 3vw, 30px);
+  border-bottom: 1px solid var(--border);
+}
+.study-lesson-shelf > span,
+.study-lesson-shelf > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.study-lesson-shelf > span {
+  color: var(--text-muted);
+}
+.study-lesson-shelf > button {
+  min-height: 34px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.study-lesson-shelf > button:hover {
+  background: var(--surface-hover);
+}
+@media (pointer: coarse) {
+  .study-lesson-shelf > button {
+    min-height: 44px;
+  }
+}
+.modal.study-lesson-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 1000px);
+  height: min(88dvh, 850px);
+  padding: 0;
+  overflow: hidden;
+}
+.study-lesson-dialog > .modal-header,
+.study-lesson-dialog > footer {
+  flex: none;
+  margin: 0;
+  padding: 12px 16px;
+}
+.study-lesson-dialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+.study-lesson-content {
+  flex: 1;
+  min-height: 0;
+}
+.study-lesson-content > p {
+  padding: 16px;
+}
+.study-lesson-content > .website-project-preview {
+  min-height: 0;
+}
+@media (max-width: 600px) {
+  .modal-overlay:has(> .study-lesson-dialog) {
+    padding: 0;
+  }
+  .modal.study-lesson-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .study-lesson-dialog > footer {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>让天平保持平衡 · aihubot</title>
+    <link rel="stylesheet" href="./lesson.css" />
+    <link rel="stylesheet" href="./equation-balance.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <b class="brand"><i class="icon" aria-hidden="true"></i>数学实验桌</b
+        ><span>七年级上册</span>
+      </header>
+      <section class="intro">
+        <p class="sub">第五章 · 5.2 解一元一次方程</p>
+        <h1>让天平保持平衡</h1>
+        <p>用三包砝码，找出括号里漏掉的那一步。</p>
+      </section>
+      <div class="lesson">
+        <figure aria-label="等式天平">
+          <figcaption class="cap"><span>等式天平</span><small>左盘 = 右盘</small></figcaption>
+          <div class="device">
+            <div class="weights">
+              <div id="lhs" class="lhs">
+                <span id="pack1" class="parcel">x + 2</span
+                ><span id="pack2" class="parcel">x + 2</span
+                ><span id="pack3" class="parcel">x + 2</span>
+              </div>
+              <div class="rhs"><span id="mass" class="weight">21</span></div>
+            </div>
+            <div class="pans"><span class="pan"></span><span class="pan"></span></div>
+            <div class="beam"></div>
+            <div class="stand"></div>
+            <div class="foot"></div>
+          </div>
+          <p id="formula" class="boardEq" aria-live="polite">3(x + 2) = 21</p>
+          <p id="diagram" class="boardNote">左盘有三包，每包是一个 x 和两个单位。</p>
+        </figure>
+        <section class="card" aria-label="交互练习">
+          <section id="s0" class="">
+            <p class="step">第一步 · 找错</p>
+            <h2>这一步，错在哪里？</h2>
+            <p class="instruction">有人把 3(x + 2) 写成 3x + 2。看左盘三包，你会改哪一步？</p>
+            <div class="choiceList">
+              <button type="button" id="w1" class="">等号右边也应乘 3</button
+              ><button type="button" id="w2" class="">括号里的 2 也要乘 3</button
+              ><button type="button" id="w3" class="">x 前面应当没有 3</button>
+            </div>
+          </section>
+          <section id="s1" class="hidden">
+            <p class="step">第二步 · 拆括号</p>
+            <h2>把三包逐一拆开。</h2>
+            <p class="instruction">每拆一包，把其中的 x 和两个单位分开计数。</p>
+            <div class="buttons">
+              <button type="button" id="unpack" class="main">拆一包</button
+              ><button type="button" id="solve" class="main hidden">继续保持平衡 →</button>
+            </div>
+          </section>
+          <section id="s2" class="hidden">
+            <p class="step">第三步 · 保持平衡</p>
+            <h2>怎样留下 3x？</h2>
+            <p class="instruction">左边有 3x 和 6 个单位。现在选一个等价变形。</p>
+            <div class="choiceList">
+              <button type="button" id="left" class="">只把左边的 6 擦掉</button
+              ><button type="button" id="both" class="">两边都减 6</button>
+            </div>
+          </section>
+          <section id="s3" class="hidden">
+            <p class="step">第三步 · 保持平衡</p>
+            <h2>怎样求出一个 x？</h2>
+            <p class="instruction">三份相同的 x 合起来等于 15。</p>
+            <div class="buttons">
+              <button type="button" id="minus" class="">两边减 3</button
+              ><button type="button" id="divide" class="main">两边除以 3</button
+              ><button type="button" id="verifyNext" class="main hidden">试试另一架天平 →</button>
+            </div>
+          </section>
+          <section id="s4" class="hidden">
+            <p class="step">第四步 · 独立变式</p>
+            <h2>换个式子试试。</h2>
+            <p class="instruction">
+              刚才验证了 x = 5。新题是 2(y + 3) = 18，左盘现在只有两包。y 是多少？
+            </p>
+            <div class="buttons">
+              <button type="button" id="t3" class="number">3</button
+              ><button type="button" id="t6" class="number">6</button
+              ><button type="button" id="t9" class="number">9</button>
+            </div>
+          </section>
+          <section id="s5" class="hidden">
+            <p class="step">第五步 · 复述</p>
+            <h2>为什么天平始终平衡？</h2>
+            <p class="instruction">选你刚才用的一步，说明它为什么保留了等式。</p>
+            <div class="ending">
+              <label for="explain">我的理由</label
+              ><input
+                class="answer"
+                id="explain"
+                type="text"
+                maxlength="180"
+                autocomplete="off"
+                placeholder="用自己的话说一句"
+              /><button type="button" id="save" class="main">整理我的回答</button>
+              <p class="hidden summary" id="summary" aria-live="polite"></p>
+              <p class="instruction hidden" id="back">
+                选中上面的话，复制回原对话，让教练听听你的理由。本页刷新后会重新开始。
+              </p>
+            </div>
+          </section>
+          <p id="feedback" class="feedback" aria-live="polite"></p>
+        </section>
+      </div>
+    </main>
+    <script src="./equation-balance.js"></script>
+  </body>
+</html>

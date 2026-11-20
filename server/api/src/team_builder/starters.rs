@@ -36,6 +36,11 @@ pub async fn list(
     Ok(Json(CATALOG[language].clone()))
 }
 
+pub fn template_id(saved: &Value) -> Option<&str> {
+    saved["starterMembers"].as_array()?;
+    saved["template"]["id"].as_str()
+}
+
 pub fn selected(value: &Value) -> Result<Value> {
     only_fields(value, &["id", "language"])?;
     let invalid = || ApiError::bad("团队模板无效。").with_code("INVALID_TEAM_TEMPLATE");

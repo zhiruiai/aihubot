@@ -84,6 +84,15 @@ const downloadableMimes = new Set([
   'image/png',
   'image/webp',
 ]);
+export function websiteDownloadPath(
+  files: Map<string, WebsitePreviewFile>,
+  from: string,
+  href: string,
+) {
+  const path = websiteRelativePath(from, href);
+  return path && downloadableMimes.has(files.get(path)?.mime ?? '') ? path : undefined;
+}
+
 const fontMimes = new Set(['font/woff', 'font/woff2']);
 
 export function websiteVideoFragment(reference: string) {

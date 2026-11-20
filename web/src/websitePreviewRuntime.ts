@@ -76,7 +76,6 @@ export const WEBSITE_WORKER_RUNTIME = String.raw`
       const attributes = Object.freeze(row.attributes || {});
       let hasClass = Object.hasOwn(attributes, 'class') || classes.size > 0;
       let text = row.text;
-      let value = row.value;
       const classList = {
         contains: (name) => classes.has(name),
         add: (...names) => { names.filter(validClass).forEach(name => classes.add(name)); updateClass(); },
@@ -103,7 +102,7 @@ export const WEBSITE_WORKER_RUNTIME = String.raw`
         classList: { value: classList },
         textContent: { get: () => text, set: (next) => { text = String(next).slice(0, 4000); emit('text', row.key, text); } },
         innerText: { get: () => text, set: (next) => { item.textContent = next; } },
-        value: { get: () => value, set: (next) => { value = String(next).slice(0, 1000); emit('value', row.key, value); } },
+        value: { get: () => row.value, set: (next) => { row.value = String(next).slice(0, 1000); emit('value', row.key, row.value); } },
         dataset: { value: Object.freeze(row.data) },
         getAttribute: { value: getAttribute },
         hasAttribute: { value: (name) => getAttribute(name) !== null },
@@ -167,8 +166,9 @@ export const WEBSITE_WORKER_RUNTIME = String.raw`
         dispatchEvent(new Event('resize'));
       }
       if (data?.kind !== 'event') return;
-      const target = data.key === 'canvas' ? canvas : handle(rows.find(row => row.key === data.key));
-      if (target && target !== canvas && typeof data.value === 'string') target.value = data.value;
+      const row = rows.find(item => item.key === data.key);
+      if (row && typeof data.value === 'string') row.value = data.value.slice(0, 1000);
+      const target = data.key === 'canvas' ? canvas : handle(row);
       const event = new Event(data.type, { cancelable: true });
       for (const [name, value] of Object.entries(data.properties || {}))
         Object.defineProperty(event, name, { value });
@@ -197,11 +197,29 @@ export const WEBSITE_FRAME_RUNTIME = String.raw`
   const data = JSON.parse(payload.textContent);
   const status = payload.previousElementSibling;
   const announce = (kind, value) => parent.postMessage({ channel: data.channel, kind, value }, '*');
-  const links = document.querySelectorAll('[data-ob-project-link]');
+  if (data.studyReturnLabel) {
+    const save = document.getElementById('save');
+    const answer = document.getElementById('explain');
+    if (save instanceof HTMLButtonElement && answer instanceof HTMLInputElement && answer.type === 'text') {
+      save.textContent = data.studyReturnLabel;
+      answer.maxLength = 180;
+      save.addEventListener('click', event => {
+        const words = answer.value.trim().slice(0, 180);
+        if (!event.isTrusted || !words) return;
+        event.stopPropagation();
+        announce('study-reflection', words);
+      });
+    }
+  }
+  const links = document.querySelectorAll('[data-ob-project-link], [data-ob-project-download]');
   for (const link of links) {
     const follow = event => {
       if (!event.isTrusted) return;
       event.preventDefault();
+      if (link.dataset.obProjectDownload) {
+        announce('download', link.dataset.obProjectDownload);
+        return;
+      }
       const target = link.dataset.obProjectLink;
       if (target.startsWith('#')) document.getElementById(target.slice(1))?.scrollIntoView();
       else announce('navigate', target);

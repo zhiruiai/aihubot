@@ -1,0 +1,161 @@
+:root {
+  --paper: #f3f4f1;
+  --ink: #172b39;
+  --muted: #4d6370;
+  --line: #c5cfd0;
+  --accent: #225b74;
+  --wash: #e2ecec;
+  --dark: #173946;
+  --panel: #fff;
+}
+.icon {
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+figure {
+  background: #123c49;
+  color: #e7f1ef;
+}
+.cap small {
+  color: #abd1ca;
+}
+.device {
+  padding: 18px 0 9px;
+}
+.lhs,
+.rhs {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-width: 0;
+  min-height: 66px;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.weights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: 9%;
+  padding: 0 3%;
+}
+.parcel,
+.weight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 35px;
+  min-height: 38px;
+  padding: 3px 6px;
+  background: #c0dfcf;
+  border: 1px solid #d7f0e4;
+  color: #183f40;
+  border-radius: 6px 6px 2px 2px;
+  font:
+    600 clamp(13px, 1.8vw, 20px) Georgia,
+    serif;
+}
+.parcel.split {
+  background: #f8ce8c;
+  border-color: #fbe1a4;
+  color: #4a3622;
+}
+.weight {
+  min-width: 63px;
+  min-height: 47px;
+  font-size: 24px;
+  background: #ead4a6;
+  color: #3c382a;
+  border-color: #f7e0b1;
+}
+.pans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9%;
+  padding: 0 3%;
+}
+.pan {
+  height: 9px;
+  border-radius: 0 0 13px 13px;
+  background: #acd3cd;
+  position: relative;
+}
+.pan:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  height: 24px;
+  top: 8px;
+  width: 3px;
+  background: #93b8b0;
+}
+.beam {
+  height: 4px;
+  width: 51%;
+  margin: 21px auto 0;
+  background: #a9d0c5;
+  position: relative;
+}
+.stand {
+  width: 0;
+  height: 0;
+  border: 14px solid transparent;
+  border-bottom: 23px solid #dfb875;
+  border-top: 0;
+  margin: auto;
+}
+.foot {
+  height: 4px;
+  background: #9baea4;
+  width: 50px;
+  margin: 0 auto;
+}
+.boardEq {
+  text-align: center;
+  margin: 12px 0 0;
+  font:
+    600 clamp(24px, 3.7vw, 44px)/1.3 Georgia,
+    'Times New Roman',
+    serif;
+  color: #fff5df;
+  letter-spacing: 0.02em;
+}
+.boardNote {
+  color: #c1d8d5;
+  font-size: 13px;
+  text-align: center;
+  margin: 7px 0 0;
+}
+.math {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.choiceList {
+  display: grid;
+  gap: 7px;
+}
+.choiceList button {
+  text-align: left;
+}
+@media (max-width: 680px) {
+  .device {
+    padding-top: 8px;
+  }
+  .lhs,
+  .rhs {
+    min-height: 47px;
+  }
+  .parcel {
+    min-width: 27px;
+    min-height: 27px;
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+  .weight {
+    min-width: 47px;
+    min-height: 33px;
+    font-size: 20px;
+  }
+  .boardEq {
+    margin-top: 8px;
+  }
+}

@@ -151,6 +151,9 @@ pub async fn commit(
     )
     .await?;
     chat["teamBrief"] = json!({"goal":saved["plan"]["goal"],"summary":proposal["summary"],"leadAgentId":lead,"assignments":members.iter().map(|m|json!({"agentId":ids[m["key"].as_str().unwrap()],"assignment":m["assignment"]})).collect::<Vec<_>>()});
+    if let Some(id) = starters::template_id(&saved) {
+        chat["teamBrief"]["starterTemplateId"] = json!(id);
+    }
     WorkspaceStore::put_in(&mut tx, Table::Conversations, &chat).await?;
     saved["plan"]["draft"] = proposal;
     if saved["starterMembers"].is_array() {

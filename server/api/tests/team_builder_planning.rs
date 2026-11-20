@@ -76,6 +76,7 @@ async fn real_pi_plans_without_tools_then_owner_commit_creates_once_and_reuses_l
         .unwrap();
     assert_eq!(chat["agentIds"][0], bot["id"]);
     assert_eq!(chat["teamBrief"]["goal"], final_plan["goal"]);
+    assert!(chat["teamBrief"].get("starterTemplateId").is_none());
     assert_eq!(calls.load(Ordering::SeqCst), 1);
     task.abort();
     f.close().await;

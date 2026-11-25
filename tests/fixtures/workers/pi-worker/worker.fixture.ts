@@ -12,6 +12,7 @@ export function stream(
   response: ServerResponse,
   content?: string,
   tool?: { name: string; arguments: unknown },
+  finishReason = tool ? 'tool_calls' : 'stop',
 ) {
   response.writeHead(200, { 'Content-Type': 'text/event-stream' });
   const chunk = (delta: unknown, finish_reason: string | null = null) =>
@@ -37,7 +38,7 @@ export function stream(
       ],
     });
   else chunk({ role: 'assistant', content });
-  chunk({}, tool ? 'tool_calls' : 'stop');
+  chunk({}, finishReason);
   response.end('data: [DONE]\n\n');
 }
 export async function fixture(

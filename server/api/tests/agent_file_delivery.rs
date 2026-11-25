@@ -128,6 +128,111 @@ async fn final_file_delivery_is_a_real_card_and_keeps_its_bytes_after_source_edi
 }
 
 #[tokio::test]
+async fn a_new_bot_can_deliver_its_skill_file_even_when_its_final_reply_is_cut_short() {
+    let mut group = Group::new().await;
+    node(&mut group);
+    let steps = Arc::new(AtomicUsize::new(0));
+    let count = steps.clone();
+    let model = Model::new(Arc::new(move |body| {
+        let step = count.fetch_add(1, Ordering::SeqCst);
+        Box::pin(async move {
+            assert_eq!(role(&body), 0);
+            match step {
+                0 => call("list_skills", json!({"query":"web-research"})),
+                1 => call(
+                    "read_skill",
+                    json!({"skillId":last_tool(&body)["skills"][0]["id"]}),
+                ),
+                2 => {
+                    let skill = last_tool(&body);
+                    assert_eq!(skill["skillPackage"]["root"], "web-research");
+                    call(
+                        "workspace_write",
+                        json!({"path":"review.md","content":skill["content"]}),
+                    )
+                }
+                3 => call(
+                    "workspace_deliver",
+                    json!({"path":"review.md","expectedSha256":last_tool(&body)["sha256"]}),
+                ),
+                4 => {
+                    assert_eq!(last_tool(&body)["delivered"], true);
+                    response(
+                        json!({"role":"assistant","content":"First paragraph of the review."}),
+                        "length",
+                    )
+                }
+                _ => panic!("A truncated reply must not replay completed work"),
+            }
+        })
+    }))
+    .await;
+    let (status, saved) = group
+        .f
+        .request(
+            "POST",
+            &group.f.path("/model-profiles"),
+            Some(model.config()),
+            false,
+            Some(&group.f.owner),
+        )
+        .await;
+    assert_eq!(status, 201, "{saved}");
+    let (status, bot) = group
+        .f
+        .request(
+            "PATCH",
+            &group.f.path(&format!("/agents/{}", group.ids[0])),
+            Some(json!({"modelProfileId":saved["profile"]["id"]})),
+            false,
+            Some(&group.f.owner),
+        )
+        .await;
+    assert_eq!(status, 200, "{bot}");
+    group
+        .send(
+            "Deliver your reviewed research instructions and summarize them.",
+            "followUp",
+            false,
+        )
+        .await;
+    let messages = group.done().await;
+    let partial = messages
+        .iter()
+        .find(|m| m["role"] == "assistant" && m["kind"] == "text")
+        .unwrap();
+    assert_eq!(partial["status"], "error", "{partial}");
+    let text = partial["content"].as_str().unwrap();
+    assert!(text.contains("First paragraph of the review.") && text.contains("输出长度上限"));
+    let files: Vec<_> = messages.iter().filter(|m| m["kind"] == "file").collect();
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0]["status"], "done");
+    let id = files[0]["metadata"]["fileId"].as_str().unwrap();
+    let (status, download) = group
+        .f
+        .request(
+            "GET",
+            &group.f.path(&format!("/files/{id}/download")),
+            None,
+            false,
+            Some(&group.f.owner),
+        )
+        .await;
+    assert_eq!(status, 200, "{download}");
+    let source = group
+        .store
+        .list(Table::Skills)
+        .await
+        .unwrap()
+        .into_iter()
+        .find(|s| s["agentId"] == group.ids[0] && s["name"] == "web-research")
+        .unwrap();
+    assert_eq!(download["invalid"], source["content"]);
+    assert_eq!(steps.load(Ordering::SeqCst), 5);
+    group.close().await;
+}
+
+#[tokio::test]
 async fn unregistered_files_stale_versions_and_traversal_never_produce_delivery_cards() {
     let mut group = Group::new().await;
     node(&mut group);

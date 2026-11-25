@@ -3,8 +3,8 @@
   min-height: 44px;
 }
 .bot-creation-options {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -16,6 +16,20 @@
   max-width: 100%;
   white-space: normal;
   text-align: start;
+}
+.bot-create > .modal-body > .segmented {
+  margin-bottom: 14px;
+}
+.bot-create .member-choice {
+  padding-inline: 9px;
+  border-radius: 8px;
+}
+.bot-create .member-choice:has(input:checked) {
+  background: var(--accent-soft);
+}
+.bot-create .member-choice > span:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .bot-create-identity {
   display: grid;

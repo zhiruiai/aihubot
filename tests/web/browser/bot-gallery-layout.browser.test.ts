@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { build } from 'esbuild';
 import { chromium, type Locator } from 'playwright-core';
+import catalog from '../../../shared/bot-starter-templates.json';
 
 const origin = 'https://bot-gallery-layout.example.test';
+const total = Object.keys(catalog).length;
+const pageCount = Math.ceil(total / 4);
 
 async function bounds(locator: Locator) {
   const box = await locator.boundingBox();
@@ -76,8 +79,8 @@ test(
       await cards.first().waitFor();
       const header = await bounds(dialog.locator('.modal-header'));
       const seen = new Set<string>();
-      for (let index = 0; index < 4; index++) {
-        assert.equal(await cards.count(), 4);
+      for (let index = 0; index < pageCount; index++) {
+        assert.equal(await cards.count(), Math.min(4, total - index * 4));
         for (const name of await cards.locator('strong').allTextContents()) seen.add(name);
         await cards.last().click();
         const preview = dialog.locator('.starter-selected');
@@ -88,11 +91,13 @@ test(
         if (viewport.width > 760) {
           const notice = await bounds(dialog.locator('.starter-notice'));
           assert.ok(pagination.y + pagination.height <= notice.y, 'pagination stops before footer');
+          const grid = await dialog.locator('.starter-grid').evaluate((el) => ({
+            content: el.scrollHeight,
+            viewport: el.clientHeight,
+          }));
           assert.ok(
-            await dialog
-              .locator('.starter-grid')
-              .evaluate((el) => el.scrollHeight <= el.clientHeight + 1),
-            'four desktop cards fit without a list scrollbar',
+            grid.content <= grid.viewport + 1,
+            `The results fit at ${viewport.width}×${viewport.height}, page ${index + 1} (${grid.content}/${grid.viewport}px)`,
           );
         } else {
           const panel = await bounds(preview);
@@ -114,15 +119,24 @@ test(
           .click({ trial: true });
         assert.deepEqual(await bounds(dialog.locator('.modal-header')), header);
         const next = dialog.getByRole('button', { name: '下一页 Bot', exact: true });
-        if (index < 3) await next.click();
+        if (index + 1 < pageCount) await next.click();
         else assert.equal(await next.isDisabled(), true);
       }
-      assert.equal(seen.size, 16, 'all sixteen distinct Bots are reachable through real clicks');
+      assert.equal(seen.size, total, 'all shipped Bot templates are reachable through real clicks');
       await dialog.getByRole('button', { name: '上一页 Bot', exact: true }).click();
+      const category = dialog.getByRole('combobox', { name: '模板分类' });
+      assert.equal(await category.locator('option[value="企业协作"]').count(), 1);
+      await category.selectOption('企业协作');
+      assert.equal(await cards.count(), 3);
+      assert.equal(await dialog.locator('.starter-pagination').count(), 0);
+      await category.selectOption('');
       await dialog.getByRole('searchbox').fill('研究员');
       assert.equal(await cards.count(), 1);
-      await cards.first().click();
-      await dialog.locator('.starter-selected .template-detail').first().locator('summary').click();
+      await cards.first().press('Enter');
+      const summary = dialog.locator('.starter-selected .template-detail').first().locator('summary');
+      await page.keyboard.press('Tab');
+      assert.equal(await summary.evaluate((node) => document.activeElement === node), true);
+      await summary.click();
       await dialog.getByRole('button', { name: '直接使用', exact: true }).click({ trial: true });
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),

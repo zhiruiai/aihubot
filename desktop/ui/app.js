@@ -263,7 +263,10 @@
       if (before === eventVersion) {
         if (!applyState(state, true)) render('setup');
       }
-      if (status === 'setup') address.focus();
+      if (status === 'setup') {
+        const firstAction = startLocalButton.disabled ? address : startLocalButton;
+        firstAction.focus();
+      }
     } catch {
       if (before === eventVersion) render('error', t('stateFailed'));
     }

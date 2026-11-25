@@ -192,13 +192,16 @@ export const writes = (calls: Call[]) =>
 export function text(node: any): string {
   if (node == null || typeof node === 'boolean') return '';
   if (Array.isArray(node)) return node.map(text).join('');
-  return typeof node === 'object' ? text(node.props?.children) : String(node);
+  return typeof node === 'object' ? text([node.props?.children, node.props?.footer]) : String(node);
 }
 
 export function all(node: any, predicate: (value: any) => boolean): any[] {
   if (!node || typeof node !== 'object') return [];
   if (Array.isArray(node)) return node.flatMap((child) => all(child, predicate));
-  return [...(predicate(node) ? [node] : []), ...all(node.props?.children, predicate)];
+  return [
+    ...(predicate(node) ? [node] : []),
+    ...all([node.props?.children, node.props?.footer], predicate),
+  ];
 }
 
 export const component = (tree: any, name: string) => {

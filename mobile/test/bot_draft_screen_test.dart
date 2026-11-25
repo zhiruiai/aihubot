@@ -146,7 +146,15 @@ void main() {
                   conversation = await Navigator.push<String>(
                     context,
                     MaterialPageRoute<String>(
-                      builder: (_) => CreateScreen(scope: f.scope, kind: 'bot'),
+                      builder: (_) => CreateScreen(
+                        scope: f.scope,
+                        kind: 'bot',
+                        initialProfile: _profile,
+                        initialStarter: {
+                          'id': 'writing',
+                          'language': labels.language,
+                        },
+                      ),
                     ),
                   );
                 },
@@ -187,6 +195,7 @@ void main() {
       await _tap(tester, find.text(labels.create));
       await waitFor(tester, () => conversation != null);
       expect(conversation, 'new-chat');
+      expect(creates.single.containsKey('starter'), false);
       expect(creates.single['profile'], {
         ..._profile,
         'color': '#496fab',

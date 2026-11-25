@@ -1,6 +1,8 @@
 import test from 'node:test';
 
 import assert from 'node:assert/strict';
+import dns from 'node:dns/promises';
+import type { AddressInfo } from 'node:net';
 
 import { mkdtemp, symlink, mkdir, rm, realpath } from 'node:fs/promises';
 
@@ -208,4 +210,73 @@ test('egress proxy allows only explicit fixture and blocks redirected private de
       new Promise<void>((r) => forbidden.close(() => r())),
     ]);
   }
+});
+
+test('HTTP and CONNECT fall back within their checked DNS answer', async (t) => {
+  const host = 'dual-stack.example.test';
+  const lookup = t.mock.method(dns, 'lookup', async (hostname: string, options: unknown) => {
+    assert.equal(hostname, host);
+    assert.deepEqual(options, { all: true });
+    return [
+      { address: '::1', family: 6 },
+      { address: '127.0.0.1', family: 4 },
+    ];
+  });
+  const received: string[][] = [];
+  const fixture = createServer(async (req, res) => {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    received.push([req.method!, req.headers.host!, req.url!, Buffer.concat(chunks).toString()]);
+    res.end();
+  }).listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => fixture.once('listening', resolve));
+  const authority = `${host}:${(fixture.address() as AddressInfo).port}`;
+  const prior = process.env.OPENBOT_BROWSER_ALLOWED_ORIGINS;
+  process.env.OPENBOT_BROWSER_ALLOWED_ORIGINS = `http://${authority},https://${authority}`;
+  t.after(() => {
+    if (prior === undefined) delete process.env.OPENBOT_BROWSER_ALLOWED_ORIGINS;
+    else process.env.OPENBOT_BROWSER_ALLOWED_ORIGINS = prior;
+    fixture.close();
+  });
+  const proxy = await createBrowserNetworkProxy();
+  try {
+    const status = await new Promise<number | undefined>((resolve, reject) => {
+      const req = httpRequest(
+        proxy.url,
+        { method: 'POST', path: `http://${authority}/check` },
+        (res) => {
+          res.resume();
+          res.on('end', () => resolve(res.statusCode));
+        },
+      );
+      req.on('error', reject);
+      req.end('body sent once');
+    });
+    assert.equal(status, 200);
+    assert.deepEqual(received, [['POST', authority, '/check', 'body sent once']]);
+    const tunnelStatus = await new Promise<number | undefined>((resolve, reject) => {
+      const req = httpRequest(proxy.url, { method: 'CONNECT', path: authority });
+      req.on('connect', (res, socket) => {
+        socket.destroy();
+        resolve(res.statusCode);
+      });
+      req.on('error', reject);
+      req.end();
+    });
+    assert.equal(tunnelStatus, 200);
+    assert.equal(lookup.mock.callCount(), 2);
+  } finally {
+    await proxy.close();
+  }
+});
+
+test('a public DNS answer with a private fallback is rejected before connecting', async (t) => {
+  t.mock.method(dns, 'lookup', async () => [
+    { address: '2606:4700:4700::1111', family: 6 },
+    { address: '127.0.0.1', family: 4 },
+  ]);
+  await assert.rejects(
+    resolveBrowserTarget(new URL('https://dual-stack.example.test'), new Set()),
+    /内网/,
+  );
 });

@@ -6,6 +6,16 @@
 
 [Open the six interactive projects](https://zhiruiai.github.io/aihubot/work/) · [Recordings and evidence](docs/office-workflows.md) · [Quick start](#quick-start) · [Download](https://github.com/zhiruiai/aihubot/releases/latest)
 
+## Create a Bot and bring it into a group
+
+In **Bot Gallery**, open a template to see its role, instructions, and included skill packages. Use it directly to start a chat, or edit the profile first. [Bot templates](docs/bot-templates.md)
+
+![The aihubot Bot Gallery showing the Researcher and its included skills](docs/demo/bot-gallery-current.webp)
+
+From **New chat → Create a work group**, search for Bots by name or role. The selected participants stay visible as you search. Create the group from the footer once its roster is ready.
+
+![The aihubot group creation dialog with three selected Bots and the create action visible](docs/demo/create-group-current.webp)
+
 ## Start with one math problem
 
 Use the After-School Adventure Crew in the Bot Gallery. Try a ten-frame for Grade 1 arithmetic or a balance for Grade 7 linear equations. Work through a different example and explain your reasoning in the original conversation. [Learning guide](docs/education.md)
@@ -30,7 +40,7 @@ Each cover opens a working project in Chinese, with no sign-in. Four use fiction
 
 - **Join a team.** Open your administrator’s product URL in a browser, or enter it in the macOS Apple Silicon or Windows x64 connection client. Extract the full Windows ZIP before starting the app.
 - **Host a workspace.** The Linux x64 package includes the Rust API, both web apps and the workers. Follow the guide to install the Node.js dependencies and configure a private data directory. [Linux installation](server/api/deployment/README.md#install-and-configure)
-- **Work on this Mac.** The macOS source build with the bundled runtime can start a local personal workspace and execute approved tasks. The public v0.0.8 desktop clients connect to a separate server. That release uses the former **BambooShift** name. If your old update checker cannot follow the rename, download subsequent releases directly. [Desktop setup](docs/desktop-client.md) · [Releases](https://github.com/zhiruiai/aihubot/releases)
+- **Work on this Mac.** The macOS source build with the bundled runtime can start a local personal workspace and execute approved tasks. Public desktop connection clients require a running aihubot server. [Desktop setup](docs/desktop-client.md) · [Releases](https://github.com/zhiruiai/aihubot/releases)
 
 ### Run from source
 
@@ -56,7 +66,7 @@ Open the file card. Ask the Bot to split the 12 guides across Wednesday and Thur
 
 - **Website delivery.** Open a delivered site from chat, compare revisions, revisit the first version and continue in its original thread. The version-history recording shows saved deliveries from a real model. The playable Starport Landing example comes from a scripted conversation. [Version-history recording](docs/demo/website-delivery.gif) · [Play Starport Landing](https://zhiruiai.github.io/aihubot/en/)
 - **Install and run a skill.** In the Bot’s settings, open **Choose and manage skills → Choose from skill library**. Inspect the files in **Data quality review**, install it, attach a CSV and select the skill with `/`. Its Python script returns an exit code and row statistics. The execution Mac needs Python 3 and local command access. [Skill packages and execution](docs/bot-models-and-skills.md)
-- **Team and publishing.** Pick a ready-made team in the Bot Gallery or describe the role to the recruiter. For external publishing, configure a supported account and verify the platform receipt. The coffee case delivers a playable MP4 and a downloadable poster. [Team templates](docs/bot-templates.md) · [Publishing accounts](docs/publishing.md)
+- **Plan and publish.** The Content Operations and Publishing Bot turns a brief into an operating plan and a downloadable article. Connect a Zhihu account to save a platform draft or submit the chosen version, then check the platform receipt. [Zhihu workflow](docs/zhihu-articles.md) · [Publishing accounts](docs/publishing.md)
 
 ## Architecture and contributing
 

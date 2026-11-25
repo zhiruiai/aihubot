@@ -75,37 +75,45 @@ export async function executeBrowserPage(page: Page, action: ComputerActionInput
     if (response && response.status() >= 400)
       throw new Error(`网页请求失败 (${response.status()})：${await visiblePageText(page, 300)}`);
   }
-  if (action.type === 'browser_click')
-    await page.locator(action.selector!).first().click({ timeout: 10_000 });
-  if (action.type === 'browser_type') {
-    const field = page.locator(action.selector!).first();
-    await field.fill(action.text!, { timeout: 10_000 });
-    inputMatched = await field
-      .evaluateAll(([el], expected) => {
-        if (!el) return false;
-        if (el instanceof HTMLInputElement && el.type === 'password') return undefined;
-        const wanted = expected.replace(/\r\n?/g, '\n');
-        const value =
-          el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
-            ? el.value
-            : (el as HTMLElement).innerText;
-        if (value.replace(/\r\n?/g, '\n') === wanted) return true;
-        if (!(el instanceof HTMLElement && el.isContentEditable)) return false;
-        // Chrome's innerText counts an empty editable paragraph twice. Its selected plain text
-        // preserves the actual paragraph breaks. Restore the user's caret and selection direction.
-        const selection = el.ownerDocument.getSelection();
-        if (!selection) return false;
-        const { anchorNode, anchorOffset, focusNode, focusOffset } = selection;
-        try {
-          selection.selectAllChildren(el);
-          return selection.toString().replace(/\r\n?/g, '\n') === wanted;
-        } finally {
-          if (anchorNode && focusNode)
-            selection.setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset);
-          else selection.removeAllRanges();
-        }
-      }, action.text!)
-      .catch(() => undefined);
+  if (action.type === 'browser_click' || action.type === 'browser_type') {
+    const field = page.locator(action.selector!).filter({ visible: true });
+    try {
+      if (action.type === 'browser_click') await field.click({ timeout: 10_000 });
+      else await field.fill(action.text!, { timeout: 10_000 });
+    } catch (error) {
+      // A Playwright strictness error includes DOM excerpts that may contain private input.
+      if (error instanceof Error && error.message.includes('strict mode violation:'))
+        throw new Error('页面上有多个可见的匹配控件，请重新查看并指定其中一个。');
+      throw error;
+    }
+    if (action.type === 'browser_type')
+      inputMatched = await field
+        .evaluateAll((elements, expected) => {
+          if (elements.length !== 1) return false;
+          const [el] = elements;
+          if (el instanceof HTMLInputElement && el.type === 'password') return undefined;
+          const wanted = expected.replace(/\r\n?/g, '\n');
+          const value =
+            el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+              ? el.value
+              : (el as HTMLElement).innerText;
+          if (value.replace(/\r\n?/g, '\n') === wanted) return true;
+          if (!(el instanceof HTMLElement && el.isContentEditable)) return false;
+          // Chrome's innerText counts an empty editable paragraph twice. Its selected plain text
+          // preserves the actual paragraph breaks. Restore the user's caret and selection direction.
+          const selection = el.ownerDocument.getSelection();
+          if (!selection) return false;
+          const { anchorNode, anchorOffset, focusNode, focusOffset } = selection;
+          try {
+            selection.selectAllChildren(el);
+            return selection.toString().replace(/\r\n?/g, '\n') === wanted;
+          } finally {
+            if (anchorNode && focusNode)
+              selection.setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset);
+            else selection.removeAllRanges();
+          }
+        }, action.text!)
+        .catch(() => undefined);
   }
   if (action.type === 'browser_scroll')
     await page.mouse.wheel(0, action.direction === 'up' ? -650 : 650);

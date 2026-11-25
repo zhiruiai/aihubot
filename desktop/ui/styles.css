@@ -411,7 +411,30 @@ h1 {
   color: #797180;
 }
 
-/* Keep both workspace choices visible beside the introduction on desktop. */
+/* Keep connection choices prominent as the window size or zoom changes. */
+@media (max-width: 759px) {
+  .connection-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .setup-introduction {
+    display: contents;
+  }
+  .setup-actions {
+    order: 1;
+  }
+  .workspace-note,
+  .language-help {
+    order: 2;
+  }
+  .orb {
+    width: 64px;
+    height: 64px;
+  }
+  .intro {
+    margin-bottom: 18px;
+  }
+}
 @media (min-width: 760px) {
   .setup-layout {
     padding: 36px 40px;

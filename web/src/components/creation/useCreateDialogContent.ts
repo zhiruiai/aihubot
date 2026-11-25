@@ -11,6 +11,8 @@ import '../BotProfiles.css';
 import { suggestedGroupTitle } from '../GroupRecipients';
 import { Props } from './parts';
 export function useCreateDialogContent(props: Props) {
+  const [formId] = useState(() => `create-${crypto.randomUUID()}`);
+  const outcomeRef = useRef<HTMLElement>(null);
   const avatarEdits = useAvatarEdits();
   const [view, setView] = useState<'create' | 'model-settings' | 'starter-catalog'>('create');
   const viewRef = useRef(view);
@@ -50,6 +52,12 @@ export function useCreateDialogContent(props: Props) {
     userId: props.userId,
   });
   const manual = useRef({ title, customTitle, ids });
+  useEffect(() => {
+    if (creation.state.request) {
+      outcomeRef.current?.focus();
+      outcomeRef.current?.scrollIntoView({ block: 'start' });
+    }
+  }, [creation.state.request?.requestId, creation.state.receipt?.status]);
   manual.current = { title, customTitle, ids };
   const groupTitle = customTitle ? title : suggestedGroupTitle(ids, props.agents);
   const mode = props.botOnly ? 'bot' : props.canCreateBot ? choice : 'group',
@@ -227,6 +235,8 @@ export function useCreateDialogContent(props: Props) {
   }
 
   return {
+    formId,
+    outcomeRef,
     view,
     browseStarters,
     chooseStarter,

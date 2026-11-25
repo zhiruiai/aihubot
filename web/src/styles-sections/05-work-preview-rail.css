@@ -298,8 +298,7 @@
   font-size: 12px;
 }
 .dialog-form select {
-  appearance: auto;
-  height: 39px;
+  min-height: 39px;
   line-height: 1.2;
 }
 .dialog-form label small,

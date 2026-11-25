@@ -7,10 +7,8 @@ import type { Language } from '../i18n/language';
 import { starterBotPacks } from '../starterSkillPacks';
 import {
   filterStarterTemplates,
-  starterCategories,
-  starterCategoryLabel,
   starterTemplates,
-  type StarterCategory,
+  type StarterTemplateId,
 } from '../starterTemplates';
 import { Avatar } from './Avatar';
 import { BotTemplatePreview } from './BotTemplatePreview';
@@ -20,11 +18,11 @@ export function StarterTemplateCatalog(props: {
   disabled?: boolean;
   current: () => boolean;
   onChoose: (profile: BotProfileDraft, starter: CreationStarter) => void;
-  onInstall?: (id: StarterCategory, language: Language) => void;
+  onInstall?: (id: StarterTemplateId, language: Language) => void;
   installError?: string;
 }) {
   const [query, setQuery] = useState(''),
-    [category, setCategory] = useState<StarterCategory | 'all'>('all'),
+    [category, setCategory] = useState(''),
     [selected, setSelected] = useState<string>(),
     [page, setPage] = useState(0);
   const preview = useRef<HTMLElement>(null);
@@ -43,14 +41,16 @@ export function StarterTemplateCatalog(props: {
   }, []);
   const latest = useRef(props);
   latest.current = props;
-  const templates = starterTemplates(),
-    visible = filterStarterTemplates(templates, query, category),
-    item = templates.find((t) => t.id === selected);
+  const templates = starterTemplates();
+  const categories = [...new Set(templates.map((template) => template.category))];
+  const activeCategory = categories.includes(category) ? category : '';
+  const visible = filterStarterTemplates(templates, query, activeCategory);
   const language = currentLanguage();
   const pageSize = 4;
   const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
   const shown = visible.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+  const item = shown.find((template) => template.id === selected);
   const included = item ? starterBotPacks(item.id, language) : [];
   const live = () => mounted.current && latest.current.current() && !latest.current.disabled;
   return (
@@ -60,6 +60,7 @@ export function StarterTemplateCatalog(props: {
         <input
           type="search"
           value={query}
+          disabled={props.disabled}
           aria-label={uiText('workspace:starterSearch')}
           placeholder={uiText('workspace:starterSearchHint')}
           onChange={(event) => {
@@ -72,17 +73,20 @@ export function StarterTemplateCatalog(props: {
         <label>
           {uiText('workspace:starterCategory')}
           <select
-            value={category}
+            value={activeCategory}
+            disabled={props.disabled}
             onChange={(event) => {
               if (live()) {
-                setCategory(event.target.value as StarterCategory | 'all');
+                setCategory(event.target.value);
+                setSelected(undefined);
                 setPage(0);
               }
             }}
           >
-            {(['all', ...starterCategories] as const).map((value) => (
+            <option value="">{uiText('workspace:starterAll')}</option>
+            {categories.map((value) => (
               <option key={value} value={value}>
-                {starterCategoryLabel(value)}
+                {value}
               </option>
             ))}
           </select>
@@ -105,7 +109,7 @@ export function StarterTemplateCatalog(props: {
                 <Avatar agent={template.profile} size={44} />
                 <span>
                   <strong>{template.profile.name}</strong>
-                  <small>{starterCategoryLabel(template.category)}</small>
+                  <small>{template.category}</small>
                   <p>{template.profile.description}</p>
                   {props.onInstall && (
                     <small>
@@ -120,33 +124,35 @@ export function StarterTemplateCatalog(props: {
             ))}
           </div>
           {!visible.length && <p role="status">{uiText('workspace:starterEmpty')}</p>}
-          <nav className="starter-pagination" aria-label={uiText('workspace:starterPages')}>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={uiText('workspace:starterPrevious')}
-              disabled={props.disabled || currentPage === 0}
-              onClick={() => {
-                if (live()) setPage(currentPage - 1);
-              }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span aria-live="polite">
-              {uiText('workspace:starterPage', { page: currentPage + 1, total: pageCount })}
-            </span>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={uiText('workspace:starterNext')}
-              disabled={props.disabled || currentPage + 1 >= pageCount}
-              onClick={() => {
-                if (live()) setPage(currentPage + 1);
-              }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </nav>
+          {pageCount > 1 && (
+            <nav className="starter-pagination" aria-label={uiText('workspace:starterPages')}>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label={uiText('workspace:starterPrevious')}
+                disabled={props.disabled || currentPage === 0}
+                onClick={() => {
+                  if (live()) setPage(currentPage - 1);
+                }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span aria-live="polite">
+                {uiText('workspace:starterPage', { page: currentPage + 1, total: pageCount })}
+              </span>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label={uiText('workspace:starterNext')}
+                disabled={props.disabled || currentPage + 1 >= pageCount}
+                onClick={() => {
+                  if (live()) setPage(currentPage + 1);
+                }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
         </div>
         {item ? (
           <section

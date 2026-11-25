@@ -15,16 +15,20 @@ import 'bot_draft_screen.dart';
 import 'bot_form.dart';
 import '../collaboration/team_plans_screen.dart';
 
+typedef _ProfileChoice = ({Json profile, Json? starter});
+
 class CreateScreen extends StatefulWidget {
   const CreateScreen({
     super.key,
     required this.scope,
     required this.kind,
     this.initialProfile,
+    this.initialStarter,
   });
   final WorkspaceController scope;
   final String kind;
   final Json? initialProfile;
+  final Json? initialStarter;
   @override
   State<CreateScreen> createState() => _CreateScreenState();
 }
@@ -42,6 +46,7 @@ class _CreateScreenState extends State<CreateScreen> {
     'color': defaultAvatarColor,
   };
   final List<String> selected = [];
+  Json? starter;
   int profileRevision = 0;
   bool profileEdited = false;
   bool get editable =>
@@ -56,6 +61,9 @@ class _CreateScreenState extends State<CreateScreen> {
     final initial = widget.initialProfile;
     if (widget.kind == 'bot' && initial != null) {
       profile = Map.of(initial);
+      starter = widget.initialStarter == null
+          ? null
+          : Map.of(widget.initialStarter!);
     }
     controller = CreationController(widget.scope, widget.kind);
     unawaited(controller.initialize());
@@ -77,7 +85,7 @@ class _CreateScreenState extends State<CreateScreen> {
     }
     await controller.start(
       widget.kind == 'bot'
-          ? {'profile': profile}
+          ? {'profile': profile, if (starter != null) 'starter': starter}
           : {'title': title.text.trim(), 'agentIds': selected.toList()},
     );
     await _finish();
@@ -95,7 +103,7 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   Future<void> _loadProfile(
-    Future<Json?> Function() choose,
+    Future<_ProfileChoice?> Function() choose,
     String replaceNotice,
   ) async {
     final scope = widget.scope;
@@ -116,27 +124,32 @@ class _CreateScreenState extends State<CreateScreen> {
     }
     if (!current()) return;
     setState(() {
-      profile = next;
+      profile = next.profile;
+      starter = next.starter;
       profileEdited = false;
       profileRevision++;
     });
   }
 
-  Future<void> _browseOriginals() => _loadProfile(
-    () => previewOriginalBotTemplates(context, widget.scope),
-    'mobileStarterReplace',
-  );
+  Future<void> _browseOriginals() => _loadProfile(() async {
+    final template = await previewOriginalBotTemplates(context, widget.scope);
+    if (template == null) return null;
+    return (
+      profile: Map<String, dynamic>.of(template.profile),
+      starter: template.starter,
+    );
+  }, 'mobileStarterReplace');
 
-  Future<void> _draftBot() => _loadProfile(
-    () => Navigator.push<Json>(
+  Future<void> _draftBot() => _loadProfile(() async {
+    final next = await Navigator.push<Json>(
       context,
       MaterialPageRoute<Json>(
         settings: const RouteSettings(name: '/bots/new/draft'),
         builder: (_) => BotDraftScreen(scope: widget.scope),
       ),
-    ),
-    'mobileBotDraftReplace',
-  );
+    );
+    return next == null ? null : (profile: next, starter: null);
+  }, 'mobileBotDraftReplace');
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(

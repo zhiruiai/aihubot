@@ -26,6 +26,7 @@ export type EngineToolEndEvent = {
   parentToolCallId?: string;
 };
 export type EngineEvent = EngineMessageEvent | EngineToolEndEvent;
+export class ModelOutputLimitError extends Error {}
 export type EngineOptions = {
   run: StartRun;
   signal: AbortSignal;

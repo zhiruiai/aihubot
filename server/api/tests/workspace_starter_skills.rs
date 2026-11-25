@@ -194,6 +194,44 @@ async fn failed_package_write_rolls_back_everything_and_retry_uses_same_request(
 }
 
 #[tokio::test]
+async fn content_operations_starter_installs_reviewed_planning_and_publishing_packages() {
+    let f = Fixture::new().await;
+    let before = f.bootstrap().await;
+    let request = request("content-operations", "zh-CN");
+    let (status, installed) = post(&f, "/starter-bots", request.clone()).await;
+    assert_eq!(status, 201, "{installed}");
+    let skills = installed["skills"].as_array().unwrap();
+    for (id, files) in [
+        (
+            "content-operations",
+            &["SKILL.md", "assets/plan.md", "references/review.md"][..],
+        ),
+        (
+            "zhihu-article-publishing",
+            &[
+                "SKILL.md",
+                "references/editor-review.md",
+                "scripts/article_link.mjs",
+            ][..],
+        ),
+    ] {
+        let skill = skills.iter().find(|skill| skill["name"] == id).unwrap();
+        assert_eq!(skill["status"], "active");
+        assert_eq!(skill["agentId"], installed["agent"]["id"]);
+        assert_eq!(skill["skillPackage"]["format"], "agent-skills");
+        let manifest = skill["skillPackage"]["files"].as_array().unwrap();
+        for path in files {
+            assert!(manifest.iter().any(|file| file["path"] == *path), "{path}");
+        }
+    }
+    assert_eq!(post(&f, "/starter-bots", request).await, (200, installed));
+    let after = f.bootstrap().await;
+    assert_eq!(before["messages"], after["messages"]);
+    assert_eq!(before["routines"], after["routines"]);
+    f.close().await;
+}
+
+#[tokio::test]
 async fn team_commit_provisions_only_reviewed_exact_stock_members() {
     let f = Fixture::new().await;
     let before = f.bootstrap().await;

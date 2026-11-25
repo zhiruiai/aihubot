@@ -14,7 +14,7 @@ import 'package:openbot_mobile/features/collaboration/team_plans_screen.dart';
 
 import 'collaboration_support.dart' show originalRequest, plan, revision2;
 import 'library_support.dart';
-import 'library_widgets_test.dart' show waitForLibrary;
+import 'library_widget_support.dart' show waitForLibrary;
 import 'support.dart';
 import 'widgets_test.dart' show testApp;
 

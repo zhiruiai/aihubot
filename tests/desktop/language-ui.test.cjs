@@ -49,6 +49,21 @@ function bridgeFixture() {
   };
 }
 
+test('setup focuses the local start action when available and the address otherwise', async () => {
+  const fixture = bridgeFixture();
+  fixture.bridge.startLocal = async () => ({ status: 'setup' });
+  fixture.publish({ localAvailable: true });
+  const local = setupDom(fixture.bridge);
+  await settle();
+  assert.equal(local.byId('start-local').focused, true);
+  assert.equal(local.byId('workspace-url').focused, undefined);
+  local.hide();
+  const remote = setupDom(bridgeFixture().bridge);
+  await settle();
+  assert.equal(remote.byId('workspace-url').focused, true);
+  remote.hide();
+});
+
 test('shipped setup DOM translates all declared labels and attributes while retaining an edited address', async () => {
   const fixture = bridgeFixture(),
     page = setupDom(fixture.bridge);
@@ -56,10 +71,7 @@ test('shipped setup DOM translates all declared labels and attributes while reta
   assert.equal(page.document.documentElement.lang, 'en');
   assert.equal(page.byId('page-title').textContent, 'Connect to your workspace');
   assert.equal(page.byId('workspace-url').attributes.placeholder, 'https://your-workspace.example');
-  assert.equal(
-    page.elements.find((item) => item.tag === 'img').attributes.alt,
-    'aihubot mascot',
-  );
+  assert.equal(page.elements.find((item) => item.tag === 'img').attributes.alt, 'aihubot mascot');
   assert.match(
     page.elements.find((item) => item.attributes['data-i18n'] === 'accountLogin').textContent,
     /aihubot account/,

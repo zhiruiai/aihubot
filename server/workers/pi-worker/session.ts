@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { StartRun, WorkerCommand } from './protocol.js';
 import { MAX_RUN_TIMEOUT_MS } from './protocol.js';
 import { createPluginHost, type WorkerPluginHost } from '../plugin-runtime/host.js';
-import type { EngineSession } from '../plugin-runtime/engines.js';
+import { ModelOutputLimitError, type EngineSession } from '../plugin-runtime/engines.js';
 import type { TrustedBundledPlugin } from '../plugin-runtime/bundled.js';
 
 type PendingTool = {
@@ -28,6 +28,7 @@ export class WorkerSession {
   }
   async execute() {
     let status = 'error';
+    let code: string | undefined;
     let plugins: WorkerPluginHost | undefined;
     // Rust owns the shared deadline and authority cancellation. This bounded
     // worker timer prevents a lost host from leaving pending tools alive forever.
@@ -75,16 +76,12 @@ export class WorkerSession {
       await session.prompt(this.run.prompt);
       this.controller.signal.throwIfAborted();
       status = 'completed';
-    } catch {
+    } catch (error) {
       status = this.controller.signal.aborted && !this.timedOut ? 'cancelled' : 'error';
-      this.emit({
-        type: 'error',
-        code: this.timedOut
-          ? 'RUN_DEADLINE_EXCEEDED'
-          : status === 'cancelled'
-            ? 'RUN_CANCELLED'
-            : 'RUN_FAILED',
-      });
+      if (this.timedOut) code = 'RUN_DEADLINE_EXCEEDED';
+      else if (status === 'cancelled') code = 'RUN_CANCELLED';
+      else code = error instanceof ModelOutputLimitError ? 'MODEL_OUTPUT_LIMIT' : 'RUN_FAILED';
+      this.emit({ type: 'error', code });
     } finally {
       clearTimeout(deadline);
       this.closing = true;
@@ -95,9 +92,10 @@ export class WorkerSession {
         await plugins?.dispose();
       } catch {
         status = 'error';
-        this.emit({ type: 'error', code: 'PLUGIN_CLEANUP_FAILED' });
+        code = 'PLUGIN_CLEANUP_FAILED';
+        this.emit({ type: 'error', code });
       } finally {
-        this.emit({ type: 'settled', status });
+        this.emit({ type: 'settled', status, ...(code && { code }) });
         this.ended = true;
       }
     }

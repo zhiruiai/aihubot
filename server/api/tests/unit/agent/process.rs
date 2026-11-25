@@ -2,6 +2,21 @@ use super::*;
 use serde_json::json;
 
 #[test]
+fn a_truncated_reply_observes_the_same_new_input_fence_as_a_complete_reply() {
+    let truncated = json!({"status":"error","code":"MODEL_OUTPUT_LIMIT"});
+    assert_eq!(
+        check_run_settlement(&truncated, true).unwrap_err().code,
+        "MODEL_OUTPUT_LIMIT"
+    );
+    for stale in [&truncated, &json!({"status":"completed"})] {
+        assert_eq!(
+            check_run_settlement(stale, false).unwrap_err().code,
+            "RUN_SUPERSEDED"
+        );
+    }
+}
+
+#[test]
 fn start_matches_worker_units_and_wire_size() {
     let mut value = json!({"systemPrompt":"🌿".repeat(MAX_SYSTEM_UTF16 / 2),"prompt":"task"});
     assert!(start_fits(&value, MAX_START_BYTES));

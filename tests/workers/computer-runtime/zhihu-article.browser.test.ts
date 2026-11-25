@@ -112,6 +112,42 @@ test(
         ])
           assert.ok(!JSON.stringify(draft).includes(secret), secret);
         if (outcome === 'published') {
+          await page.locator('form').evaluate((form) => {
+            const decoy = document.createElement('input');
+            decoy.setAttribute('aria-label', '文章标题');
+            decoy.value = 'synthetic-private-field-value';
+            const other = document.createElement('button');
+            other.type = 'submit';
+            other.textContent = 'synthetic-private-button-text';
+            form.prepend(decoy, other);
+          });
+          const ambiguous = { message: '页面上有多个可见的匹配控件，请重新查看并指定其中一个。' };
+          await assert.rejects(
+            executeBrowserPage(page, {
+              type: 'browser_type',
+              selector: '[aria-label="文章标题"]',
+              text: 'Ambiguous draft',
+            }),
+            ambiguous,
+          );
+          assert.deepEqual(
+            await page
+              .locator('[aria-label="文章标题"]')
+              .evaluateAll((fields) => fields.map((field) => (field as HTMLInputElement).value)),
+            ['synthetic-private-field-value', ''],
+          );
+          await assert.rejects(
+            executeBrowserPage(page, {
+              type: 'browser_click',
+              selector: 'button[type=submit]',
+            }),
+            ambiguous,
+          );
+          assert.equal(submissions, 0);
+          await page.locator('form').evaluate((form) => {
+            form.querySelector('input')!.hidden = true;
+            form.querySelector('button')!.hidden = true;
+          });
           const changed = await executeBrowserPage(page, {
             type: 'browser_type',
             selector: '[name=title]',

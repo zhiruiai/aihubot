@@ -1,5 +1,5 @@
 import { uiText } from '../../i18n';
-import { Check, Loader2, RefreshCw, Users } from 'lucide-react';
+import { Check, Loader2, RefreshCw, Search, Users } from 'lucide-react';
 import { canEditGroupMembers, GROUP_MAX_MEMBERS } from '../../../../shared/group-members';
 import { GROUP_SETTINGS_LIMITS } from '../../../../shared/group-settings';
 import { Avatar } from '../Avatar';
@@ -42,13 +42,42 @@ export function GroupSettingsContentView(model: GroupSettingsContentModel) {
     update,
     members,
     draftRef,
+    formId,
+    memberQuery,
+    setMemberQuery,
   } = model;
+  const choices = [
+    ...props.agents,
+    ...members.filter((agent) => !props.agents.some((item) => item.id === agent.id)),
+  ].filter((agent) =>
+    `${agent.name} ${agent.role}`
+      .toLocaleLowerCase()
+      .includes(memberQuery.trim().toLocaleLowerCase()),
+  );
   return (
     <Dialog
       title={uiText('settings:text_5098a74928d1')}
       subtitle={uiText('settings:text_f609aadb80d9')}
       className="group-settings-dialog"
       onClose={close}
+      footer={
+        (!loading || base) && (
+          <div className="dialog-actions">
+            <button type="button" className="secondary-button" disabled={saving} onClick={close}>
+              {uiText('settings:text_3fd47edce45b')}
+            </button>
+            <button
+              type="submit"
+              form={formId}
+              className="primary-button"
+              disabled={locked || loading || review || !dirty}
+            >
+              {saving ? <Loader2 size={15} className="spin" /> : <Check size={15} />}
+              {uiText('settings:text_937fc1d4279a')}
+            </button>
+          </div>
+        )
+      }
     >
       {error && (
         <p className="error-text" role="alert">
@@ -187,6 +216,7 @@ export function GroupSettingsContentView(model: GroupSettingsContentModel) {
         <p className="field-help">{uiText('settings:text_b600c27e1e18')}</p>
       ) : (
         <form
+          id={formId}
           className="dialog-form"
           onSubmit={(event) => {
             event.preventDefault();
@@ -240,10 +270,27 @@ export function GroupSettingsContentView(model: GroupSettingsContentModel) {
               {draft.agentIds.length}/
               {Math.max(GROUP_MAX_MEMBERS, base?.conversation.agentIds.length || 0)}
             </legend>
-            {[
-              ...props.agents,
-              ...members.filter((agent) => !props.agents.some((item) => item.id === agent.id)),
-            ].map((agent) => (
+            <div className="group-member-selected" aria-live="polite">
+              {members.map((agent) => (
+                <span key={agent.id}>
+                  {agent.name}
+                  {agent.id === draft.agentIds[0] && (
+                    <small>{uiText('settings:text_a525346277ed')}</small>
+                  )}
+                </span>
+              ))}
+            </div>
+            <label className="group-member-search">
+              <Search size={15} aria-hidden="true" />
+              <input
+                type="search"
+                aria-label={uiText('bots:text_346fbe2bc274')}
+                placeholder={uiText('bots:text_08bf5195657d')}
+                value={memberQuery}
+                onChange={(event) => setMemberQuery(event.target.value)}
+              />
+            </label>
+            {choices.map((agent) => (
               <label key={agent.id}>
                 <Avatar agent={agent} size={30} />
                 <span>
@@ -282,6 +329,11 @@ export function GroupSettingsContentView(model: GroupSettingsContentModel) {
                 />
               </label>
             ))}
+            {!choices.length && (
+              <p role="status" className="field-help">
+                {uiText('bots:text_9eff9532d01a')}
+              </p>
+            )}
           </fieldset>
           {draft.teamBrief && (
             <section className="group-plan-fields">
@@ -347,15 +399,6 @@ export function GroupSettingsContentView(model: GroupSettingsContentModel) {
               ))}
             </section>
           )}
-          <div className="dialog-actions">
-            <button type="button" className="secondary-button" disabled={saving} onClick={close}>
-              {uiText('settings:text_3fd47edce45b')}
-            </button>
-            <button className="primary-button" disabled={locked || loading || review || !dirty}>
-              {saving ? <Loader2 size={15} className="spin" /> : <Check size={15} />}
-              {uiText('settings:text_937fc1d4279a')}
-            </button>
-          </div>
         </form>
       )}
       {!review && (

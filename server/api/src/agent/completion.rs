@@ -151,6 +151,7 @@ async fn complete_with_profile(
                         },
                         "tool_call" => return Err(ApiError::new(403, "规划任务不能执行工具。")),
                         "settled" => {
+                            if let Some(error) = super::process::output_limit_error(&event) { return Err(error); }
                             if event["status"] != "completed" { return Err(ApiError::new(502,"规划未完成，请检查模型配置后重试。")); }
                             if output.trim().is_empty() { return Err(ApiError::new(502,"模型没有返回有效规划。")); }
                             access.authorize(state).await?;

@@ -320,11 +320,13 @@ export function ChatComposer(
             </div>
           )}
           {attachments.length > 0 && (
-            <div className="attachment-tray">
+            <div className="attachment-tray composer-attachments">
               {attachments.map((f) => (
                 <span key={f.id}>
                   <FileText size={14} />
-                  {f.name}
+                  <span className="attachment-name" title={f.name}>
+                    {f.name}
+                  </span>
                   <button
                     aria-label={uiText('workspace:text_b33022909d64', { value0: f.name })}
                     onClick={() => setAttachments((a) => a.filter((x) => x.id !== f.id))}

@@ -122,6 +122,34 @@ impl AgentProcess {
     }
 }
 
+pub(super) fn output_limit_error(event: &Value) -> Option<ApiError> {
+    (event["status"] == "error" && event["code"] == "MODEL_OUTPUT_LIMIT").then(|| {
+        ApiError::new(
+            502,
+            "模型达到输出长度上限，回复尚未完成。请缩小本次要求，或分段继续。",
+        )
+        .with_code("MODEL_OUTPUT_LIMIT")
+    })
+}
+
+pub(super) fn check_run_settlement(event: &Value, input_is_current: bool) -> Result<()> {
+    let output_limit = output_limit_error(event);
+    if !input_is_current && (event["status"] == "completed" || output_limit.is_some()) {
+        return Err(ApiError::new(409, "新要求已排队，旧回复已停止。").with_code("RUN_SUPERSEDED"));
+    }
+    if let Some(error) = output_limit {
+        return Err(error);
+    }
+    match event["status"].as_str() {
+        Some("completed") => Ok(()),
+        Some("cancelled") => Err(ApiError::new(502, "任务已停止，已完成的工作保留。")),
+        _ => Err(ApiError::new(
+            502,
+            "模型执行失败，请核对当前模型设置与会话结果。",
+        )),
+    }
+}
+
 #[cfg(test)]
 #[path = "../../tests/unit/agent/process.rs"]
 mod tests;

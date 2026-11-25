@@ -6,7 +6,7 @@ import 'template_support.dart';
 import 'sharing_support.dart';
 import 'support.dart';
 import 'widgets_test.dart' show testApp;
-import 'library_widgets_test.dart' show libraryReach, waitForLibrary;
+import 'library_widget_support.dart' show libraryReach, waitForLibrary;
 
 void main() {
   testWidgets(

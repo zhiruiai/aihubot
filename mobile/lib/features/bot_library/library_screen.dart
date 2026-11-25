@@ -88,8 +88,8 @@ class _BotLibraryScreenState extends State<BotLibraryScreen> {
   Future<void> browseOriginals() async {
     final scope = widget.scope;
     if (!controller.active || controller.locked) return;
-    final profile = await previewOriginalBotTemplates(context, scope);
-    if (profile == null ||
+    final template = await previewOriginalBotTemplates(context, scope);
+    if (template == null ||
         !mounted ||
         !controller.active ||
         controller.locked ||
@@ -99,8 +99,12 @@ class _BotLibraryScreenState extends State<BotLibraryScreen> {
     final id = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            CreateScreen(scope: scope, kind: 'bot', initialProfile: profile),
+        builder: (_) => CreateScreen(
+          scope: scope,
+          kind: 'bot',
+          initialProfile: template.profile,
+          initialStarter: template.starter,
+        ),
       ),
     );
     if (id == null || !mounted || !controller.active) return;

@@ -334,11 +334,13 @@ test(
       });
       for (const viewport of [
         { width: 1440, height: 900 },
+        { width: 568, height: 320 },
         { width: 390, height: 640 },
+        { width: 320, height: 330 },
         { width: 320, height: 560 },
       ]) {
         await page.setViewportSize(viewport);
-        if (viewport.width === 320) await page.clock.install();
+        if (viewport.width === 320 && viewport.height === 560) await page.clock.install();
         await page.goto(`${origin}/w/${workspaceId}`);
         for (const mode of ['templates', 'skills', 'settings', 'computer']) {
           await page.locator(`#open-${mode}`).click();
@@ -399,6 +401,21 @@ test(
             }
           }
           await verifyScroll(dialog, page);
+          if (mode === 'computer' || mode === 'settings') {
+            const scrolling = await dialog.evaluate((modal) =>
+              [...modal.querySelectorAll<HTMLElement>('*')]
+                .filter(
+                  (element) =>
+                    ['auto', 'scroll'].includes(getComputedStyle(element).overflowY) &&
+                    element.scrollHeight > element.clientHeight + 1,
+                )
+                .map((element) => element.className),
+            );
+            assert.ok(
+              scrolling.length <= 1 && scrolling.every((name) => name === 'modal-body'),
+              JSON.stringify({ viewport, mode, scrolling }),
+            );
+          }
           if (mode === 'computer' && viewport.width === 1440) {
             const image = dialog.locator('.computer-screen img');
             const privateSource = await image.getAttribute('src');
@@ -425,7 +442,7 @@ test(
             const image = dialog.locator('.computer-screen img');
             const privateSource = await image.getAttribute('src');
             assert.ok(privateSource);
-            if (viewport.width === 390) {
+            if (viewport.width !== 320 || viewport.height !== 560) {
               const ending = page.waitForRequest((request) =>
                 request.url().endsWith('/takeover/end'),
               );

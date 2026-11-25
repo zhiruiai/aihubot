@@ -54,7 +54,7 @@ export function GroupRecipients(props: Props) {
     <section className="group-recipients" aria-label={uiText('bots:text_c364178d92ea')}>
       <div className="group-recipient-heading">
         <span className="field-label">{uiText('bots:text_c237b665a6d8')}</span>
-        <span>
+        <span aria-live="polite" aria-atomic="true">
           {props.ids.length}/{GROUP_MAX_MEMBERS}
           {uiText('bots:text_8bbb19e7903b')}
         </span>

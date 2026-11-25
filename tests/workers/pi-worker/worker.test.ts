@@ -68,6 +68,25 @@ test('the real Pi child delegates an explicit tool to its host and completes onl
   }
 });
 
+test('a token-limited reply reports the output limit and its partial text', async () => {
+  const partial = 'Only the first paragraph.';
+  const f = await fixture((_body, res) => stream(res, partial, undefined, 'length'));
+  try {
+    f.send(f.input);
+    await f.until(() => f.events.some((e) => e.type === 'settled'), 'truncated reply settled');
+    const end = f.events.find(
+      (e) => e.event?.type === 'message_end' && e.event.message.role === 'assistant',
+    );
+    assert.deepEqual(end.event.message.content, [{ type: 'text', text: partial }]);
+    assert.equal(f.requests.length, 1);
+    const settled = f.events.find((e) => e.type === 'settled');
+    assert.equal(settled.status, 'error');
+    assert.equal(settled.code, 'MODEL_OUTPUT_LIMIT');
+  } finally {
+    await f.close();
+  }
+});
+
 test('aborting the process-owned run produces cancellation without completing or dispatching another model call', async () => {
   const f = await fixture((_body, res) => {
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });

@@ -3,7 +3,7 @@ import type { ConfirmedBotInstall } from '../../botTemplates';
 import { currentLanguage, uiText } from '../../i18n';
 import type { Language } from '../../i18n/language';
 import { starterBotPacks } from '../../starterSkillPacks';
-import type { StarterCategory } from '../../starterTemplates';
+import type { StarterTemplateId } from '../../starterTemplates';
 import type { Common } from './types';
 
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
@@ -33,7 +33,7 @@ function release(key: string, requestId: string) {
 
 export function verifyStarterBotInstall(
   result: ConfirmedBotInstall | null,
-  id: StarterCategory,
+  id: StarterTemplateId,
   language: Language,
 ): ConfirmedBotInstall {
   const expected = starterBotPacks(id, language).map((pack) => pack.id);
@@ -81,7 +81,7 @@ export function useStarterBotInstall(props: Common) {
     };
   }, []);
 
-  async function install(id: StarterCategory, language: Language) {
+  async function install(id: StarterTemplateId, language: Language) {
     const { scope, workspaceId, userId } = props;
     const ticket = scope.ticket();
     const current = () => active.current && latest.current.owner && scope.current(ticket);

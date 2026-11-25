@@ -3,7 +3,11 @@ import type {
   ToolDefinition,
   AgentToolResult,
 } from '@earendil-works/pi-coding-agent';
-import type { EngineOptions, EngineSession } from '../../plugin-runtime/engines.js';
+import {
+  ModelOutputLimitError,
+  type EngineOptions,
+  type EngineSession,
+} from '../../plugin-runtime/engines.js';
 import type { RustToolBridge, WorkerToolRegistry } from '../../plugin-runtime/services.js';
 import { createWorkerModel } from './model.js';
 import { toWorkerEvent } from './events.js';
@@ -88,8 +92,9 @@ export class PiEngineSession implements EngineSession {
     await session.prompt(text, { expandPromptTemplates: false });
     this.signal.throwIfAborted();
     const last = session.messages.filter((message) => message.role === 'assistant').at(-1);
-    if (!last || last.stopReason === 'error' || last.stopReason === 'aborted')
-      throw Error('Model run failed.');
+    if (last?.stopReason === 'length')
+      throw new ModelOutputLimitError('Model reached its output limit.');
+    if (last?.stopReason !== 'stop') throw Error('Model did not finish its reply.');
   }
   async steer(text: string): Promise<void> {
     await this.ready().steer(text);

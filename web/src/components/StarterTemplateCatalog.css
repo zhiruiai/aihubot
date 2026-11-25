@@ -11,18 +11,19 @@
   margin: 0;
 }
 .starter-filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 22%);
   gap: 12px;
   align-items: end;
   flex: none;
 }
 .starter-filters > input {
-  flex: 1;
-  min-width: 180px;
+  width: 100%;
+  min-width: 0;
 }
 .starter-filters label {
   display: grid;
+  min-width: 0;
   gap: 6px;
   font-size: 12px;
 }
@@ -216,10 +217,10 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  grid-auto-rows: minmax(min-content, 1fr);
+  align-content: start;
 }
 .bot-gallery-dialog .starter-card {
-  padding: 9px 10px;
+  padding: 8px 10px;
   line-height: 1.4;
 }
 .bot-gallery-dialog .starter-card > span:last-child {
@@ -291,9 +292,8 @@
     min-height: 36px;
     overflow-wrap: anywhere;
   }
-  .starter-filters > input,
-  .starter-filters > label {
-    width: 100%;
+  .starter-filters {
+    grid-template-columns: minmax(0, 1fr);
   }
   .starter-selected {
     padding: 12px;

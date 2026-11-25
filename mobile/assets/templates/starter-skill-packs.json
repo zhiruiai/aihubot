@@ -15,7 +15,8 @@
     "frontend-designer": ["frontend-design"],
     "feishu-assistant": ["connector-development"],
     "dingtalk-assistant": ["connector-development"],
-    "wecom-assistant": ["connector-development"]
+    "wecom-assistant": ["connector-development"],
+    "content-operations": ["content-operations", "zhihu-article-publishing"]
   },
   "teams": {
     "launch": {

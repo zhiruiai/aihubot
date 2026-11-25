@@ -476,8 +476,10 @@ async fn consume(
                         }
                     },
                     "settled"=>{
-                        if event["status"]=="completed" {if delivered_generation!=active.generation.load(std::sync::atomic::Ordering::Acquire){return Err(ApiError::new(409,"新要求已排队，旧回复已停止。").with_code("RUN_SUPERSEDED"));}result["status"]=json!("done");return Ok(());}
-                        return Err(ApiError::new(502,if event["status"]=="cancelled"{"任务已停止，已完成的工作保留。"}else{"模型执行失败，请核对当前模型设置与会话结果。"}));
+                        let current = delivered_generation == active.generation.load(std::sync::atomic::Ordering::Acquire);
+                        super::process::check_run_settlement(&event, current)?;
+                        result["status"] = json!("done");
+                        return Ok(());
                     },
                     _=>{},
                 }

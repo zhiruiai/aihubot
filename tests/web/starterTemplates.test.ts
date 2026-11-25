@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { starterCategoryLabel, starterTemplates, filterStarterTemplates } from '../../web/src/starterTemplates';
+import { starterTemplates, filterStarterTemplates } from '../../web/src/starterTemplates';
 import { botProfileProblem, type BotProfileDraft } from '../../web/src/botProfiles';
 import { initializeLanguage } from '../../web/src/i18n';
 import { starterBotPacks } from '../../web/src/starterSkillPacks';
@@ -49,9 +49,13 @@ test('bilingual role and capability profiles are valid independent starting poin
           ['feishu-assistant', 'drop', '#3294f9'],
           ['dingtalk-assistant', 'arch', '#187f9a'],
           ['wecom-assistant', 'leaf', '#0ac987'],
+          ['content-operations', 'spark', '#187f9a'],
         ],
       );
-      assert.equal(starterCategoryLabel('engineering'), locale === 'en' ? 'Engineering' : '编程');
+      assert.equal(
+        items.find((item) => item.id === 'engineering')?.category,
+        locale === 'en' ? 'Engineering' : '编程',
+      );
       for (const item of items) {
         assert.equal(botProfileProblem(item.profile), '');
         assert.deepEqual(Object.keys(item.profile).sort(), [
@@ -71,10 +75,20 @@ test('bilingual role and capability profiles are valid independent starting poin
         );
       }
       assert.equal(
-        filterStarterTemplates(items, locale === 'en' ? 'evidence' : '证据', 'research').length,
+        filterStarterTemplates(
+          items,
+          locale === 'en' ? 'evidence' : '证据',
+          locale === 'en' ? 'Research' : '研究',
+        ).length,
         1,
       );
-      assert.equal(filterStarterTemplates(items, 'no-such-template', 'all').length, 0);
+      assert.equal(filterStarterTemplates(items, 'no-such-template').length, 0);
+      assert.deepEqual(
+        filterStarterTemplates(items, '', locale === 'en' ? 'Enterprise' : '企业协作').map(
+          (item) => item.id,
+        ),
+        ['feishu-assistant', 'dingtalk-assistant', 'wecom-assistant'],
+      );
       items[0].profile.instructions = 'Local edit';
       assert.notEqual(starterTemplates()[0].profile.instructions, 'Local edit');
     }
@@ -106,9 +120,10 @@ test('catalog search, category, full instruction preview and explicit selection 
     assert.match(ui.copy, /没有匹配/);
     search.props.onChange({ target: { value: '' } });
     await ui.flush();
-    all(ui.tree, (n) => n.type === 'select')[0].props.onChange({
-      target: { value: 'engineering' },
-    });
+    const categories = all(ui.tree, (n) => n.type === 'option');
+    assert.equal(categories.filter((item) => item.props.value === '企业协作').length, 1);
+    const filter = all(ui.tree, (n) => n.type === 'select')[0];
+    filter.props.onChange({ target: { value: '编程' } });
     await ui.flush();
     const cards = all(ui.tree, (n) => n.props?.className?.startsWith('starter-card'));
     assert.equal(cards.length, 1);

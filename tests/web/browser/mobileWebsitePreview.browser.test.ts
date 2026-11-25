@@ -36,10 +36,21 @@ test('Flutter website preview opens multiple bundled pages in an opaque sandbox'
   try {
     const page = await browser.newPage({ viewport: { width: 360, height: 640 } });
     const requests: string[] = [];
-    await page.route('https://**/*', async (route) => {
+    const origin = 'https://mobile-preview.example.test/';
+    await page.route('**/*', async (route) => {
+      if (
+        route.request().url() === origin &&
+        route.request().isNavigationRequest() &&
+        route.request().frame() === page.mainFrame()
+      )
+        return route.fulfill({
+          contentType: 'text/html',
+          body: '<!doctype html><link rel="icon" href="data:,"><title>Preview fixture</title>',
+        });
       requests.push(route.request().url());
       await route.abort();
     });
+    await page.goto(origin);
     await page.evaluate(
       ({ host, payload }) => {
         const frame = document.createElement('iframe');

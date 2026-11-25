@@ -48,6 +48,7 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
     setCustomTitle,
     setTitle,
     customTitle,
+    formId,
   } = model;
   return (
     <>
@@ -63,6 +64,39 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
         className={`bot-create bot-create-${mode}`}
         wide={mode === 'team'}
         onClose={() => navigate(props.onClose)}
+        footer={
+          mode !== 'team' &&
+          !creation.state.request && (
+            <div className="dialog-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={locked}
+                onClick={() => navigate(props.onClose)}
+              >
+                {uiText('bots:text_2cd0f3be8738')}
+              </button>
+              <button
+                type="submit"
+                form={formId}
+                className="primary-button"
+                disabled={
+                  manualLocked ||
+                  avatarEdits.pending ||
+                  (mode === 'group' &&
+                    (ids.length < GROUP_MIN_MEMBERS || ids.length > GROUP_MAX_MEMBERS))
+                }
+              >
+                {saving ? <Loader2 size={15} className="spin" /> : <Plus size={15} />}
+                {mode === 'group' ? (
+                  uiText('workspace:text_675ee6eef7be')
+                ) : (
+                  <>{uiText('bots:text_cde2cd071d25')} Bot</>
+                )}
+              </button>
+            </div>
+          )
+        }
       >
         {props.onBrowseShared && (
           <button
@@ -136,7 +170,12 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
         )}
         {creation.state.message && <p className="bot-form-notice">{creation.state.message}</p>}
         {creation.state.request && (
-          <section className="bot-form-notice" aria-label={uiText('bots:text_2c1dcb740409')}>
+          <section
+            ref={model.outcomeRef}
+            tabIndex={-1}
+            className="bot-form-notice"
+            aria-label={uiText('bots:text_2c1dcb740409')}
+          >
             {creation.state.receipt ? (
               <>
                 <strong>
@@ -292,6 +331,7 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
         ) : (
           <>
             <form
+              id={formId}
               className="dialog-form"
               onSubmit={(event) => {
                 event.preventDefault();
@@ -379,29 +419,6 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
                   )}
                 </>
               )}
-              <div className="dialog-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  disabled={locked}
-                  onClick={() => navigate(props.onClose)}
-                >
-                  {uiText('bots:text_2cd0f3be8738')}
-                </button>
-                <button
-                  className="primary-button"
-                  disabled={
-                    manualLocked ||
-                    avatarEdits.pending ||
-                    (mode === 'group' &&
-                      (ids.length < GROUP_MIN_MEMBERS || ids.length > GROUP_MAX_MEMBERS))
-                  }
-                >
-                  {saving ? <Loader2 size={15} className="spin" /> : <Plus size={15} />}
-                  {uiText('bots:text_cde2cd071d25')}
-                  {mode === 'group' ? uiText('bots:text_35b49ee58a4a') : ' Bot'}
-                </button>
-              </div>
             </form>
             {mode === 'bot' && props.canCreateBot && props.workspaceId && props.userId && (
               <CreationBrief

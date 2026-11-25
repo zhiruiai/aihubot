@@ -37,6 +37,7 @@ export function Dialog({
   className = '',
   active = true,
   headerActions,
+  footer,
   portal = false,
   scrollBody = true,
 }: {
@@ -48,6 +49,7 @@ export function Dialog({
   className?: string;
   active?: boolean;
   headerActions?: ReactNode;
+  footer?: ReactNode;
   portal?: boolean;
   scrollBody?: boolean;
 }) {
@@ -59,8 +61,15 @@ export function Dialog({
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
     const key = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing) return;
       const dialogs = document.querySelectorAll?.('[data-openbot-dialog="active"]');
       if (dialogs?.length && dialogs[dialogs.length - 1] !== ref.current) return;
+      // The browser handles Escape and focus while its select picker is open.
+      if (
+        globalThis.CSS?.supports('selector(select:open)') &&
+        ref.current?.querySelector('select:open')
+      )
+        return;
       if (e.key === 'Escape') closeRef.current();
       if (e.key === 'Tab') {
         const dialog = ref.current;
@@ -84,13 +93,14 @@ export function Dialog({
         }
         const first = nodes[0],
           last = nodes[nodes.length - 1];
-        if (!nodes.includes(document.activeElement as HTMLElement)) {
+        const focused = document.activeElement;
+        if (focused === dialog || !dialog.contains(focused)) {
           e.preventDefault();
           (e.shiftKey ? last : first).focus();
-        } else if (e.shiftKey && document.activeElement === first) {
+        } else if (e.shiftKey && focused === first) {
           e.preventDefault();
           last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
+        } else if (!e.shiftKey && focused === last) {
           e.preventDefault();
           first.focus();
         }
@@ -140,6 +150,7 @@ export function Dialog({
           )}
         </header>
         {scrollBody ? <div className="modal-body">{children}</div> : children}
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>
   );

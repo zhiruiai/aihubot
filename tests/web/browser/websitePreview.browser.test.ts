@@ -126,11 +126,21 @@ test(
       };`,
       });
       const requests: string[] = [];
+      const host = 'https://website-preview.example.test/';
       await page.context().route('**/*', (route) => {
+        if (
+          route.request().url() === host &&
+          route.request().isNavigationRequest() &&
+          route.request().frame() === page.mainFrame()
+        )
+          return route.fulfill({
+            contentType: 'text/html',
+            body: '<!doctype html><link rel="icon" href="data:,"><div id="root"></div>',
+          });
         requests.push(route.request().url());
         return route.abort();
       });
-      await page.setContent('<div id="root"></div>');
+      await page.goto(host);
       await page.addStyleTag({
         content:
           bundled.outputFiles.find(({ path }) => path.endsWith('.css'))!.text +

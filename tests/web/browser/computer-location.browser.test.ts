@@ -268,6 +268,37 @@ test(
       await computer.click();
       assert.equal(await computer.getAttribute('aria-current'), 'page');
       await settings.getByRole('heading', { name: 'Bot’s computer', exact: true }).waitFor();
+      for (const viewport of [
+        { width: 1200, height: 360 },
+        { width: 568, height: 320 },
+        { width: 320, height: 330 },
+      ]) {
+        await page.setViewportSize(viewport);
+        const geometry = await settings.evaluate((modal) => {
+          const main = modal.querySelector<HTMLElement>('.workspace-settings-main')!;
+          const footer = modal.querySelector<HTMLElement>('.workspace-settings-footer')!;
+          const rect = footer.getBoundingClientRect();
+          return {
+            overflow: modal.scrollWidth - modal.clientWidth,
+            outerScroll: modal.scrollHeight - modal.clientHeight,
+            contentHeight: main.clientHeight,
+            footerTop: rect.top,
+            footerBottom: rect.bottom,
+          };
+        });
+        assert.ok(geometry.overflow <= 1 && geometry.outerScroll <= 1, JSON.stringify(geometry));
+        assert.ok(geometry.contentHeight >= 44, JSON.stringify(geometry));
+        assert.ok(
+          geometry.footerTop >= 0 && geometry.footerBottom <= viewport.height,
+          JSON.stringify(geometry),
+        );
+        const header = await settings.locator('.modal-header').boundingBox();
+        await settings.locator('.workspace-settings-main').evaluate((main) => {
+          main.scrollTop = main.scrollHeight;
+        });
+        assert.deepEqual(await settings.locator('.modal-header').boundingBox(), header);
+      }
+      await page.setViewportSize({ width: 360, height: 640 });
       const pairing = settings.getByRole('region', { name: 'Your computer' });
       await pairing.getByRole('button', { name: 'Pair a computer' }).click();
       assert.equal(await pairing.evaluate((element) => element === document.activeElement), true);

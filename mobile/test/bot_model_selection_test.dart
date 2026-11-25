@@ -200,6 +200,7 @@ void main() {
     await tapVisible(tester, find.widgetWithText(FilledButton, 'Create'));
     await waitFor(tester, () => sent != null);
     expect(sent!['profile']['modelProfileId'], profileId);
+    expect(sent!.containsKey('starter'), false);
     expect(sent!['profile'].containsKey('apiKey'), false);
     expect(sent!['profile'].containsKey('baseUrl'), false);
     expect(models.activeId, 'profile-a');

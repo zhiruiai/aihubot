@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../core/api.dart';
 import '../../core/workspace_controller.dart';
 import '../../l10n/strings.dart';
 import '../../widgets/bot_avatar.dart';
 import '../../widgets/common.dart';
 import 'original_bot_template_data.dart';
 
-Future<Json?> previewOriginalBotTemplates(
+Future<OriginalBotTemplate?> previewOriginalBotTemplates(
   BuildContext context,
   WorkspaceController scope,
 ) =>
-    Navigator.push<Json>(
+    Navigator.push<OriginalBotTemplate>(
       context,
       MaterialPageRoute(builder: (_) => _OriginalBotCatalog(scope: scope)),
     );
@@ -50,7 +49,7 @@ class _OriginalBotCatalogState extends State<_OriginalBotCatalog> {
     final scope = widget.scope;
     if (!scope.active) return;
     FocusScope.of(context).unfocus();
-    final selected = await Navigator.push<Json>(
+    final selected = await Navigator.push<OriginalBotTemplate>(
       context,
       MaterialPageRoute(
         builder: (_) => _OriginalBotReview(scope: scope, template: template),
@@ -76,6 +75,9 @@ class _OriginalBotCatalogState extends State<_OriginalBotCatalog> {
                     if (templates == null) {
                       return const LinearProgressIndicator();
                     }
+                    final categories = {
+                      for (final template in templates) template.category,
+                    };
                     return ListView(
                       padding: const EdgeInsets.all(16),
                       keyboardDismissBehavior:
@@ -96,6 +98,7 @@ class _OriginalBotCatalogState extends State<_OriginalBotCatalog> {
                         DropdownButtonFormField<String>(
                           initialValue: category,
                           isExpanded: true,
+                          menuMaxHeight: 360,
                           decoration: InputDecoration(
                             labelText: context.tr('mobileStarterCategory'),
                           ),
@@ -104,10 +107,13 @@ class _OriginalBotCatalogState extends State<_OriginalBotCatalog> {
                               value: '',
                               child: Text(context.tr('mobileStarterAll')),
                             ),
-                            for (final template in templates)
+                            for (final label in categories)
                               DropdownMenuItem(
-                                value: template.id,
-                                child: Text(template.category),
+                                value: label,
+                                child: Text(
+                                  label,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                           ],
                           onChanged: (value) =>
@@ -200,7 +206,7 @@ class _OriginalBotReview extends StatelessWidget {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          for (final name in template.foundationSkills)
+                          for (final name in template.skills)
                             Chip(label: Text(name))
                         ],
                       ),
@@ -224,7 +230,7 @@ class _OriginalBotReview extends StatelessWidget {
                               if (scope.active && scope.owner) {
                                 Navigator.pop(
                                   context,
-                                  Map<String, dynamic>.of(profile),
+                                  template,
                                 );
                               }
                             },

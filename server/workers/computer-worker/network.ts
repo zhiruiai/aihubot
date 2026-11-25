@@ -1,6 +1,6 @@
-import { lookup } from 'node:dns/promises';
+import dns from 'node:dns/promises';
 import { createServer, request as httpRequest } from 'node:http';
-import { connect as connectSocket, isIP, type Socket } from 'node:net';
+import { connect as connectSocket, isIP, type LookupFunction, type Socket } from 'node:net';
 export function isPublicAddress(address: string): boolean {
   if (isIP(address) === 4) {
     const [a, b, c] = address.split('.').map(Number);
@@ -60,10 +60,7 @@ function allowedBrowserOrigins(): Set<string> {
   );
 }
 
-export async function resolveBrowserTarget(
-  url: URL,
-  allowed = allowedBrowserOrigins(),
-): Promise<{ address: string; port: number }> {
+export async function resolveBrowserTarget(url: URL, allowed = allowedBrowserOrigins()) {
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
     throw new Error('浏览器网络只允许 HTTP(S)。');
   const publicOrigin = process.env.OPENBOT_PUBLIC_ORIGIN;
@@ -76,14 +73,21 @@ export async function resolveBrowserTarget(
   const port = Number(url.port || (url.protocol === 'https:' ? 443 : 80));
   const resolved = isIP(host)
     ? [{ address: host, family: isIP(host) }]
-    : await lookup(host, { all: true });
+    : await dns.lookup(host, { all: true });
   if (!resolved.length) throw new Error('无法解析目标地址。');
   if (
     !allowed.has(url.origin) &&
     (resolved.some((item) => !isPublicAddress(item.address)) || ![80, 443].includes(port))
   )
     throw new Error('浏览器禁止访问本机、内网、元数据服务和控制面。');
-  return { address: resolved[0].address, port };
+  // Node can try both families, but only from this already checked DNS answer.
+  const lookup: LookupFunction = (_hostname, options, callback) => {
+    queueMicrotask(() => {
+      if (options.all) callback(null, resolved);
+      else callback(null, resolved[0].address, resolved[0].family);
+    });
+  };
+  return { host, port, lookup, autoSelectFamily: true, autoSelectFamilyAttemptTimeout: 250 };
 }
 
 /** A pinned-address egress proxy: redirects and subrequests cannot bypass host checks. */
@@ -103,8 +107,9 @@ export async function createBrowserNetworkProxy() {
       delete headers['proxy-connection'];
       const upstream = httpRequest(
         {
-          hostname: target.address,
-          port: target.port,
+          ...target,
+          // A pooled socket for this hostname may predate the current DNS answer.
+          agent: false,
           path: url.pathname + url.search,
           method: req.method,
           headers,
@@ -137,7 +142,7 @@ export async function createBrowserNetworkProxy() {
     try {
       const url = new URL(`https://${req.url}`);
       const target = await resolveBrowserTarget(url, allowed);
-      const upstream = connectSocket({ host: target.address, port: target.port });
+      const upstream = connectSocket(target);
       sockets.add(upstream);
       upstream.on('close', () => sockets.delete(upstream));
       upstream.setTimeout(60_000, () => upstream.destroy());

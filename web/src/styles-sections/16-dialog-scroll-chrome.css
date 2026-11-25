@@ -1,3 +1,6 @@
+.modal {
+  max-width: 100%;
+}
 .modal.modal-scroll-body {
   display: flex;
   flex-direction: column;
@@ -14,6 +17,7 @@
   flex: none;
 }
 .modal-body {
+  flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   overflow: auto;
@@ -21,6 +25,22 @@
   scroll-padding-block: 12px;
   padding: 3px;
   margin: -3px;
+}
+.modal-footer {
+  flex: none;
+  min-width: 0;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.modal-footer .dialog-actions {
+  flex-wrap: wrap;
+  margin: 0;
+}
+.modal-footer button {
+  min-height: 40px;
+  max-width: 100%;
+  white-space: normal;
 }
 .modal
   :is(
@@ -98,9 +118,17 @@
     .shared-app-tool-description pre,
     .template-detail pre,
     .smart-team-catalog dl,
-    .bot-team-brief details[open]
+    .bot-team-brief details[open],
+    .group-recipients .member-picker,
+    .computer-activity,
+    .computer-files-list,
+    .teaching-steps,
+    .computer-record-result pre,
+    .remote-shell-details pre,
+    .remote-shell-result pre
   ),
-.modal .apps-scroll .apps-tools pre {
+.modal .apps-scroll .apps-tools pre,
+.modal .workspace-settings-main .updates-release pre {
   max-height: none;
   overflow: visible;
 }
@@ -131,8 +159,31 @@
   border-bottom: 1px solid var(--border);
 }
 @media (max-width: 760px) {
+  .modal-footer button {
+    min-height: 44px;
+  }
   .modal-scroll-body > .modal-header .icon-button {
     min-width: 44px;
     min-height: 44px;
+  }
+}
+@media (max-height: 500px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  .modal.modal-scroll-body:not(.skill-manager-dialog) {
+    max-height: calc(100dvh - 20px);
+    padding: 16px;
+  }
+  .modal-scroll-body > .modal-header {
+    margin-bottom: 12px;
+    padding-block: 0 8px;
+  }
+  .modal-scroll-body > .modal-header p {
+    margin-top: 4px;
+  }
+  .modal-footer {
+    padding-top: 8px;
+    margin-top: 8px;
   }
 }

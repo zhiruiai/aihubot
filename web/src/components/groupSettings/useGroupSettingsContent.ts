@@ -7,6 +7,8 @@ import { createAppConnectionScope } from '../../appConnections';
 import '../GroupSettingsDialog.css';
 import { GroupDraft, payload, problem, Props, toDraft } from './parts';
 export function useGroupSettingsContent(props: Props) {
+  const [formId] = useState(() => `group-settings-${crypto.randomUUID()}`);
+  const [memberQuery, setMemberQuery] = useState('');
   const latest = useRef(props);
   latest.current = props;
   const [scope] = useState(() =>
@@ -156,6 +158,9 @@ export function useGroupSettingsContent(props: Props) {
   );
 
   return {
+    formId,
+    memberQuery,
+    setMemberQuery,
     close,
     error,
     notice,

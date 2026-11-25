@@ -6,6 +6,16 @@
 
 [打开六件作品](https://zhiruiai.github.io/aihubot/work/) · [看实录与验收依据](docs/office-workflows.md) · [快速开始](#快速开始) · [下载客户端](https://github.com/zhiruiai/aihubot/releases/latest)
 
+## 创建 Bot 并拉进工作组
+
+在 **Bot 广场** 打开一个模板，就能预览职责、长期指令和随附技能包。可以直接使用并打开单聊，也可以先编辑资料再创建。[Bot 模板说明](docs/bot-templates.md)
+
+![aihubot 的 Bot 广场，正在预览研究员和它配套的技能](docs/demo/bot-gallery-current.webp)
+
+从 **开始聊天 → 创建工作组** 按名称或职责找 Bot。继续搜索时可以看到已选成员，选齐就能从底部创建群聊。
+
+![aihubot 的群聊创建界面，已选三位 Bot，底部保留创建按钮](docs/demo/create-group-current.webp)
+
 ## 从一道数学小题开始
 
 在 Bot 广场使用「课后探险队」。一年级可以用十格种子理解十以内加减，七年级可以用天平找出解方程时的第一处错误。先动手，再独立做一道变式，把自己的解释写回原对话。[打开学习指南](docs/education.md)
@@ -30,7 +40,7 @@
 
 - **加入已有团队。** 在浏览器打开管理员提供的产品地址，也可在 Apple 芯片 Mac 或 Windows x64 连接客户端里输入同一地址。Windows 下载后请完整解压 ZIP。
 - **自己部署。** Linux x64 服务包包含 Rust API、产品站、运营站和 Worker。按部署说明安装 Node.js 运行依赖，并设置私有数据目录。[Linux 安装说明](server/api/deployment/README.md#install-and-configure)
-- **在这台 Mac 上执行。** 包含运行环境的 macOS 源码构建版可以启动本机个人空间，执行已授权的任务。公开下载的 v0.0.8 客户端需要连接单独运行的服务，该历史版本的安装包沿用旧名 **BambooShift**。若旧版更新检查无法跟随仓库改名，可从新仓库的 Releases 手动下载后续版本。[桌面端说明](docs/desktop-client.md) · [下载版本](https://github.com/zhiruiai/aihubot/releases)
+- **在这台 Mac 上执行。** 包含运行环境的 macOS 源码构建版可以启动本机个人空间，执行已授权的任务。公开下载的桌面连接客户端需要可访问的 aihubot 服务端。[桌面端说明](docs/desktop-client.md) · [下载版本](https://github.com/zhiruiai/aihubot/releases)
 
 ### 从源码运行
 
@@ -56,7 +66,7 @@ npm run dev
 
 - **交付网站。** 从聊天打开成品，对比修改，回看第一版，再回原线程继续改。版本历史动画展示了真实模型留下的交付记录，「星港降落」试玩来自预设对话。[版本回看实录](docs/demo/website-delivery.gif) · [试玩星港降落](https://zhiruiai.github.io/aihubot/zh.html)
 - **安装并运行技能。** 在 Bot 设置中打开 **选择与管理技能 → 从技能库选择**。检查「数据质量核对」包内文件并安装，附上 CSV，在聊天中用 `/` 选择该技能。脚本会返回退出码和统计结果，执行端需要 Python 3 和本机命令权限。[技能包与脚本执行](docs/bot-models-and-skills.md)
-- **组队与发布。** 在 Bot 广场选取现成团队，或向招聘助理描述所需角色。对外发布时需配置相应账号并核对平台回执。本页咖啡短片支持播放、下载和逐镜复核。[团队模板](docs/bot-templates.md) · [发布账号](docs/publishing.md)
+- **策划与发文。** 「内容运营与发文」Bot 可以把推广简报做成运营方案和可下载的文章。连接知乎账号后，可以指定稿件存为知乎草稿或提交发布，再核对平台实际回执。[知乎发文流程](docs/zhihu-articles.md) · [发布账号](docs/publishing.md)
 
 ## 架构与贡献
 

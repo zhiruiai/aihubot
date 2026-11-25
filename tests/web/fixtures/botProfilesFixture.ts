@@ -77,7 +77,7 @@ export function text(node: any): string {
   if (node === null || node === undefined || typeof node === 'boolean') return '';
   if (Array.isArray(node)) return node.map(text).join('');
   if (typeof node === 'string' || typeof node === 'number') return String(node);
-  return text(node.props?.children);
+  return text([node.props?.children, node.props?.footer]);
 }
 
 export function all(node: any, match: (node: any) => boolean): any[] {
@@ -85,7 +85,7 @@ export function all(node: any, match: (node: any) => boolean): any[] {
   if (Array.isArray(node)) return node.flatMap((child) => all(child, match));
   const children =
     node.type?.name === 'BotProfileFields' ? node.type(node.props) : node.props?.children;
-  return [...(match(node) ? [node] : []), ...all(children, match)];
+  return [...(match(node) ? [node] : []), ...all([children, node.props?.footer], match)];
 }
 
 export async function harness(

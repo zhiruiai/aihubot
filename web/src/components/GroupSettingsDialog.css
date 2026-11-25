@@ -64,10 +64,43 @@
   border-radius: 10px;
   cursor: pointer;
 }
+.group-member-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.group-member-selected > span {
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.group-member-selected small {
+  display: inline;
+  margin-inline-start: 6px;
+}
+.group-member-picker label.group-member-search {
+  padding: 0;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.group-member-picker .group-member-search input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  font-size: 13px;
+}
+.group-member-picker label:has(input[type='checkbox']:checked) {
+  background: var(--surface-subtle);
+}
 .group-member-picker label > span:not(.avatar) {
   flex: 1;
   min-width: 0;
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 .group-member-picker small {
   display: block;

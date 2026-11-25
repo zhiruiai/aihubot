@@ -175,6 +175,29 @@
   padding: 0;
   display: flex;
 }
+.composer-attachments {
+  max-height: min(112px, 20dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.composer-attachments > span {
+  min-width: 0;
+  max-width: 100%;
+}
+.attachment-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.composer-attachments button {
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+}
 .jump-bottom {
   position: absolute;
   top: -38px;

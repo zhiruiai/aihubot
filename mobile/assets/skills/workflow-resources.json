@@ -424,5 +424,18 @@
       "assets/review-card.md": "# 本次练习复习卡\n\n- **知识点**\n- **我第一步怎么想**\n- **我在哪里改过来**\n- **新题和我给出的答案**\n- **我怎样验证答案**\n- **下次复习先做什么**\n\n只填写对话中真实发生的尝试。学生独立答对且能说明理由时，记录已完成这一道变式。由提示引导完成时，记录下一次需独立完成的步骤。\n",
       "LICENSE-MATH-TEACHER.txt": "MIT License\n\nCopyright (c) 2025 James Rochabrun\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
     }
+  },
+  "content-operations": {
+    "source": "aihubot",
+    "license": "MIT",
+    "instruction": {
+      "zh-CN": "按[运营方案模板](assets/plan.md)组织方案，依据[审稿和发布核对](references/review.md)检查稿件。交回的状态使用[回执模板](assets/receipt.md)。",
+      "en": "Use the [operating plan](assets/plan.md) and [editorial review](references/review.md). Report the observed outcome with the [receipt template](assets/receipt.md)."
+    },
+    "files": {
+      "assets/plan.md": "# Operating plan / 运营方案\n\n## Goal, reader, and success measure / 目标、读者和验收\n\n## Reader questions and supporting evidence / 读者问题与证据\n\n## Topic, channel, and call to action / 选题、渠道和行动入口\n\n## Work, owner, due date, and dependency / 工作、负责人、日期和依赖\n\n## Release and follow-up / 发布与复盘\n\n## Open questions / 待核对项\n",
+      "references/review.md": "# Editorial review / 审稿与发布核对\n\n- The opening explains when the reader would use the product and what they can get from it. / 首屏明确适用场景和读者能得到的结果。\n- Match links, screenshots, version, and capabilities to actual sources. Verify button labels, reader steps, and reported numbers against the linked artifact. Omit details you cannot verify. / 对照实际出处核对链接、截图、版本和能力。按钮名称、读者操作步骤和数字需逐项对照链接中的成品，无法核对就省略。\n- Keep a local draft available before opening a publishing account. Identify the delivery version the user selected. / 先交付本地稿，确认使用的是用户指定版本。\n- Report draft, pending review, public publication, failure, or unconfirmed outcome from the actual platform evidence. / 按页面证据区分草稿、审核、公开、失败和结果待核对。\n",
+      "assets/receipt.md": "# Publishing receipt / 发布回执\n\n- Platform and account / 平台与账号\n- Article and delivered version / 文章标题与交付版本\n- Observed state and evidence / 实际状态与依据\n- Verified link, if available / 已核对的链接\n"
+    }
   }
 }

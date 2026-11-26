@@ -56,7 +56,7 @@ export function WorkspaceLayout(model: WorkspaceModel) {
     const field = model.composerRef.current;
     model.updateComposer(model.composerKey, (previous) => {
       const text = previous.text;
-      if (!words) return text.trim() ? previous : { ...previous, text: prompt };
+      if (!words) return text.trim() ? previous : { ...previous, text: prompt + '\n' };
       const reflection = prompt + '\n' + words;
       return { ...previous, text: text.trim() ? text + '\n\n' + reflection : reflection };
     });

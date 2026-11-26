@@ -85,6 +85,23 @@ test(
         await cards.last().click();
         const preview = dialog.locator('.starter-selected');
         await preview.waitFor();
+        if (viewport.width <= 760) {
+          const action = dialog.getByRole('button', { name: '直接使用', exact: true });
+          const install = await bounds(action);
+          assert.ok(
+            install.y >= 0 && install.y + install.height <= viewport.height,
+            `Primary action is visible after choosing a Bot at ${viewport.width}×${viewport.height}, page ${index + 1}: ${JSON.stringify(install)}`,
+          );
+          assert.ok(
+            await action.evaluate((button) => {
+              const box = button.getBoundingClientRect();
+              return button.contains(
+                document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+              );
+            }),
+            'The install action is uncovered immediately after selection',
+          );
+        }
         const pagination = await bounds(dialog.locator('.starter-pagination'));
         const lastCard = await bounds(cards.last());
         assert.ok(lastCard.y + lastCard.height <= pagination.y + 1, 'cards stop before pagination');
@@ -133,9 +150,13 @@ test(
       await dialog.getByRole('searchbox').fill('研究员');
       assert.equal(await cards.count(), 1);
       await cards.first().press('Enter');
-      const summary = dialog.locator('.starter-selected .template-detail').first().locator('summary');
       await page.keyboard.press('Tab');
-      assert.equal(await summary.evaluate((node) => document.activeElement === node), true);
+      const install = dialog.getByRole('button', { name: '直接使用', exact: true });
+      assert.equal(await install.evaluate((node) => document.activeElement === node), true);
+      const summary = dialog
+        .locator('.starter-selected .template-detail')
+        .first()
+        .locator('summary');
       await summary.click();
       await dialog.getByRole('button', { name: '直接使用', exact: true }).click({ trial: true });
       assert.equal(

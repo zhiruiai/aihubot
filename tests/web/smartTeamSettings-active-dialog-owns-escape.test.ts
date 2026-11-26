@@ -34,6 +34,9 @@ test('only the active Dialog owns Escape, Tab and focus while hidden content rem
       focus() {
         document.activeElement = this;
       },
+      contains(target: unknown) {
+        return target === this || buttons.includes(target);
+      },
       querySelectorAll: () => buttons,
     };
   };
@@ -69,6 +72,17 @@ test('only the active Dialog owns Escape, Tab and focus while hidden content rem
     assert.equal(createClosed, 0);
     let prevented = false;
     modelButtons[1].focus();
+    for (const listener of listeners)
+      listener({
+        key: 'Tab',
+        preventDefault() {
+          prevented = true;
+        },
+      });
+    assert.equal(prevented, true);
+    assert.equal(document.activeElement, modelButtons[0]);
+    prevented = false;
+    initial.focus();
     for (const listener of listeners)
       listener({
         key: 'Tab',

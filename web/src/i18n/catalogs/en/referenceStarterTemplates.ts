@@ -3,12 +3,12 @@ export default {
   studyEquationLabel: 'Grade 7 · Ch. 5, 5.2 Linear equations',
   studyPractice: 'Math practice',
   studyBringProblem: 'Bring a problem',
-  studyProblemDraft: 'I would like to work through this problem: ',
+  studyProblemDraft: 'I would like to work through this problem:',
   studyCarryAnswer: 'Take my answer back to chat',
   studyReturn: 'Back to chat to explain my solution',
-  studyTenDraft: 'The ten-frame has 6 seeds. How can I fill it? My reasoning: ',
+  studyTenDraft: 'The ten-frame has 6 seeds. How can I fill it? My reasoning:',
   studyEquationDraft:
-    'For the new equation 2(y + 3) = 18, I can solve and check it by substitution. My reasoning: ',
+    'For the new equation 2(y + 3) = 18, I can solve and check it by substitution. My reasoning:',
   studyLessonUnavailable: 'The lesson file could not be loaded. Choose the lesson again to retry.',
   teamStarterTitle: 'Team templates',
   teamStarterHelp:

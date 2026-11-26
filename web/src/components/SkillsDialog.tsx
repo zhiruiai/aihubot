@@ -1,14 +1,18 @@
 import { uiText } from '../i18n';
 import { Info, LibraryBig, Plus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { isSharedBot } from '../../../shared/shared-bots';
 import type { BotAgent, Skill } from '../../../shared/types';
 import { createFormSubmission, type FormSaveResult } from '../formSubmission';
 import type { ImportedSkillDraft } from '../skillFileImport';
-import { skillPackageUpload, type SkillPackageDraft } from '../skillPackageImport';
+import {
+  skillPackageTextFiles,
+  skillPackageUpload,
+  type ImportedSkillPackage,
+  type SkillPackageDraft,
+} from '../skillPackageImport';
 import type { PackagedSkillDraft } from '../skillWorkflowTemplates';
 import type { InstallSkill } from '../skillInstallation';
-import type { ImportedSkillPackage } from '../skillPackageImport';
 import { SkillInstallation } from './SkillInstallation';
 import { currentSkillVersion, type SkillAction, type SkillView } from '../skillVersions';
 import { SkillManager } from './SkillManager';
@@ -62,6 +66,11 @@ export function SkillsDialog({
   const [showTeam, setShowTeam] = useState(false);
   const [showCatalog, setShowCatalog] = useState(false);
   const [importing, setImporting] = useState<ImportedSkillPackage>();
+  const previewPackage = importing?.skillPackage ?? (adding ? packageDraft : undefined);
+  const fileContents = useMemo(
+    () => previewPackage && skillPackageTextFiles(previewPackage),
+    [previewPackage],
+  );
   const reviewing = skills.find((s) => s.id === reviewId);
   const [submission] = useState(createFormSubmission);
   const [saving, setSaving] = useState(false);
@@ -185,6 +194,7 @@ export function SkillsDialog({
           </header>
           <SkillInstallation
             skill={importing}
+            fileContents={fileContents}
             bots={editableAgents}
             skills={skills}
             initialAgentId={agentId}
@@ -355,6 +365,7 @@ export function SkillsDialog({
                   <SkillPackageDetails
                     {...packageDraft}
                     files={[{ path: 'SKILL.md' }, ...packageDraft.files]}
+                    fileContents={fileContents}
                   />
                 )}
                 {saveError && (

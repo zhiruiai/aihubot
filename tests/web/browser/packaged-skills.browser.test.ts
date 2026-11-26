@@ -7,7 +7,10 @@ import test from 'node:test';
 import { build } from 'esbuild';
 import { chromium } from 'playwright-core';
 import { skillPackageUpload } from '../../../web/src/skillPackageImport';
-import { skillWorkflowPackage, skillWorkflowTemplates } from '../../../web/src/skillWorkflowTemplates';
+import {
+  skillWorkflowPackage,
+  skillWorkflowTemplates,
+} from '../../../web/src/skillWorkflowTemplates';
 
 const workspaceId = '11111111-1111-4111-8111-111111111111';
 const origin = 'https://packaged-skills.example.test';
@@ -267,14 +270,48 @@ test(
       join(root, 'SKILL.md'),
       '---\nname: quality-review\ndescription: Check data quality.\n---\nRun scripts/check.py to inspect data.\n',
     );
-    await writeFile(join(root, 'scripts/check.py'), 'print("checked")\n');
+    const script = 'print("检查 <input>")\n';
+    await writeFile(join(root, 'scripts/check.py'), script);
+    await writeFile(join(root, 'sample.bin'), Buffer.from([0, 255, 1]));
     await manager.locator('input[type=file][webkitdirectory]').setInputFiles(root);
     await manager.getByRole('heading', { name: 'quality-review', exact: true }).waitFor();
+    await manager.getByText('View instructions and files', { exact: true }).click();
+    const importedFiles = manager.getByRole('region', { name: 'Agent Skills package' });
+    await importedFiles.locator('summary').filter({ hasText: 'scripts/check.py' }).click();
+    assert.equal(await importedFiles.locator('details[open] > pre').textContent(), script);
+    assert.equal(await importedFiles.locator('pre input').count(), 0);
+    const layout = manager.locator('.packaged-skill-document');
+    assert.equal(
+      await layout.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length),
+      1,
+      'imported file reviews stack on a phone',
+    );
+    await page.setViewportSize({ width: 1280, height: 800 });
+    assert.ok(
+      await layout.evaluate((el) => el.children[0].clientWidth > el.children[1].clientWidth),
+      'an open script receives the wider desktop column',
+    );
+    assert.equal(
+      await importedFiles.locator('summary').filter({ hasText: 'sample.bin' }).count(),
+      0,
+    );
+    assert.equal(writes.length, 3);
     await manager.getByRole('button', { name: 'Install skill', exact: true }).click();
     await manager.getByText('Enabled for Design Bot and ready to use.').waitFor();
     assert.equal(writes.length, 4);
     assert.equal(writes[3].body.name, 'quality-review');
-    assert.equal(writes[3].body.skillPackage.files[0].path, 'scripts/check.py');
+    assert.deepEqual(
+      writes[3].body.skillPackage.files.find(
+        (file: { path: string }) => file.path === 'scripts/check.py',
+      ),
+      { path: 'scripts/check.py', base64: Buffer.from(script).toString('base64') },
+    );
+    assert.deepEqual(
+      writes[3].body.skillPackage.files.find(
+        (file: { path: string }) => file.path === 'sample.bin',
+      ),
+      { path: 'sample.bin', base64: 'AP8B' },
+    );
     assert.equal(await manager.getByRole('heading', { name: 'Skill package draft' }).count(), 0);
     await manager.getByRole('button', { name: 'Done', exact: true }).click();
     await manager.getByRole('heading', { name: 'quality-review', exact: true }).waitFor();

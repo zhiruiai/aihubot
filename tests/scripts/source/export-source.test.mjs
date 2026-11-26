@@ -71,6 +71,11 @@ test('source export selects original source without local data, generated files 
     await f.put('docs/evidence/private-peer.png', 'UNREVIEWED_MEDIA');
     const reviewedMedia = [
       'docs/demo/avatar-themes.gif',
+      'docs/demo/bot-gallery-current.webp',
+      'docs/demo/create-group-current.webp',
+      'docs/demo/skill-package-current.webp',
+      'docs/demo/workspace-delivery-current.webp',
+      'docs/demo/workspace-diff-current.webp',
       'docs/evidence/gui/reference-settings-en.png',
     ];
     const unreviewedMedia = ['docs/demo/extra.GIF', 'docs/evidence/gui/current-desktop.png'];

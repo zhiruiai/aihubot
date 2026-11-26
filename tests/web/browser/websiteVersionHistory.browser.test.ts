@@ -59,7 +59,9 @@ test(
   'website history opens distinct versions across threads and compares manifests',
   { timeout: 60_000 },
   async (t) => {
-    const initial = version('1', 'Initial site', { 'index.html': '<h1>Original page</h1>' });
+    const initial = version('1', 'Initial site', {
+      'index.html': '<h1>Original page</h1><button>Inspect original</button>',
+    });
     const previous = version('2', 'First revision', {
       'index.html': '<h1>First revision</h1>',
       'style.css': 'h1 { color: green }',
@@ -227,10 +229,18 @@ test(
     });
 
     await page.goto(`${origin}${workspacePath}?conversation=chat`);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const sidebar = page.locator('.app-shell > .sidebar');
+    const sidebarWidth = await sidebar.evaluate((element) => element.clientWidth);
     const input = page.locator('.composer textarea');
     await input.fill('A draft in the main chat.');
     await page.getByRole('button', { name: 'Open website Initial site' }).click();
     await page.getByRole('combobox', { name: 'Message about Initial site' }).waitFor();
+    assert.ok(
+      sidebarWidth - (await sidebar.evaluate((element) => element.clientWidth)) <= 8,
+      'a wide workspace retains room for conversation titles while reviewing a delivery',
+    );
+    await page.setViewportSize({ width: 1200, height: 760 });
     await page
       .locator('.website-project-latest')
       .getByText('A newer delivery is available · Version 3')
@@ -243,6 +253,18 @@ test(
     assert.equal(originalAttempt.replyToMessageId, initial.message.id);
 
     const history = page.getByRole('button', { name: 'Version history' });
+    const inspectOriginal = page.frameLocator('iframe').getByRole('button', {
+      name: 'Inspect original',
+    });
+    await inspectOriginal.waitFor();
+    await history.press('Tab');
+    assert.equal(
+      await inspectOriginal.evaluate((node) => node === document.activeElement),
+      true,
+      'desktop review can tab into the delivered website',
+    );
+    await inspectOriginal.press('Shift+Tab');
+    assert.equal(await history.evaluate((node) => node === document.activeElement), true);
     await history.press('Enter');
     const list = page.getByRole('list', { name: 'Version history' });
     assert.deepEqual(await list.locator('strong').allTextContents(), [
@@ -315,6 +337,14 @@ test(
       .getByRole('heading', { name: 'Original page' })
       .waitFor();
     assert.equal(await originalPanel.getByRole('tab', { name: 'Changes' }).count(), 0);
+    await history.press('Tab');
+    assert.equal(
+      await inspectOriginal.evaluate((node) => node === document.activeElement),
+      true,
+      'overlay review can tab into the delivered website',
+    );
+    await inspectOriginal.press('Shift+Tab');
+    assert.equal(await history.evaluate((node) => node === document.activeElement), true);
     await originalPanel.getByRole('button', { name: 'Version history' }).click();
     await originalPanel.getByRole('button', { name: /Second revision.*Latest delivery/ }).click();
     await panel.getByRole('button', { name: 'Edit this version' }).click();

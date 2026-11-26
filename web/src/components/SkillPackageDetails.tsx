@@ -40,7 +40,7 @@ export function SkillPackageDetails({
       <strong>{uiText('common:skillPackageTitle')}</strong>
       <code>{root}/</code>
       {fields.length > 0 && !expandedFiles && metadata}
-      <details open={fileContents || expandedFiles ? true : undefined}>
+      <details open={expandedFiles || undefined}>
         <summary>{uiText('common:skillPackageFiles', { count: files.length })}</summary>
         <ul>
           {files.map(({ path, size }) => {

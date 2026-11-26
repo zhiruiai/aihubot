@@ -6,6 +6,14 @@
 
 [Open the six interactive projects](https://zhiruiai.github.io/aihubot/work/) · [Recordings and evidence](docs/office-workflows.md) · [Quick start](#quick-start) · [Download](https://github.com/zhiruiai/aihubot/releases/latest)
 
+## The main hall closed. All six sessions stayed on.
+
+The first delivery shows three conflicts after the main hall closes. The coordinator replies to the same chat with a revised schedule and an exportable calendar. Open either version, inspect the file changes and continue editing from the version you choose.
+
+[![The aihubot chat beside version 2 of the event schedule, with all six sessions and no venue conflicts](docs/demo/workspace-delivery-current.webp)](https://zhiruiai.github.io/aihubot/work/operations/)
+
+The screenshots come from an isolated demo workspace. Rust and Pi saved both versions of the fictional event using a local scripted model. [View the file comparison](docs/demo/workspace-diff-current.webp) · [Try the event board](https://zhiruiai.github.io/aihubot/work/operations/)
+
 ## Create a Bot and bring it into a group
 
 In **Bot Gallery**, open a template to see its role, instructions, and included skill packages. Use it directly to start a chat, or edit the profile first. [Bot templates](docs/bot-templates.md)
@@ -14,7 +22,12 @@ In **Bot Gallery**, open a template to see its role, instructions, and included 
 
 From **New chat → Create a work group**, search for Bots by name or role. The selected participants stay visible as you search. Create the group from the footer once its roster is ready.
 
+<details>
+<summary>See the three-Bot group setup</summary>
+
 ![The aihubot group creation dialog with three selected Bots and the create action visible](docs/demo/create-group-current.webp)
+
+</details>
 
 ## Start with one math problem
 
@@ -67,6 +80,13 @@ Open the file card. Ask the Bot to split the 12 guides across Wednesday and Thur
 - **Website delivery.** Open a delivered site from chat, compare revisions, revisit the first version and continue in its original thread. The version-history recording shows saved deliveries from a real model. The playable Starport Landing example comes from a scripted conversation. [Version-history recording](docs/demo/website-delivery.gif) · [Play Starport Landing](https://zhiruiai.github.io/aihubot/en/)
 - **Install and run a skill.** In the Bot’s settings, open **Choose and manage skills → Choose from skill library**. Inspect the files in **Data quality review**, install it, attach a CSV and select the skill with `/`. Its Python script returns an exit code and row statistics. The execution Mac needs Python 3 and local command access. [Skill packages and execution](docs/bot-models-and-skills.md)
 - **Plan and publish.** The Content Operations and Publishing Bot turns a brief into an operating plan and a downloadable article. Connect a Zhihu account to save a platform draft or submit the chosen version, then check the platform receipt. [Zhihu workflow](docs/zhihu-articles.md) · [Publishing accounts](docs/publishing.md)
+
+<details>
+<summary>See how to review a local skill package before installing it</summary>
+
+![The skill import review showing the package instructions and its order-checking script before installation](docs/demo/skill-package-current.webp)
+
+</details>
 
 ## Architecture and contributing
 

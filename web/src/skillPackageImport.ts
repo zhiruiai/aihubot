@@ -110,6 +110,21 @@ export function skillPackageFile(path: string, bytes: Uint8Array): PackageFile {
   return { path, size: bytes.byteLength, base64: base64(bytes) };
 }
 
+export function skillPackageTextFiles({ files }: SkillPackageDraft): Record<string, string> {
+  const result: Record<string, string> = Object.create(null);
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  for (const { path, base64 } of files) {
+    const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+    try {
+      const text = decoder.decode(bytes);
+      if (!/\p{Cc}/u.test(text.replace(/[\t\r\n]/g, ''))) result[path] = text;
+    } catch {
+      // Binary resources remain in the package with their original bytes.
+    }
+  }
+  return result;
+}
+
 export function skillPackageUpload(
   { name, description, content }: ImportedSkillDraft,
   { root, frontmatter, files }: SkillPackageDraft,

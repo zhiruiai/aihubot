@@ -120,6 +120,7 @@
   font-size: 12px;
 }
 .packaged-skill-preview {
+  container-type: inline-size;
   display: grid;
   gap: 13px;
 }
@@ -256,6 +257,11 @@
   margin: 0;
   overflow: visible;
   overflow-wrap: anywhere;
+}
+@container (min-width: 680px) {
+  .packaged-skill-document:has(.skill-package-file[open]) {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
 }
 @container (max-width: 480px) {
   .packaged-skill-grid,

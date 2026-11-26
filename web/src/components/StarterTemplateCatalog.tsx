@@ -161,31 +161,6 @@ export function StarterTemplateCatalog(props: {
             className="starter-selected"
             aria-label={uiText('workspace:starterReview')}
           >
-            <div className="starter-selected-scroll">
-              <BotTemplatePreview
-                compact
-                blueprint={{
-                  version: 1,
-                  profile: item.profile,
-                  skills: included.map((pack) => ({
-                    name: pack.name,
-                    description: pack.description,
-                    content: pack.instructions,
-                  })),
-                  routines: [],
-                }}
-              />
-              {!!included.length && (
-                <div
-                  className="starter-skill-tags"
-                  aria-label={uiText('workspace:starterSkillsLabel')}
-                >
-                  {included.map((pack) => (
-                    <span key={pack.id}>{pack.name}</span>
-                  ))}
-                </div>
-              )}
-            </div>
             {props.canCreate ? (
               <div className="starter-selected-actions">
                 {props.onInstall && (
@@ -226,6 +201,31 @@ export function StarterTemplateCatalog(props: {
                 {props.installError}
               </p>
             )}
+            <div className="starter-selected-scroll">
+              <BotTemplatePreview
+                compact
+                blueprint={{
+                  version: 1,
+                  profile: item.profile,
+                  skills: included.map((pack) => ({
+                    name: pack.name,
+                    description: pack.description,
+                    content: pack.instructions,
+                  })),
+                  routines: [],
+                }}
+              />
+              {!!included.length && (
+                <div
+                  className="starter-skill-tags"
+                  aria-label={uiText('workspace:starterSkillsLabel')}
+                >
+                  {included.map((pack) => (
+                    <span key={pack.id}>{pack.name}</span>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
         ) : (
           <div className="starter-placeholder">

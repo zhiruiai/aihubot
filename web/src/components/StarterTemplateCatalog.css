@@ -139,6 +139,7 @@
   height: 34px;
 }
 .starter-selected-scroll {
+  order: -1;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
@@ -271,9 +272,16 @@
     grid-auto-rows: auto;
   }
   .starter-selected-scroll {
+    order: 0;
     flex: none;
     overflow: visible;
     max-height: none;
+  }
+  .starter-selected-actions {
+    padding-top: 0;
+    padding-bottom: 12px;
+    border-top: 0;
+    border-bottom: 1px solid var(--border);
   }
   .starter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

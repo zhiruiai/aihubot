@@ -84,6 +84,7 @@ export function WebsiteProjectPreview({
       )}
       <iframe
         ref={frame}
+        tabIndex={0}
         className="website-project-preview"
         title={uiText('workspace:filePreviewDocument')}
         sandbox={

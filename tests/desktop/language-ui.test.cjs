@@ -6,6 +6,7 @@ const { join } = require('node:path');
 const { runInNewContext } = require('node:vm');
 const { setupDom } = require('../fixtures/desktop/setup-dom-fixture.cjs');
 const { deferred } = require('../fixtures/desktop/test-fixture.cjs');
+const { ConnectionState } = require('../../desktop/security.cjs');
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 function bridgeFixture() {
@@ -272,5 +273,55 @@ test('failed computer-control startup can retry without control while preserving
   ]);
   assert.equal(page.byId('local-error').hidden, true);
   assert.equal(page.document.body.hidden, true);
+  page.hide();
+});
+
+test('a local page load failure preserves the edited remote address for fallback', async () => {
+  const fixture = bridgeFixture();
+  const machine = new ConnectionState('https://saved.example.test');
+  const startup = deferred();
+  fixture.publish({ ...machine.snapshot(), localAvailable: true });
+  fixture.bridge.startLocal = () => startup.promise;
+  fixture.bridge.connect = async (value) => {
+    fixture.calls.push(value);
+    machine.begin(value.url);
+    return { ...machine.snapshot(), localAvailable: true };
+  };
+  const page = setupDom(fixture.bridge);
+  await settle();
+  const draft = 'https://replacement.example.test';
+  page.byId('workspace-url').value = draft;
+  page.byId('workspace-url').emit('input');
+  page.byId('start-local').emit('click');
+  const attempt = machine.begin('http://127.0.0.1:49152', true);
+  fixture.publish({ ...machine.snapshot(), localStarting: true });
+  assert.equal(page.byId('workspace-url').disabled, true);
+  assert.equal(
+    page.byId('workspace-url').value,
+    draft,
+    'local WebView loading is not a remote address submission',
+  );
+  machine.failed(attempt, 'The local page failed to load');
+  machine.setup();
+  const failure = {
+    ...machine.snapshot(),
+    localAvailable: true,
+    localStarting: false,
+    localError: '本机工作空间启动失败。请重试。',
+  };
+  fixture.publish(failure);
+  startup.resolve(failure);
+  await settle();
+  assert.equal(page.byId('local-error').hidden, false);
+  assert.equal(page.byId('workspace-url').value, draft);
+  assert.equal(page.byId('workspace-url').disabled, false);
+  page.byId('connect-form').emit('submit');
+  await settle();
+  assert.deepEqual(JSON.parse(JSON.stringify(fixture.calls)), [{ url: draft }]);
+  assert.equal(
+    page.byId('workspace-url').value,
+    draft,
+    'remote fallback submits the visible draft',
+  );
   page.hide();
 });

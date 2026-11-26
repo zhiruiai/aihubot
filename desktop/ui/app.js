@@ -115,7 +115,11 @@
     if (!hostControlEdited) hostControlInput.checked = state.localHostControlSelected === true;
     localError = typeof state.localError === 'string' ? state.localError.slice(0, 1000) : '';
     const savedUrl = typeof state.url === 'string' && state.url ? state.url : DEFAULT_URL;
-    if (first || !edited || state.status === 'connecting' || state.status === 'connected') {
+    if (
+      first ||
+      !edited ||
+      (!localStarting && (state.status === 'connecting' || state.status === 'connected'))
+    ) {
       address.value = savedUrl;
       edited = false;
     }

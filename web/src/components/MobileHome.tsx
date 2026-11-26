@@ -5,6 +5,7 @@ import type { BotAgent, Conversation } from '../../../shared/types';
 import type { SidebarRosterState } from '../../../shared/sidebar-roster';
 import { isConversationHidden, rosterConversationOrder } from '../sidebarRoster';
 import { Avatar } from './Avatar';
+import { AppBrandMark } from './AppBrandMark';
 import './MobileHome.css';
 
 export function useMobileHome() {
@@ -142,6 +143,9 @@ export function MobileHomeHeader({
             )}
           </div>
         )}
+        <span role="img" aria-label="aihubot">
+          <AppBrandMark size={32} />
+        </span>
         <div className="mobile-home-actions">
           <button
             type="button"

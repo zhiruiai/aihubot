@@ -1,4 +1,5 @@
 import { build } from 'esbuild';
+import { readFile } from 'node:fs/promises';
 import type { Page } from 'playwright-core';
 
 const origin = 'https://viewport.example.test';
@@ -92,6 +93,11 @@ export async function workspaceViewportFixture(page: Page) {
     if (url.origin !== origin) return route.abort();
     if (url.pathname === '/fixture.js')
       return route.fulfill({ contentType: 'text/javascript', body: script });
+    if (url.pathname === '/favicon.svg')
+      return route.fulfill({
+        contentType: 'image/svg+xml',
+        body: await readFile('web/public/favicon.svg'),
+      });
     if (url.pathname === '/api/account/session')
       return route.fulfill({
         json: {

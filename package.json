@@ -81,6 +81,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/yauzl": "^3.4.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "@xmldom/xmldom": "0.8.15",
     "electron": "45.2.1",
     "esbuild": "0.28.2",
     "eslint": "10.15.0",

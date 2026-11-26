@@ -1,4 +1,4 @@
-<h1 align="center"><img src="docs/demo/office-cover.svg" alt="aihubot" width="960"></h1>
+<h1 align="center"><img src="web/public/icon-192.png" alt="" width="88" height="88"><br><img src="docs/demo/office-cover.svg" alt="aihubot" width="960"></h1>
 
 **English** · [简体中文](README.zh-CN.md)
 

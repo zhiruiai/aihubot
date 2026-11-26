@@ -100,7 +100,7 @@ export const reviewedShowcaseFiles = new Set([
   'docs/showcase/index.html',
   'docs/showcase/zh.html',
   'docs/showcase/showcase.css',
-  'docs/showcase/panda.svg',
+  'docs/showcase/mark.svg',
   ...['en', 'zh'].flatMap((language) =>
     ['index.html', 'assets/flight.css', 'assets/ship.svg', 'src/flight.mjs', 'src/physics.mjs'].map(
       (path) => 'docs/showcase/' + language + '/' + path,

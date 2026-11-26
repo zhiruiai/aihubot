@@ -1,0 +1,6 @@
+.app-brand-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  object-fit: contain;
+  vertical-align: middle;
+}

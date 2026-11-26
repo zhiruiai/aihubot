@@ -38,6 +38,7 @@ flutter:
       platforms: [web]
     - assets/l10n/
     - assets/apps/
+    - assets/branding/
     - assets/skills/
     - assets/templates/
     - assets/website_preview/

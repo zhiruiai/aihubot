@@ -10,7 +10,7 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import { Avatar } from '../../components/Avatar';
+import { AppBrandMark } from '../../components/AppBrandMark';
 import { Dialog } from '../../components/UI';
 import { AccountInitial, AccountMenu } from '../AccountAccess';
 import '../BotTemplatePage.css';
@@ -60,7 +60,7 @@ export function TeamPageView(model: TeamPageModel) {
           href={generating ? undefined : workspacePath(workspaceId)}
           aria-disabled={generating}
         >
-          <Avatar size={32} />
+          <AppBrandMark size={32} />
           <span>aihubot</span>
         </a>
         {session && (

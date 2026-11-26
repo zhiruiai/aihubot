@@ -29,7 +29,7 @@ test('the two Vite sites use separate ports and operator proxy routes never reac
   assert.equal(product.server?.port, 5173);
   assert.equal(operations.server?.port, 5174);
   assert.equal(operations.build?.outDir, resolve('operations-dist'));
-  assert.equal(operations.publicDir, false);
+  assert.equal(operations.publicDir, resolve('operations/public'));
   for (const config of [product, operations]) {
     const denied = createFilter(config.server?.fs?.deny, undefined, { resolve: false });
     const ignored = createFilter(config.server?.watch?.ignored as string[], undefined, {
@@ -203,6 +203,8 @@ test('operator login and product registration render separate real forms and nav
     assert.deepEqual(calls, ['/api/platform/session']);
     assert.ok(operator.form());
     const html = render(() => operator.tree, {});
+    assert.equal((html.match(/class="app-brand-mark"/g) || []).length, 2);
+    assert.doesNotMatch(html, /account-brand-avatar/);
     assert.doesNotMatch(html, /href="\/(?:login|register|account|w\/)/);
     assert.match(html, locale === 'en' ? /For platform operators only/ : /仅供平台运营人员使用/);
     operator.dispose();
@@ -221,6 +223,7 @@ test('operator login and product registration render separate real forms and nav
     );
     await product.flush();
     const signup = render(() => product.tree, {});
+    assert.equal((signup.match(/class="app-brand-mark"/g) || []).length, 2);
     assert.match(signup, /href="\/login"/);
     assert.doesNotMatch(signup, /href="\/admin/);
     product.dispose();

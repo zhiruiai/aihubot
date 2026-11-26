@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { OperatorSession, PlatformOverview } from '../../../shared/platform';
 import '../../../web/src/admin/Admin.css';
 import { LoadBoundary } from '../../../web/src/components/LoadBoundary';
-import { AccountAvatar } from '../../../web/src/platform/account/AccountAvatar';
+import { AppBrandMark } from '../../../web/src/components/AppBrandMark';
 import { Dialog } from '../../../web/src/components/UI';
 import { platformTime } from '../../../web/src/platform/platformApi';
 import { useOperatorScope } from './useOperatorScope';
@@ -77,7 +77,7 @@ export default function OperatorWorkspace({
     <main className="admin-shell platform-operator">
       <aside className="admin-sidebar">
         <a className="admin-brand" href="/admin">
-          <AccountAvatar size={35} />
+          <AppBrandMark size={36} />
           <span>
             <strong>aihubot</strong>
             <small>{uiText('platform:text_e0f17eefe421')}</small>

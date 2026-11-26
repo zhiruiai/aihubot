@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NewChatPicker } from '../components/NewChatPicker';
+import { AppBrandMark } from '../components/AppBrandMark';
 import { uiText } from '../i18n';
 import { searchShortcutLabel } from '../keyboardShortcuts';
 import {
@@ -118,7 +119,10 @@ export function WorkspaceSidebar({
           />
         )}
         <div className="sidebar-toolbar">
-          <span className="app-wordmark">aihubot</span>
+          <span className="app-wordmark">
+            <AppBrandMark size={30} />
+            aihubot
+          </span>
           <div className="toolbar-actions">
             <IconButton
               label={uiText('workspace:text_feb95554de09')}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_session.dart';
 import '../../l10n/strings.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_brand_mark.dart';
 
 class ServerScreen extends StatefulWidget {
   const ServerScreen({super.key, required this.session, this.canClose = false});
@@ -46,10 +47,9 @@ class _ServerScreenState extends State<ServerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.forum_outlined,
-                    size: 52,
-                    color: Theme.of(context).colorScheme.primary,
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: AppBrandMark(),
                   ),
                   const SizedBox(height: 24),
                   Text(

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { build } from 'esbuild';
 import { chromium } from 'playwright-core';
@@ -120,6 +121,11 @@ test(
         return route.fulfill({ contentType: 'text/javascript', body: js });
       if (url.pathname === '/fixture.css')
         return route.fulfill({ contentType: 'text/css', body: css });
+      if (url.pathname === '/favicon.svg')
+        return route.fulfill({
+          contentType: 'image/svg+xml',
+          body: await readFile('web/public/favicon.svg'),
+        });
       if (url.pathname === '/api/account/session' && request.method() === 'GET')
         return route.fulfill({ json: account() });
       if (url.pathname === '/api/account/login' && request.method() === 'POST') {
@@ -156,6 +162,16 @@ test(
 
     await page.goto(`${origin}${path}`);
     await page.waitForURL(`${origin}/login?next=${encodeURIComponent(path)}`);
+    await page.waitForFunction(() => {
+      const mark = document.querySelector<HTMLImageElement>(
+        '.platform-auth-card > .app-brand-mark',
+      );
+      return mark?.complete && mark.naturalWidth > 0;
+    });
+    assert.equal(
+      await page.locator('.platform-auth-card > .app-brand-mark').getAttribute('width'),
+      '64',
+    );
     assert.equal(detailReads, 0);
     await page.locator('input[type=email]').fill(member.email);
     await page.locator('input[type=password]').fill('fixture-password-12');

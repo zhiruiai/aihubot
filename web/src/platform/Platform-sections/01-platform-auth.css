@@ -41,7 +41,7 @@
   background: light-dark(#fff, var(--surface));
   box-shadow: 0 12px 65px light-dark(#4b2e6b08, var(--shadow-soft));
 }
-.platform-auth-card > .avatar {
+.platform-auth-card > .app-brand-mark {
   display: block;
   margin: 0 auto 17px;
 }

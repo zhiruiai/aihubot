@@ -6,7 +6,7 @@ import {
   type TeamSkillLink,
   type TeamSkillPublication,
 } from '../../../shared/team-skills';
-import { Avatar } from '../components/Avatar';
+import { AppBrandMark } from '../components/AppBrandMark';
 import { Markdown } from '../components/Markdown';
 import { uiText } from '../i18n';
 import { accountEntryPath, platformApi, PlatformApiError, workspacePath } from './platformApi';
@@ -178,7 +178,7 @@ function TeamSkillLinkLayout({
     <main className="platform-team-page">
       <header className="platform-team-header">
         <a className="platform-brand" href="/">
-          <Avatar size={32} />
+          <AppBrandMark size={32} />
           <span>aihubot</span>
         </a>
       </header>

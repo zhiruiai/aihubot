@@ -7,7 +7,7 @@ import { parseTeamSkillLinkPath } from '../../shared/team-skills';
 import { parseWebsiteSharePath } from '../../shared/website-shares';
 import { AccountContext } from './AccountContext';
 import { parseAppAuthorizationPath } from './appOAuth';
-import { AccountAvatar } from './platform/account/AccountAvatar';
+import { AppBrandMark } from './components/AppBrandMark';
 import { AccountPage } from './platform/AccountPages';
 import { AccountShell } from './platform/account/AccountShell';
 import { WorkspaceChooser } from './platform/AccountAccess';
@@ -182,7 +182,7 @@ function AccountWorkspace({
   if (!session?.authenticated)
     return (
       <main className="loading-screen">
-        <AccountAvatar size={56} />
+        <AppBrandMark size={64} />
         <p>{error || uiText('common:text_cad787054ece')}</p>
         {error && (
           <button className="secondary-button" onClick={() => void refresh()}>

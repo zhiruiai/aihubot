@@ -41,7 +41,10 @@ export function frontendConfig(
     envDir: projectRoot,
     plugins: [react(), webLicenseInputs(projectRoot, mode)],
     ...(operations
-      ? { publicDir: false, cacheDir: resolve(projectRoot, 'node_modules/.vite-operations') }
+      ? {
+          publicDir: resolve(projectRoot, 'operations/public'),
+          cacheDir: resolve(projectRoot, 'node_modules/.vite-operations'),
+        }
       : {}),
     server: {
       host: '127.0.0.1',

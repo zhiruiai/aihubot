@@ -118,7 +118,7 @@ test('source export retains playable showcase files and excludes unrelated showc
       'docs/showcase/index.html',
       'docs/showcase-work/index.html',
       'docs/showcase-work/operations/index.html',
-      'docs/showcase/panda.svg',
+      'docs/showcase/mark.svg',
       'docs/showcase/showcase.css',
       'docs/showcase/zh.html',
       ...['en', 'zh'].flatMap((lang) =>

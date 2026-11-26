@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_session.dart';
 import '../../l10n/strings.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_brand_mark.dart';
 import 'server_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -94,6 +95,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: AppBrandMark(),
+                    ),
+                    const SizedBox(height: 20),
                     Text(
                       context.tr('tagline'),
                       style: Theme.of(context).textTheme.headlineSmall,

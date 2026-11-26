@@ -1,7 +1,7 @@
 import { uiText } from '../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, RefreshCw, Users } from 'lucide-react';
-import { Avatar } from '../components/Avatar';
+import { AppBrandMark } from '../components/AppBrandMark';
 import { SharedBotsDialog } from '../components/SharedBotsDialog';
 import { AccountMenu } from './AccountAccess';
 import { accountEntryPath } from './platformApi';
@@ -19,7 +19,7 @@ export function SharedBotPage({ shareId }: { shareId?: string }) {
     <SharedBotLink key={shareId} shareId={shareId} />
   ) : (
     <main className="loading-screen">
-      <Avatar size={48} />
+      <AppBrandMark size={64} />
       <h1>{uiText('account:text_39a71c80cdd2')}</h1>
       <p>{uiText('account:text_1bbb3fb5d5b1')}</p>
       <a href="/">{uiText('account:text_993fbcd2bb64')}</a>
@@ -73,7 +73,7 @@ function SharedBotLink({ shareId }: { shareId: string }) {
     <main className="platform-team-page template-public-page">
       <header className="platform-team-header">
         <a className="platform-brand" href="/">
-          <Avatar size={32} />
+          <AppBrandMark size={32} />
           <span>aihubot</span>
         </a>
         {state.session?.authenticated ? (

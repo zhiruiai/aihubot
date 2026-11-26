@@ -130,6 +130,7 @@ function createSetupWindow({
     // Native captions retain Windows Snap, system menus and accessible controls.
     // Alt reveals the application menu without a permanent second header row.
     autoHideMenuBar: process.platform !== 'darwin',
+    ...(process.platform === 'linux' ? { icon: join(__dirname, 'ui', 'icon.png') } : {}),
     show: false,
     webPreferences: {
       ...rendererPreferences('openbot-setup', join(__dirname, 'preload.cjs')),

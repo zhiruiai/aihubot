@@ -2,7 +2,7 @@ import { uiText } from '../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, KeyRound, Loader2, ShieldCheck, UserRound } from 'lucide-react';
 import type { AccountSession, PlatformUser } from '../../../shared/platform';
-import { Avatar } from '../components/Avatar';
+import { AppBrandMark } from '../components/AppBrandMark';
 import { AccountShell } from './AccountPages';
 import { platformApi, PlatformApiError } from './platformApi';
 import { passwordProblem, submitPasswordChange, type MutationGate } from './accountActions';
@@ -107,7 +107,7 @@ export function AccountSettingsPage() {
             if (busy) event.preventDefault();
           }}
         >
-          <Avatar size={33} />
+          <AppBrandMark size={33} />
           <span>aihubot</span>
         </a>
         <span className="account-settings-identity">

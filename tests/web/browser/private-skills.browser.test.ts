@@ -120,6 +120,7 @@ test(
     });
 
     await page.goto(`${origin}/w/${workspaceId}`);
+    await page.locator('.apps-private-menu summary').click();
     await page.getByRole('button', { name: 'Private skills', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Private skills' });
     const currentVersion = dialog.getByRole('button', { name: /Review checklist.*Version 2/ });

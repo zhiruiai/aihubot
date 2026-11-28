@@ -270,7 +270,7 @@ export function MobileBotShortcuts({
           onClick={() => onOpen(conversation)}
         >
           <span className="mobile-bot-portrait">
-            <Avatar agent={agent} size={52} />
+            <Avatar agent={agent} size={46} />
             {isWorking(conversation.id) && (
               <span className="mobile-bot-working" aria-hidden="true" />
             )}

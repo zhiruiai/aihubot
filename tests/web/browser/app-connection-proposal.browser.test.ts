@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { build } from 'esbuild';
+import { serveAppProviderMark } from '../fixtures/browser/appProviderMarks';
 import { chromium } from 'playwright-core';
 import type { ConnectedApp } from '../../../shared/app-connections';
 import type { Message } from '../../../shared/types';
@@ -68,7 +69,7 @@ const flow = {
 };
 
 test(
-  'a chat card rechecks the workspace, resumes exact pending authorization, and avoids duplicate add',
+  'chat and directory setup recover the exact connection after a concurrent add',
   {
     skip: process.env.OPENBOT_BROWSER_TEST !== '1',
     timeout: 55_000,
@@ -94,6 +95,7 @@ test(
           const [apps, setApps] = useState(window.fixtureApps);
           window.replaceAppSnapshot = setApps;
           return <>
+            {!member && <button onClick={() => setProvider('directory')}>Open app directory</button>}
             <AppConnectionProposalCard message={message} workspaceId={workspaceId} userId={userId}
               owner={!member} localBotAvailable apps={apps} current={() => !provider} onOpen={setProvider} />
             {provider && <AppsDialog workspaceId={workspaceId} userId={userId} workspaceName="Fixture space"
@@ -130,6 +132,7 @@ test(
       writes: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     let registry: ConnectedApp[] = [decoy, installed];
+    let typedConflict = false;
     let firstSession = true,
       firstApps = true;
     await page.route('**/*', async (route) => {
@@ -145,6 +148,8 @@ test(
       }
       if (url.pathname === '/fixture.js')
         return route.fulfill({ contentType: 'text/javascript', body: js });
+      const mark = serveAppProviderMark(route);
+      if (mark) return mark;
       assert.equal(request.headers()['x-openbot-expected-user'], userId);
       requests.push(`${request.method()} ${url.pathname}`);
       if (request.method() !== 'GET') {
@@ -153,8 +158,14 @@ test(
         assert.equal(request.method(), 'POST');
         assert.equal(request.postDataJSON().url, 'https://mcp.notion.com/mcp');
         assert.equal(request.postDataJSON().shared, true);
-        registry = [installed];
-        return route.fulfill({ status: 409, json: { error: 'Connection already exists' } });
+        registry = [decoy, installed];
+        return route.fulfill({
+          status: 409,
+          json: {
+            error: 'Connection already exists',
+            ...(typedConflict && { code: 'APP_CONNECTION_EXISTS' }),
+          },
+        });
       }
       if (url.pathname === '/api/account/session') {
         if (firstSession) {
@@ -257,6 +268,36 @@ test(
     await dialog.getByRole('heading', { name: installed.name, exact: true }).waitFor();
     assert.equal(await authorize.getAttribute('href'), launchPath);
     assert.deepEqual(writes, [`POST ${base}/apps`]);
+    await close.click();
+
+    const openDirectory = page.getByRole('button', { name: 'Open app directory' });
+    typedConflict = true;
+    registry = [];
+    await openDirectory.click();
+    await dialog.getByRole('button', { name: 'Add Notion' }).click();
+    await dialog.getByRole('heading', { name: 'Add app', exact: true }).waitFor();
+    assert.equal(await consent.isChecked(), false);
+    await consent.check();
+    await dialog.getByRole('button', { name: 'Connect apps', exact: true }).click();
+    await dialog.getByText('This service already has a connection in this workspace.').waitFor();
+    await dialog.getByRole('heading', { name: installed.name, exact: true }).waitFor();
+    assert.equal(await authorize.getAttribute('href'), launchPath);
+    assert.deepEqual(writes, [`POST ${base}/apps`, `POST ${base}/apps`]);
+    await close.click();
+
+    await openDirectory.click();
+    const connections = dialog.getByRole('region', { name: 'App connections in this workspace' });
+    const directory = dialog.getByRole('region', { name: 'App directory', exact: true });
+    await connections.getByRole('button', { name: /Workspace Notion/ }).waitFor();
+    const directoryNode = await directory.elementHandle();
+    assert.ok(
+      await connections.evaluate(
+        (element, directory) =>
+          !!(element.compareDocumentPosition(directory) & Node.DOCUMENT_POSITION_FOLLOWING),
+        directoryNode,
+      ),
+    );
+    await close.click();
 
     const before = requests.length;
     await page.goto(home + '?member');

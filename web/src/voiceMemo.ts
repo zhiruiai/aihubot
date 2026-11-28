@@ -31,7 +31,29 @@ export function messageVoiceMemo(
   )
     return;
   const memo = { transcript, durationMs };
-  const { fileId, name, size, sha256 } = meta!;
+  const audio = validatedAudio(message, files);
+  return audio ? { ...memo, audio } : memo;
+}
+
+export function messageVoiceRecording(message: Message, files: WorkspaceFile[]) {
+  if (message.role !== 'user' || message.kind !== 'file') return;
+  const raw = message.metadata?.voiceRecording;
+  if (!raw || typeof raw !== 'object' || !('durationMs' in raw)) return;
+  const { durationMs } = raw;
+  if (
+    typeof durationMs !== 'number' ||
+    !Number.isInteger(durationMs) ||
+    durationMs < 250 ||
+    durationMs > MAX_DURATION_MS
+  )
+    return;
+  return { durationMs, audio: validatedAudio(message, files) };
+}
+
+function validatedAudio(message: Message, files: WorkspaceFile[]): VoiceMemoAudio | undefined {
+  const meta = message.metadata;
+  if (!meta) return;
+  const { fileId, name, size, sha256 } = meta;
   if (
     typeof fileId !== 'string' ||
     !identifier.test(fileId) ||
@@ -44,7 +66,7 @@ export function messageVoiceMemo(
     typeof sha256 !== 'string' ||
     !digest.test(sha256)
   )
-    return memo;
+    return;
   const file = files.find((item) => item.id === fileId);
   if (
     file?.name !== name ||
@@ -53,8 +75,8 @@ export function messageVoiceMemo(
     file.type !== WAV_MIME ||
     file.conversationId !== message.conversationId
   )
-    return memo;
-  return { ...memo, audio: { id: file.id, size, sha256 } };
+    return;
+  return { id: file.id, size, sha256 };
 }
 
 export function voiceMemoTime(seconds: number) {

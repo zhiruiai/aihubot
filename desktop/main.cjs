@@ -36,7 +36,6 @@ const {
   trustedProductSender,
   ConnectionState,
 } = security;
-
 /** Electron is injected so policy/lifecycle tests can use pure fake objects without launching UI. */
 function createController(
   electron,
@@ -57,6 +56,7 @@ function createController(
   const t = language.t;
   const localAvailable = localRuntime.available();
   const localHostControlAvailable = localRuntime.hostControlAvailable();
+  const localEgoAvailable = localAvailable && localRuntime.egoAvailable?.() === true;
   let localSelection = readLocalSelection(dataDir);
   let localOperation, localError;
   const snapshot = () => {
@@ -65,6 +65,8 @@ function createController(
       ...state,
       localAvailable,
       localHostControlAvailable,
+      localEgoAvailable,
+      localEgoSelected: localEgoAvailable && localSelection?.useEgo === true,
       localHostControlSelected: localHostControlAvailable && localSelection?.hostControl === true,
       localStarting: Boolean(localOperation),
       ...(localError ? { localError: t(localError) } : {}),
@@ -151,7 +153,6 @@ function createController(
   installSessionPolicy(setupSession);
   setupSession.protocol.handle('openbot-app', createSetupProtocolHandler());
   setupSession.on('will-download', (event) => event.preventDefault());
-
   function publish() {
     if (window && !window.isDestroyed()) {
       if (window.webContents.getURL() === SETUP_URL)
@@ -200,6 +201,7 @@ function createController(
   }
   async function startLocal(
     hostControl = localHostControlAvailable && localSelection?.hostControl === true,
+    useEgo = localSelection?.useEgo === true,
   ) {
     if (localOperation) return snapshot();
     showSetup();
@@ -211,6 +213,7 @@ function createController(
       const runtime = await localRuntime.start({
         signal: operation.signal,
         hostControl,
+        ...(useEgo ? { useEgo } : {}),
         onExit: () => {
           if (connection?.managed && connection.origin === origin)
             fail(connection, t('localRuntimeExited'));
@@ -218,7 +221,7 @@ function createController(
       });
       origin = runtime.origin;
       operation.signal.throwIfAborted();
-      await connect(origin, { token: runtime.token, hostControl });
+      await connect(origin, { token: runtime.token, hostControl, useEgo });
     } catch (error) {
       if (localOperation === operation) {
         localError = [
@@ -226,6 +229,7 @@ function createController(
           'localRuntimeUnavailable',
           'localHostControlUnavailable',
           'localHostControlFailed',
+          'localEgoUnavailable',
         ].includes(error?.message)
           ? error.message
           : 'localRuntimeFailed';
@@ -289,7 +293,9 @@ function createController(
       await contents.loadURL(current.origin + entry);
       if (connection !== current || !machine.connected(attempt)) return snapshot();
       clearTimeout(current.timer);
-      localSelection = managed ? { hostControl: localLaunch.hostControl } : undefined;
+      localSelection = managed
+        ? { hostControl: localLaunch.hostControl, useEgo: localLaunch.useEgo }
+        : undefined;
       saveLocalSelection(dataDir, localSelection);
       if (!managed) {
         try {
@@ -370,10 +376,14 @@ function createController(
       throw new Error(t('setupOnly'));
     if (
       value !== undefined &&
-      (!value || Object.keys(value).length !== 1 || typeof value.hostControl !== 'boolean')
+      (!value ||
+        typeof value.hostControl !== 'boolean' ||
+        Object.keys(value).some(
+          (key) => key !== 'hostControl' && (key !== 'useEgo' || typeof value.useEgo !== 'boolean'),
+        ))
     )
       throw new Error(t('invalidParameters'));
-    return startLocal(value?.hostControl ?? false);
+    return startLocal(value?.hostControl ?? false, value?.useEgo ?? false);
   });
   ipcMain.handle('openbot-client:cancel-local', (event, value) => {
     if (value !== undefined || !localOperation || !trustedSetupSender(event, window?.webContents))
@@ -446,7 +456,6 @@ function createController(
 }
 async function boot(electron = require('electron')) {
   const { app, protocol } = electron;
-  // Resolve the legacy profile before setting the visible name.
   app.setName('OpenBot');
   const dataDir = resolve(process.env.OPENBOT_CLIENT_DATA_DIR || app.getPath('userData'));
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });

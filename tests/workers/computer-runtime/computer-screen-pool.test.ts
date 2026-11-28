@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { once } from 'node:events';
 import test from 'node:test';
 import { COMPUTER_OPERATION_ID_HEADER } from '../../../shared/computer-operations.js';
 import { WORKSPACE_SCOPE_HEADER } from '../../../shared/computer-screens.js';
 import { validateComputerScreenPoolConfiguration } from '../../../server/workers/computer-runtime/computer-screen-pool.js';
 
-import { deferred, fixture } from '../../fixtures/workers/computer-runtime/computer-screen-pool.fixture.js';
+import {
+  deferred,
+  fixture,
+} from '../../fixtures/workers/computer-runtime/computer-screen-pool.fixture.js';
 
 test('fixed pool inventory, scoped identity and machine-only routes never fall back', async () => {
   const f = await fixture();
@@ -70,6 +74,7 @@ test('different screens execute concurrently; cancellation waits for actual clea
   const f = await fixture(),
     entered = deferred(),
     release = deferred();
+  const requests: Promise<unknown>[] = [];
   let operationSignal: AbortSignal | undefined;
   f.adapters[0].beforeInput = async (signal) => {
     operationSignal = signal;
@@ -78,19 +83,33 @@ test('different screens execute concurrently; cancellation waits for actual clea
   };
   try {
     const id = randomUUID();
-    const first = f.post(0, '/execute', { type: 'desktop_click', x: 1, y: 1 }, id);
-    await entered.promise;
+    const first = f
+      .post(0, '/execute', { type: 'desktop_click', x: 1, y: 1 }, id)
+      .then((response) => response.arrayBuffer());
+    requests.push(first);
+    await Promise.race([
+      entered.promise,
+      first.then(() => assert.fail('Input returned before reaching the adapter')),
+    ]);
     assert.equal(
       (await f.post(1, '/execute', { type: 'desktop_click', x: 2, y: 2 }, randomUUID())).status,
       200,
     );
+    assert.ok(operationSignal);
+    const aborted = once(operationSignal, 'abort', { signal: AbortSignal.timeout(6_000) });
     let acknowledged = false;
     const cancellation = f.post(0, '/operations/cancel', { id }).then(async (response) => {
       acknowledged = true;
       return response.json();
     });
-    await new Promise((resolve) => setTimeout(resolve, 30));
-    assert.equal(operationSignal?.aborted, true);
+    requests.push(cancellation);
+    await Promise.race([
+      aborted,
+      cancellation.then(() => assert.fail('Cancellation acknowledged before aborting input')),
+    ]);
+    const health = await fetch(f.url(0, '/health'), { headers: f.headers(0) });
+    assert.equal(health.status, 200);
+    await health.arrayBuffer();
     assert.equal(acknowledged, false);
     release.resolve();
     await first;
@@ -111,6 +130,7 @@ test('different screens execute concurrently; cancellation waits for actual clea
     );
   } finally {
     release.resolve();
+    await Promise.allSettled(requests);
     await f.close();
   }
 });

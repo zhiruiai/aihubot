@@ -49,8 +49,13 @@ export function MessageActions({
       : '';
   const enabled = () => root.current?.isConnected && current();
   const buttons = () =>
-    Array.from(panel.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') || []);
-  const trigger = () => (popup === 'reactions' ? reactionsButton : moreButton).current;
+    Array.from(
+      panel.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') || [],
+    ).filter((button) => button.getClientRects().length > 0);
+  const trigger = () =>
+    popup === 'reactions' && reactionsButton.current?.getClientRects().length
+      ? reactionsButton.current
+      : moreButton.current;
 
   function close(restoreFocus = false) {
     if (!enabled()) return false;
@@ -142,6 +147,7 @@ export function MessageActions({
         {onReact && (
           <button
             type="button"
+            className="message-quick-action"
             ref={reactionsButton}
             aria-label={uiText('workspace:text_60cb5536c056')}
             title={uiText('workspace:text_60cb5536c056')}
@@ -155,6 +161,7 @@ export function MessageActions({
         {onReply && (
           <button
             type="button"
+            className="message-quick-action"
             aria-label={uiText('workspace:text_b83bb87b0452')}
             title={uiText('workspace:text_b83bb87b0452')}
             onClick={() => {
@@ -207,6 +214,28 @@ export function MessageActions({
           role="group"
           aria-label={uiText('workspace:messageMoreActions')}
         >
+          {onReply && (
+            <button
+              type="button"
+              className="message-touch-action"
+              onClick={() => {
+                if (close()) onReply();
+              }}
+            >
+              <Reply size={15} aria-hidden="true" />
+              {uiText('workspace:text_b83bb87b0452')}
+            </button>
+          )}
+          {onReact && (
+            <button
+              type="button"
+              className="message-touch-action"
+              onClick={() => toggle('reactions')}
+            >
+              <SmilePlus size={15} aria-hidden="true" />
+              {uiText('workspace:text_60cb5536c056')}
+            </button>
+          )}
           {onThread && (
             <button
               type="button"

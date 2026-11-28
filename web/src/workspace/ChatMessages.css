@@ -105,6 +105,20 @@
     inset-inline-start: 100%;
   }
 }
+@media (hover: none), (pointer: coarse) {
+  .message-row .message-content {
+    position: relative;
+  }
+  .message-row .compact-message-footer {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 100%;
+  }
+  .outgoing .compact-message-footer {
+    inset-inline-start: 100%;
+    inset-inline-end: auto;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .working-line .typing-dots i,
   .message-bubble .typing-cursor {

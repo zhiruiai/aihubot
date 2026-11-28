@@ -64,7 +64,8 @@ impl LocalExecutor {
         let config = json!({"workspace":directory.join("workspace"),"workspaceId":workspace,
             "publicOrigin":origin,"hostControl":local.is_some_and(|value| value.host_control),
             "desktopDriver":local.and_then(|value| value.desktop_driver.as_ref()),
-            "accessibilityHelper":local.and_then(|value| value.accessibility_helper.as_ref())});
+            "accessibilityHelper":local.and_then(|value| value.accessibility_helper.as_ref()),
+            "egoBrowser":local.and_then(|value| value.ego_browser.as_ref())});
         let startup = async {
             input.write_all(config.to_string().as_bytes()).await?;
             input.write_all(b"\n").await?;

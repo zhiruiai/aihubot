@@ -21,6 +21,16 @@ export async function checkPersonalPackage(resources) {
   let cleanupConfirmed = true;
   try {
     await writeFile(join(temporary, 'local-runtime.cjs'), supervisor, { mode: 0o600, flag: 'wx' });
+    if (supervisor.includes(Buffer.from("require('./ego-browser.cjs')"))) {
+      await writeFile(
+        join(temporary, 'ego-browser.cjs'),
+        extractFile(input.paths.asar, 'ego-browser.cjs'),
+        {
+          mode: 0o600,
+          flag: 'wx',
+        },
+      );
+    }
     const result = await runPersonalProbe(
       input.paths.node,
       [

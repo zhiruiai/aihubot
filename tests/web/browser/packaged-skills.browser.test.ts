@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { build } from 'esbuild';
+import { serveAppProviderMark } from '../fixtures/browser/appProviderMarks';
 import { chromium } from 'playwright-core';
 import { skillPackageUpload } from '../../../web/src/skillPackageImport';
 import {
@@ -103,6 +104,8 @@ test(
         });
       if (url.pathname === '/fixture.js')
         return route.fulfill({ contentType: 'text/javascript', body: js });
+      const mark = serveAppProviderMark(route);
+      if (mark) return mark;
       if (url.pathname === `${base}/apps`) return route.fulfill({ json: [] });
       assert.equal(request.method(), 'POST');
       assert.equal(url.pathname, `${base}/skills/install`);
@@ -144,6 +147,7 @@ test(
       });
     });
     await page.goto(home);
+    await page.locator('.apps-private-menu summary').click();
     await page.getByRole('button', { name: 'Packaged skills', exact: true }).click();
     const catalog = page.getByRole('dialog', { name: 'Packaged skills' });
     const search = catalog.getByRole('searchbox', { name: 'Search packaged skills' });

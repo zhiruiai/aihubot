@@ -9,10 +9,10 @@ import { ComposerContexts, composerSkill } from './ComposerContexts';
 import { composerModelConfigured } from './composerModel';
 import { ComposerModelNoticeView } from './ComposerModelNotice';
 import { ChatJumpNotice } from './ChatJumpNotice';
-import { DictationButton, DictationStatus } from '../components/DictationControls';
-import { VoiceControls } from '../components/VoiceControls';
-import { VoiceCallStart } from '../components/VoiceCallControls';
-import { VoiceMemoRequest, VoiceMemoSelection } from '../components/VoiceMemoRequest';
+import { DictationStatus } from '../components/DictationControls';
+import { VoiceMemoSelection } from '../components/VoiceMemoRequest';
+import { useVoiceRecording } from '../components/VoiceRecordingControls';
+import { ComposerVoiceActionsView } from './ComposerVoiceActions';
 import type { WorkspaceVoiceCall } from '../useVoiceCall';
 import { ComposerReply } from '../components/MessageExtras';
 import { IconButton } from '../components/UI';
@@ -20,59 +20,79 @@ import type { WorkspaceModel } from './types';
 import type { WebsiteEditContext } from './WorkspaceWebsite';
 import { WebsiteComposerContext } from './WebsiteComposerContext';
 
-export function ChatComposer(
-  props: Pick<
-    WorkspaceModel,
-    | 'conversation'
-    | 'account'
-    | 'unreadBelow'
-    | 'setHighlightedMessage'
-    | 'scrollRef'
-    | 'nearBottom'
-    | 'setUnreadBelow'
-    | 'modal'
-    | 'sendScope'
-    | 'data'
-    | 'canManage'
-    | 'openSettings'
-    | 'lead'
-    | 'sharedUnavailable'
-    | 'replyTo'
-    | 'jumpToMessage'
-    | 'selected'
-    | 'composerKey'
-    | 'threadRootId'
-    | 'timelineWorking'
-    | 'updateComposer'
-    | 'sendErrors'
-    | 'sending'
-    | 'dictation'
-    | 'voice'
-    | 'submitAttempt'
-    | 'setSendErrors'
-    | 'receipts'
-    | 'refresh'
-    | 'working'
-    | 'deliveryMode'
-    | 'attachments'
-    | 'setAttachments'
-    | 'currentComposer'
-    | 'members'
-    | 'send'
-    | 'uploading'
-    | 'fileRef'
-    | 'draft'
-    | 'toggleDictation'
-    | 'canStop'
-    | 'busy'
-    | 'stopCurrentTask'
-    | 'upload'
-  > &
-    ComposerInputProps & {
-      voiceCall?: WorkspaceVoiceCall;
-      voiceCallPanel?: React.ReactNode;
-      websiteEdit?: WebsiteEditContext;
-    },
+type ChatComposerProps = Pick<
+  WorkspaceModel,
+  | 'conversation'
+  | 'account'
+  | 'unreadBelow'
+  | 'setHighlightedMessage'
+  | 'scrollRef'
+  | 'nearBottom'
+  | 'setUnreadBelow'
+  | 'modal'
+  | 'sendScope'
+  | 'data'
+  | 'canManage'
+  | 'openSettings'
+  | 'lead'
+  | 'sharedUnavailable'
+  | 'replyTo'
+  | 'jumpToMessage'
+  | 'selected'
+  | 'composerKey'
+  | 'threadRootId'
+  | 'timelineWorking'
+  | 'updateComposer'
+  | 'sendErrors'
+  | 'sending'
+  | 'dictation'
+  | 'voice'
+  | 'submitAttempt'
+  | 'setSendErrors'
+  | 'receipts'
+  | 'refresh'
+  | 'working'
+  | 'deliveryMode'
+  | 'attachments'
+  | 'setAttachments'
+  | 'currentComposer'
+  | 'members'
+  | 'send'
+  | 'uploading'
+  | 'fileRef'
+  | 'draft'
+  | 'toggleDictation'
+  | 'canStop'
+  | 'busy'
+  | 'stopCurrentTask'
+  | 'upload'
+> &
+  ComposerInputProps & {
+    voiceCall?: WorkspaceVoiceCall;
+    voiceCallPanel?: React.ReactNode;
+    websiteEdit?: WebsiteEditContext;
+  };
+
+export function ChatComposer(props: ChatComposerProps) {
+  const { account, selected, conversation, modal, dictation, voice, refresh } = props;
+  const userId = account?.session?.user?.id;
+  const workspaceId = account?.workspace.id;
+  const visible = !!userId && !!workspaceId && !!conversation && !conversation.demo;
+  const voiceRecording = useVoiceRecording({
+    identity: JSON.stringify([userId, workspaceId, props.composerKey ?? selected]),
+    scope: `${userId || ''}:${workspaceId || ''}`,
+    sendScope: props.sendScope,
+    conversationId: selected,
+    threadRootId: props.threadRootId,
+    allowed: visible && !modal && !dictation.busy && !props.voiceCall?.active,
+    stopReading: voice.stopReading,
+    refresh,
+  });
+  return <ChatComposerView {...props} voiceRecording={visible ? voiceRecording : undefined} />;
+}
+
+export function ChatComposerView(
+  props: ChatComposerProps & { voiceRecording?: ReturnType<typeof useVoiceRecording> },
 ) {
   const {
     conversation,
@@ -111,6 +131,7 @@ export function ChatComposer(
     busy,
     stopCurrentTask,
     upload,
+    voiceRecording,
   } = props;
   const appContext = currentComposer.appContext;
   const skillId = currentComposer.skillId;
@@ -190,7 +211,7 @@ export function ChatComposer(
       ? [currentComposer.agentId]
       : [];
   const sendCurrent: ComposerInputProps['send'] = async (event) => {
-    if (!canSubmit) return event?.preventDefault();
+    if (!canSubmit || voiceRecording?.pending) return event?.preventDefault();
     await send(event, websiteEdit?.fromPreview ? websiteEdit.message : undefined);
   };
   return (
@@ -369,6 +390,7 @@ export function ChatComposer(
             onDismiss={dictation.dismiss}
             onCheck={dictation.retryStatus}
           />
+          {voiceRecording?.panel}
           {props.voiceCallPanel}
           {voiceMemoRequested && (
             <VoiceMemoSelection eligible={voiceMemoEligible} queued={working} />
@@ -380,7 +402,7 @@ export function ChatComposer(
               send={sendCurrent}
               websitePrompt={websitePrompt}
               toggleDictation={() => {
-                if (props.voiceCall?.active) return;
+                if (props.voiceCall?.active || voiceRecording?.pending) return;
                 voice.stopReading();
                 toggleDictation();
               }}
@@ -394,43 +416,31 @@ export function ChatComposer(
               <Plus size={21} aria-hidden="true" />
             </IconButton>
             <div className="composer-actions">
-              <DictationButton
-                state={dictation.state}
-                disabled={
-                  !conversation ||
-                  sending.has(selected) ||
-                  uploading.has(selected) ||
-                  !!props.voiceCall?.active
+              <ComposerVoiceActionsView
+                {...{ selected, dictation, voice, toggleDictation }}
+                voiceCall={props.voiceCall}
+                dictationDisabled={sending.has(selected) || uploading.has(selected)}
+                recordingButton={voiceRecording?.startButton}
+                recordingPending={voiceRecording?.pending}
+                readKey={
+                  threadRootId
+                    ? undefined
+                    : `${selected}:${currentComposer.agentId || conversation.agentIds[0] || ''}`
                 }
-                onToggle={() => {
-                  voice.stopReading();
-                  toggleDictation();
-                }}
+                memo={
+                  voiceMemoEligible || voiceMemoRequested
+                    ? {
+                        requested: voiceMemoRequested,
+                        disabled: sending.has(selected),
+                        toggle: () =>
+                          updateComposer(composerKey, (current) => ({
+                            ...current,
+                            requestVoiceMemo: current.requestVoiceMemo ? undefined : true,
+                          })),
+                      }
+                    : undefined
+                }
               />
-              {props.voiceCall && <VoiceCallStart key={selected} call={props.voiceCall} />}
-              {(voiceMemoEligible || voiceMemoRequested) && (
-                <VoiceMemoRequest
-                  active={voiceMemoRequested}
-                  disabled={sending.has(selected)}
-                  onChange={() =>
-                    updateComposer(composerKey, (current) => ({
-                      ...current,
-                      requestVoiceMemo: current.requestVoiceMemo ? undefined : true,
-                    }))
-                  }
-                />
-              )}
-              {!threadRootId && !props.voiceCall?.active && (
-                <VoiceControls
-                  key={`${selected}:${currentComposer.agentId || conversation?.agentIds[0] || ''}`}
-                  voice={voice}
-                  blocked={dictation.busy}
-                  onStop={() => {
-                    voice.stop();
-                    dictation.cancel();
-                  }}
-                />
-              )}
               {canStop && timelineWorking && (
                 <IconButton
                   label={uiText('workspace:text_aa69b1079f62')}
@@ -455,6 +465,7 @@ export function ChatComposer(
                   !canSubmit ||
                   sending.has(selected) ||
                   dictation.busy ||
+                  voiceRecording?.pending ||
                   uploading.has(selected) ||
                   (!draft.trim() && !attachments.length)
                 }

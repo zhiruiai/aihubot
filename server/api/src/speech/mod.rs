@@ -2,7 +2,7 @@ pub(crate) mod calls;
 mod config;
 pub(crate) mod memo_synthesis;
 mod service;
-mod wav;
+pub(crate) mod wav;
 use crate::{
     db::State,
     error::{ApiError, Result},

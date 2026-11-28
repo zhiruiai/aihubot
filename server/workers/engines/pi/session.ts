@@ -4,7 +4,7 @@ import type {
   AgentToolResult,
 } from '@earendil-works/pi-coding-agent';
 import {
-  ModelOutputLimitError,
+  ModelTurnError,
   type EngineOptions,
   type EngineSession,
 } from '../../plugin-runtime/engines.js';
@@ -92,8 +92,13 @@ export class PiEngineSession implements EngineSession {
     await session.prompt(text, { expandPromptTemplates: false });
     this.signal.throwIfAborted();
     const last = session.messages.filter((message) => message.role === 'assistant').at(-1);
-    if (last?.stopReason === 'length')
-      throw new ModelOutputLimitError('Model reached its output limit.');
+    if (last?.stopReason === 'length') throw new ModelTurnError('MODEL_OUTPUT_LIMIT');
+    if (last?.stopReason === 'error') {
+      const details = last.errorMessage ?? '';
+      if (/^429(?=[:\s]|$)/.test(details)) throw new ModelTurnError('MODEL_RATE_LIMITED');
+      if (/^(Request timed out\.|(?:408|504)(?=[:\s]|$))/.test(details))
+        throw new ModelTurnError('MODEL_TIMEOUT');
+    }
     if (last?.stopReason !== 'stop') throw Error('Model did not finish its reply.');
   }
   async steer(text: string): Promise<void> {

@@ -53,6 +53,7 @@ export function createComputerInput(read: () => ComputerInputContext) {
         validPublishingAddress(site.url) &&
         value.surface === 'browser' &&
         !read().isDesktop &&
+        !read().egoBrowser &&
         !read().teachingBlocked &&
         read().usableLease(value)
       ) {

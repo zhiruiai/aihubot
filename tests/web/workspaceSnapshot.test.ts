@@ -4,6 +4,7 @@ import type { Bootstrap } from '../../shared/types';
 import { ApiError } from '../../web/src/api';
 import { createWorkspaceSnapshotSource } from '../../web/src/workspaceSnapshot';
 import { createWorkspaceSync } from '../../web/src/workspaceSync';
+import { mergeRunActivity, parseRunActivityUpdate } from '../../web/src/runActivitySync';
 
 const identity = { userId: 'owner-a', workspaceId: 'workspace-a' };
 const snapshot = (name = 'owner-private'): Bootstrap =>
@@ -24,6 +25,30 @@ function deferred<T>() {
   });
   return { promise, resolve };
 }
+
+test('live run activity merges only into the exact run and yields to newer snapshots', () => {
+  const runningRequests: NonNullable<Bootstrap['runningRequests']> = [
+    { conversationId: 'review', runId: 'live', activityRevision: 1 },
+    { conversationId: 'review', runId: 'replacement', activityRevision: 4 },
+  ];
+  const tracked = {
+    ...snapshot(),
+    runningRequests,
+  };
+  assert.equal(
+    parseRunActivityUpdate({ runId: 'live', revision: 2, activity: 'internal-tool' }),
+    undefined,
+  );
+  const start = parseRunActivityUpdate({ runId: 'live', revision: 2, activity: 'research' })!;
+  const clear = parseRunActivityUpdate({ runId: 'live', revision: 3, activity: null })!;
+  const active = mergeRunActivity(tracked, new Map([['live', start]]));
+  assert.equal(active.runningRequests[0].activity, 'research');
+  assert.equal(active.runningRequests[1], tracked.runningRequests[1]);
+  const finished = mergeRunActivity(active, new Map([['live', clear]]));
+  assert.equal(finished.runningRequests[0].activity, undefined);
+  assert.equal(finished.runningRequests[0].activityRevision, 3);
+  assert.equal(mergeRunActivity(finished, new Map([['live', start]])), finished);
+});
 
 test('private bootstrap uses the opening identity, fixed workspace URL, no-store and the actual synchronization signal', async () => {
   const controller = new AbortController(),

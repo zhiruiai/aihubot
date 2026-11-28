@@ -7,6 +7,7 @@ import { currentWorkspaceId, workspaceApiUrl } from '../workspace-scope';
 import type { OpenWebsiteProject } from '../websiteProjects';
 import type { WorkspaceModel } from './types';
 import type { Skill } from '../../../shared/types';
+import type { ConfirmedBotInstall } from '../botTemplates';
 
 const AppsDialog = lazy(() =>
   import('../components/AppsDialog').then(({ AppsDialog }) => ({ default: AppsDialog })),
@@ -146,6 +147,35 @@ export function WorkspaceResourceDialogs({
       ? data.files.find((file) => file.id === searchFile.id)
       : undefined;
   const previewPath = preview && filePath(preview.id);
+  function openConfirmedBot(confirmed: ConfirmedBotInstall, notify = false) {
+    if (!sendScope.current(sendScope.ticket())) return;
+    sync.written();
+    setData((previous) =>
+      previous
+        ? {
+            ...previous,
+            agents: [
+              ...previous.agents.filter((item) => item.id !== confirmed.agent.id),
+              confirmed.agent,
+            ],
+            conversations: [
+              ...previous.conversations.filter((item) => item.id !== confirmed.conversation.id),
+              confirmed.conversation,
+            ],
+            skills: [
+              ...previous.skills,
+              ...(confirmed.skills || []).filter(
+                (skill) => !previous.skills.some((item) => item.id === skill.id),
+              ),
+            ],
+          }
+        : previous,
+    );
+    openConversation(confirmed.conversation);
+    setModal(null);
+    void refresh();
+    if (notify) setToast(uiText('workspace:text_d516034aa424'));
+  }
   return (
     <>
       {modal === 'search' && (
@@ -373,37 +403,8 @@ export function WorkspaceResourceDialogs({
             sync.written();
             void refresh();
           }}
-          onCreated={(confirmed) => {
-            if (!sendScope.current(sendScope.ticket())) return;
-            sync.written();
-            setData((previous) =>
-              previous
-                ? {
-                    ...previous,
-                    agents: [
-                      ...previous.agents.filter((item) => item.id !== confirmed.agent.id),
-                      confirmed.agent,
-                    ],
-                    conversations: [
-                      ...previous.conversations.filter(
-                        (item) => item.id !== confirmed.conversation.id,
-                      ),
-                      confirmed.conversation,
-                    ],
-                    skills: [
-                      ...previous.skills,
-                      ...(confirmed.skills || []).filter(
-                        (skill) => !previous.skills.some((item) => item.id === skill.id),
-                      ),
-                    ],
-                  }
-                : previous,
-            );
-            openConversation(confirmed.conversation);
-            setModal(null);
-            void refresh();
-            setToast(uiText('workspace:text_d516034aa424'));
-          }}
+          onCreated={(confirmed) => openConfirmedBot(confirmed, true)}
+          onSystemBotOpen={openConfirmedBot}
         />
       )}
       {templateNavigation && (

@@ -92,6 +92,9 @@
   text-align: start;
   font-size: 12px;
 }
+.message-more-panel > .message-touch-action {
+  display: none;
+}
 .message-more-panel > button > svg {
   flex: none;
 }
@@ -114,14 +117,33 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
-@media (hover: none), (any-pointer: coarse) {
+@media (hover: none), (pointer: coarse) {
+  .message-footer {
+    margin-top: 0;
+    gap: 2px;
+  }
   .message-action-buttons {
+    padding: 0;
+    border: 0;
+    background: transparent;
     opacity: 1;
     pointer-events: auto;
   }
-  .message-action-buttons > button,
+  .message-action-buttons > .message-quick-action {
+    display: none;
+  }
+  .message-more-panel > .message-touch-action {
+    display: flex;
+  }
+  .message-action-buttons > button {
+    width: 40px;
+    height: 36px;
+  }
   .message-action-panel > button {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 40px;
+    min-height: 42px;
+  }
+  .message-more-panel > button {
+    font-size: 13px;
   }
 }

@@ -217,8 +217,9 @@ function WorkspaceWebsite({
     [workspaceId, userId],
   );
   const client = useMemo(() => websiteProjectClient(project, access), [project, access]);
-  const versionIndex = versions.findIndex(({ project: version }) => version.id === project.id);
-  const previous = versionIndex >= 0 ? versions[versionIndex + 1] : undefined;
+  const version = versions.find(({ project: entry }) => entry.id === project.id);
+  // Delivery recency changes when an existing snapshot is published again.
+  const previous = version && versions.find(({ number }) => number === version.number - 1);
   const [attempt, setAttempt] = useState(0);
   const [sharing, setSharing] = useState(false);
   const [state, setState] = useState<WebsiteProjectViewState>({ kind: 'loading' });
@@ -278,7 +279,7 @@ function WorkspaceWebsite({
               key={previous.project.id}
               project={project}
               previous={previous}
-              currentVersion={versions[versionIndex]?.number}
+              currentVersion={version?.number}
               access={access}
               loadCurrent={client.manifest}
             />

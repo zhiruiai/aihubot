@@ -10,10 +10,12 @@ const ASSETS = Object.freeze({
   '/i18n.js': ['i18n.js', 'text/javascript; charset=utf-8'],
   '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
   '/styles.css': ['styles.css', 'text/css; charset=utf-8'],
+  '/fonts/interface.css': ['fonts/interface.css', 'text/css; charset=utf-8'],
+  '/fonts/AlimamaFangYuanTiVF-Thin.woff2': ['fonts/AlimamaFangYuanTiVF-Thin.woff2', 'font/woff2'],
   '/logo.svg': ['logo.svg', 'image/svg+xml'],
 });
 const SETUP_CSP =
-  "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'";
+  "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'";
 
 function normalizeServerOrigin(value) {
   if (typeof value !== 'string' || value.length > 2048)

@@ -83,6 +83,8 @@ test(
     t.after(() => browser.close());
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
       serviceWorkers: 'block',
     });
     page.setDefaultTimeout(8000);
@@ -214,10 +216,17 @@ test(
     await page.locator('#message-main-quote').waitFor();
     assert.equal(await input.inputValue(), 'Main draft');
 
-    await page
+    const actions = page
       .locator('#message-root')
-      .getByRole('button', { name: 'More message actions' })
-      .click();
+      .getByRole('button', { name: 'More message actions' });
+    await actions.click();
+    const menu = page.locator('#message-root .message-more-panel');
+    await menu.getByRole('button', { name: 'Reply to this message' }).waitFor();
+    await menu.getByRole('button', { name: 'React to this message' }).click();
+    await page.locator('#message-root .message-reaction-panel').waitFor();
+    await page.keyboard.press('Escape');
+    assert.ok(await actions.evaluate((button) => button === document.activeElement));
+    await actions.click();
     await page.getByRole('button', { name: 'Reply in thread' }).click();
     await page.getByRole('heading', { name: 'Reply thread' }).waitFor();
     assert.equal(await input.inputValue(), 'Thread draft');

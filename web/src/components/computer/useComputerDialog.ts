@@ -10,6 +10,7 @@ import {
   screenIdentity,
   unpreparedScreen,
   type BotScreenInventory,
+  usesEgoBrowser,
 } from '../../computerScope';
 import {
   createComputerFrameMedia,
@@ -78,7 +79,8 @@ export function useComputerDialog({
   const teachingEligible =
     canManage &&
     !!account?.session.user?.id &&
-    !!agent && !publishingSite &&
+    !!agent &&
+    !publishingSite &&
     !isSharedBot(agent) &&
     directChats.length === 1 &&
     directChats[0].id === conversationId;
@@ -103,7 +105,6 @@ export function useComputerDialog({
   lifecycleUnknownRef.current = lifecycleUnknown;
   const [authorizationBusy, setAuthorizationBusy] = useState(false);
   const busy = externalBusy || lifecyclePending || authorizationBusy;
-
   const [cloudState, setCloudState] = useState<CloudComputerState | null>(null);
   const [panel, setPanelState] = useState<'screen' | 'files'>(initialPanel);
   const panelRef = useRef(panel);
@@ -228,7 +229,6 @@ export function useComputerDialog({
   const loadActions = watch ? observeActions : () => Promise.resolve();
   const { prepareCloudStart, run, decideAction, connection } =
     createComputerConnectionActions(readActionContext);
-
   useEffect(() => {
     scope.resume();
     mounted.current = true;
@@ -321,7 +321,6 @@ export function useComputerDialog({
     clearShot();
     setPanelState(next);
   };
-
   const lifecycleActions = createComputerLifecycleActions(readActionContext);
   const { checkComputer, chooseLifecycle, submitLifecycle, prepareScreen, selectSurface } =
     lifecycleActions;
@@ -331,16 +330,17 @@ export function useComputerDialog({
       : actions.some((action) => action.status === 'pending' || action.status === 'running')
         ? uiText('computer:text_ea3a545f2e5f')
         : '';
-
   const visibleActions = actions.filter(
     (action) =>
       panel === 'screen' || action.type === 'upload_file' || action.type === 'download_file',
   );
-
   const actionContext = {
     machine,
     get teachingBlocked() {
       return teachingEligible && teachingBlockRef.current;
+    },
+    get egoBrowser() {
+      return usesEgoBrowser(computerRef.current);
     },
     mounted,
     scope,

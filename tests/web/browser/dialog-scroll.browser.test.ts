@@ -82,6 +82,12 @@ async function verifyScroll(dialog: Locator, page: Page) {
     });
     assert.deepEqual(hits, { noBleed: true, title: true, close: true });
   }
+  await verifyFocusWrap(dialog, page);
+  assert.deepEqual(await header.boundingBox(), before);
+}
+
+async function verifyFocusWrap(dialog: Locator, page: Page) {
+  const close = dialog.locator(':scope > .modal-header button');
   const last = dialog
     .locator(
       ':is(button:enabled,input:enabled,select:enabled,textarea:enabled,a[href],summary):visible',
@@ -89,13 +95,9 @@ async function verifyScroll(dialog: Locator, page: Page) {
     .last();
   await last.focus();
   await page.keyboard.press('Tab');
-  assert.equal(
-    await header.locator('button').evaluate((el) => document.activeElement === el),
-    true,
-  );
+  assert.equal(await close.evaluate((el) => document.activeElement === el), true);
   await page.keyboard.press('Shift+Tab');
   assert.equal(await last.evaluate((el) => document.activeElement === el), true);
-  assert.deepEqual(await header.boundingBox(), before);
 }
 
 test(
@@ -368,7 +370,17 @@ test(
             );
             await input.fill('');
           }
-          if (mode === 'settings') await dialog.locator('.model-profile-choice select').waitFor();
+          if (mode === 'settings') {
+            await dialog.locator('.model-profile-choice select').waitFor();
+            const save = dialog.locator('.modal-footer button[type="submit"]');
+            assert.ok(
+              await save.evaluate((button) =>
+                (button as HTMLButtonElement).form?.classList.contains('model-profile-form'),
+              ),
+            );
+            const action = await save.boundingBox();
+            assert.ok(action && action.y >= 0 && action.y + action.height <= viewport.height);
+          }
           if (mode === 'computer') {
             const image = dialog.locator('.computer-screen img');
             await image.waitFor();
@@ -401,6 +413,12 @@ test(
             }
           }
           await verifyScroll(dialog, page);
+          if (mode === 'templates' && viewport.width === 1440) {
+            const skills = dialog.locator('.bot-template-preview > details').last();
+            await skills.locator(':scope > summary').click();
+            assert.equal(await skills.getAttribute('open'), '');
+            await verifyFocusWrap(dialog, page);
+          }
           if (mode === 'computer' || mode === 'settings') {
             const scrolling = await dialog.evaluate((modal) =>
               [...modal.querySelectorAll<HTMLElement>('*')]

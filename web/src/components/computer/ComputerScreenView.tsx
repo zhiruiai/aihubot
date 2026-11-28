@@ -19,11 +19,12 @@ import {
   HOST_DESKTOP_CAPABILITY,
   MACOS_APP_LAUNCH_CAPABILITY,
 } from '../../../../shared/computer-screens';
-import { supportsMacApps } from '../../computerScope';
+import { supportsMacApps, usesEgoBrowser } from '../../computerScope';
 import { ComputerFiles } from '../ComputerFiles';
 import { ComputerSurface, MacAppsStatus } from '../ComputerSurface';
 import { ComputerActionEntry } from './ComputerActionEntry';
 import { ComputerManualControlsView } from './ComputerManualControlsView';
+import { ComputerScreenError, EgoTakeoverView } from './ComputerScreenFeedback';
 import { type ComputerDialogModel } from './types';
 import type { PublishingSite } from '../../publishingAccounts';
 export function ComputerScreenView(
@@ -85,6 +86,8 @@ export function ComputerScreenView(
     preparing,
     decideAction,
   } = model;
+  const egoBrowser = usesEgoBrowser(computer);
+  const nativeTakeover = egoBrowser && controlled;
   const privateControlsPaused = controlled && model.privateFramesPaused.current;
   const tabs = (
     <div
@@ -165,13 +168,6 @@ export function ComputerScreenView(
       )}
     </div>
   );
-  const error = controlError ? (
-    <div className="screenshot-error" role="alert">
-      <Info size={14} />
-      <span>{controlError}</span>
-    </div>
-  ) : null;
-
   if (isAccessibility && panel === 'screen')
     return (
       <div className="computer-main">
@@ -181,7 +177,7 @@ export function ComputerScreenView(
           ready={computer.desktop?.accessibilityReady === true}
           canOpenApp={computer.capabilities?.includes(MACOS_APP_LAUNCH_CAPABILITY) === true}
         />
-        {error}
+        <ComputerScreenError message={controlError} />
         {activity}
       </div>
     );
@@ -217,7 +213,9 @@ export function ComputerScreenView(
                         ? uiText('computer:text_e7b63cee323f')
                         : isDesktop
                           ? desktopLabel
-                          : uiText('computer:text_082ae2a4f29e')}
+                          : egoBrowser
+                            ? 'Ego Lite'
+                            : uiText('computer:text_082ae2a4f29e')}
                   </strong>
                   <small>
                     {controlled
@@ -266,7 +264,7 @@ export function ComputerScreenView(
                 </button>
               )}
             </div>
-            {controlled && (
+            {controlled && !nativeTakeover && (
               <p className="takeover-help">
                 {uiText(
                   privateControlsPaused
@@ -299,9 +297,11 @@ export function ComputerScreenView(
               </p>
             )}
             <div
-              className={`computer-screen ${controlled ? 'screen-interactive' : ''} ${inputBusy ? 'screen-busy' : ''} ${zoomed ? 'screen-zoomed' : ''}`}
+              className={`computer-screen ${controlled && !nativeTakeover ? 'screen-interactive' : ''} ${inputBusy ? 'screen-busy' : ''} ${zoomed ? 'screen-zoomed' : ''}`}
             >
-              {shot ? (
+              {nativeTakeover ? (
+                <EgoTakeoverView siteUrl={model.publishingSite?.url} />
+              ) : shot ? (
                 <img
                   ref={bindScreenImage}
                   src={shot}
@@ -377,7 +377,7 @@ export function ComputerScreenView(
                 </span>
               </div>
             )}
-            {error}
+            <ComputerScreenError message={controlError} />
             {shotAt && (
               <p className="screenshot-timestamp">
                 {uiText('computer:text_e3576b511c1d')}
@@ -419,7 +419,7 @@ export function ComputerScreenView(
                     ? uiText('computer:text_f8d01c881e34')
                     : uiText('computer:text_7527e6d25083')}
                 </button>
-                {(controlled || observingWork) && (
+                {!nativeTakeover && (controlled || observingWork) && (
                   <button
                     type="button"
                     className="text-button"
@@ -435,7 +435,12 @@ export function ComputerScreenView(
                   type="button"
                   className="text-button"
                   disabled={
-                    loading || !screenReady || inputBusy || otherControlled || privateControlsPaused
+                    loading ||
+                    !screenReady ||
+                    inputBusy ||
+                    otherControlled ||
+                    privateControlsPaused ||
+                    nativeTakeover
                   }
                   onClick={() => void screenshot()}
                 >
@@ -444,7 +449,7 @@ export function ComputerScreenView(
                 </button>
               </div>
             </div>
-            {!isDesktop && (
+            {!isDesktop && !nativeTakeover && (
               <form
                 className="browser-address"
                 onSubmit={(e) => {
@@ -479,7 +484,7 @@ export function ComputerScreenView(
                 </button>
               </form>
             )}
-            {controlled && (
+            {controlled && !nativeTakeover && (
               <ComputerManualControlsView
                 {...model}
                 inputBusy={inputBusy || model.teachingBlocked || privateControlsPaused}

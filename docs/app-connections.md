@@ -66,6 +66,29 @@ Microsoft Learn 提供公开的微软与 Azure 文档检索、文档读取和代
 
 Context7 可查询开发库的最新文档和指定版本的代码示例。AWS Knowledge 可检索 AWS 官方文档、架构指引及服务的区域可用性。两者都可以匿名连接，服务商会限制匿名请求频率。工具请求仍按聊天中的应用审批规则处理。[Context7 文档](https://context7.com/docs/installation) · [AWS Knowledge MCP 文档](https://awslabs.github.io/mcp/servers/aws-knowledge-mcp-server)
 
+### Miro 和 monday.com
+
+在应用目录选 Miro 或 monday.com，确认共享范围后选择「网页登录授权」。Miro 需要在相应的团队或组织启用 MCP，再选择要授权的团队。monday.com 需要账号管理员批准连接器及回调地址，再由账号持有人授权。工具访问范围由服务商账号权限和所选团队或工作区决定。回到 aihubot 完成连接，查看实际可用工具。[Miro 接入说明](https://help.miro.com/hc/en-us/articles/31625301583890-How-to-enable-Miro-s-MCP-Server-user-guide) · [monday.com 授权说明](https://developer.monday.com/api-reference/docs/mcp-dynamic-client-registration)
+
+### Notion
+
+Notion MCP 继承账号在授权工作空间中的权限。验收时可授权一个仅含测试内容的独立 Notion 空间，连接后用搜索工具查找一条已知测试记录。[Notion MCP 权限说明](https://www.notion.com/help/notion-mcp#best-practices)
+
+### Exa 和 Mintlify Docs
+
+Exa 可匿名检索和读取公开网页，服务商对匿名请求限流。Mintlify Docs 可检索公开的设置和部署指南。这两项可直接选「无需认证」，各项工具调用仍遵循 aihubot 审批流程。[Exa MCP 文档](https://exa.ai/docs/get-started/exa-mcp) · [Mintlify 文档检索 MCP](https://www.mintlify.com/docs/ai/model-context-protocol)
+
+### ClickUp、Webflow、Todoist、Airtable、Attio 和 Intercom
+
+在应用目录选择服务，核对权限后完成网页登录授权。已用打包客户端的 Rust 服务与 MCP 执行器确认六个官方地址能发起 OAuth，并在独立 Chrome 会话中抵达服务商登录或授权页面。完成账号授权后才会发现工具目录。授权兑换、工具发现和调用需要使用各服务的测试账号继续验收。
+
+- ClickUp 提供已选工作空间中的任务、清单与文档工具，各订阅方案均能启用。[ClickUp MCP 文档](https://developer.clickup.com/docs/connect-an-ai-assistant-to-clickups-mcp-server)
+- Webflow 按授权站点提供 CMS 与站点数据工具，站点拥有者或管理员负责授权。实时 Designer 还需启用 Webflow 桥接应用。欧盟托管空间可通过「添加」录入官方欧盟地址。[Webflow MCP 入门](https://developers.webflow.com/mcp/reference/getting-started) · [Webflow 权限与 Designer 条件](https://developers.webflow.com/mcp/faqs)
+- Todoist 请求 `data:read_write`，可查询并修改账号可访问的任务和项目。aihubot 独立开发，由使用者决定是否授权和批准后续调用。此连接并非由 Todoist 创建、支持或运营，也与其没有从属关系。[Todoist MCP 文档](https://www.todoist.com/help/todoist/todoist-and-ai/connect-todoist-to-an-ai-assistant-xMSzFfHng)
+- Airtable 授权时选择可访问的数据表范围，实际操作继承账号权限。创建表或修改记录需要相应的权限。[Airtable MCP 文档](https://support.airtable.com/articles/9897799762-using-the-airtable-mcp-server)
+- Attio 根据所选工作空间和用户权限提供 CRM 记录、列表与备注工具。[Attio MCP 文档](https://docs.attio.com/mcp/overview)
+- Intercom 预设指向美国托管地址；欧盟托管空间可通过「添加」录入官方欧盟地址。Fin Operator 工具还需工作空间启用对应服务，OAuth 回调地址受服务商允许名单约束。[Intercom MCP 文档](https://developers.intercom.com/docs/guides/mcp)
+
 ## 通过共享 Bot 提供应用
 
 来源拥有者可在 Bot 的共享设置中，从已连接应用里逐项选择工具，查看说明和参数后“保存并共享”。选择固定连接版本和各工具的完整定义摘要；新工具不会自动加入。最多授权 20 个连接、每个连接最多 64 项工具，已选工具说明及参数合计不超过 512 KiB。浏览目录不发布授权，也不会发起远端调用。
@@ -100,3 +123,7 @@ API 位于当前空间路径 `/api/workspaces/:workspaceId` 下：`GET/POST /app
 来源应用另通过真实平台 HTTP、生产 Pi 与自有 MCP 服务检查发布者/成员权限、所选工具目录、个人与来源同 ID 连接的隔离、本人逐次审批、正常令牌刷新、连接变更和执行中撤权。上述非 GUI 验收不代表共享选择页面、手机操作或真实第三方账户已经完成产品验收。
 
 服务商目录只提供真实连接入口，不自动安装应用。尚未包含每成员私人连接、私网批准连接、stdio 服务、MCP 文件资源下载或 DPoP。OAuth 协议、账号绑定、刷新和撤销已有本地服务回归，真实第三方账户授权及产品浏览器操作仍未验收。远程电脑内的网站登录与本功能分别管理。
+
+## 应用图标
+
+目录使用服务商提供的标识，资源由 aihubot 随客户端提供。其余服务使用文字标识，自定义服务使用连接图标。素材来源和使用条款见 [第三方说明](../THIRD_PARTY.md#application-provider-marks)。

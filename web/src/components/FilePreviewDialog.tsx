@@ -70,6 +70,7 @@ export function FilePreviewDialog({
           className="file-preview-download"
           href={href}
           download
+          aria-label={uiText('workspace:filePreviewDownload')}
           title={uiText('workspace:filePreviewDownload')}
           onClick={(event) => {
             if (!preview.current?.current()) event.preventDefault();
@@ -169,6 +170,7 @@ export function FilePreviewDialog({
           <iframe
             className="file-preview-html"
             hidden={showSource}
+            tabIndex={0}
             title={uiText('workspace:filePreviewDocument')}
             sandbox={document.interactive ? 'allow-scripts' : ''}
             referrerPolicy="no-referrer"

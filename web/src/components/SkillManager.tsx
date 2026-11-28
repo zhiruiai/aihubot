@@ -9,7 +9,7 @@ import './SkillManager.css';
 function usePageSize(compact: boolean) {
   const read = () =>
     window.matchMedia('(max-width: 760px)').matches
-      ? window.matchMedia('(max-height: 680px)').matches
+      ? window.matchMedia('(max-height: 640px)').matches
         ? 2
         : 3
       : window.matchMedia('(max-height: 700px)').matches
@@ -17,7 +17,7 @@ function usePageSize(compact: boolean) {
         : 6;
   const [size, setSize] = useState(read);
   useEffect(() => {
-    const queries = ['(max-width: 760px)', '(max-height: 680px)', '(max-height: 700px)'].map(
+    const queries = ['(max-width: 760px)', '(max-height: 640px)', '(max-height: 700px)'].map(
       (query) => window.matchMedia(query),
     );
     const update = () => setSize(read());

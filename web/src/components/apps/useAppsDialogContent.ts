@@ -5,7 +5,7 @@ import { ApiError } from '../../api';
 import { createAppConnectionScope } from '../../appConnections';
 import '../AppsDialog.css';
 import { blank, failed, Props } from './parts';
-import { appProviders, providerDraft } from '../../appProviders';
+import { appProviders, connectionAtAppAddress, providerDraft } from '../../appProviders';
 import {
   matchesReviewedAddress,
   reviewConnection,
@@ -13,6 +13,7 @@ import {
   type CustomAppProposalEntry,
 } from '../../appProposalEntry';
 import type { ProviderCategory } from './AppProviderCatalog';
+import { useCompactAppsViewport } from './appsViewport';
 
 const isPersonalOwner = (props: Props) =>
   !!props.workspaceId && !!props.userId && props.canManage && !props.team;
@@ -33,6 +34,7 @@ export function toolAccess(tool?: ManagedAppTool) {
 export function useAppsDialogContent(props: Props) {
   const latest = useRef(props);
   latest.current = props;
+  const compact = useCompactAppsViewport();
   const [scope] = useState(() =>
     createAppConnectionScope({ ...props, identity: () => latest.current }),
   );
@@ -46,7 +48,15 @@ export function useAppsDialogContent(props: Props) {
   const pendingReview = useRef(initialReview);
   const [customReview, setCustomReview] = useState<CustomAppProposalEntry>();
   const [view, setView] = useState<
-    'list' | 'review' | 'add' | 'detail' | 'rules' | 'skills' | 'packaged-skills' | 'channels' | 'publishing'
+    | 'list'
+    | 'review'
+    | 'add'
+    | 'detail'
+    | 'rules'
+    | 'skills'
+    | 'packaged-skills'
+    | 'channels'
+    | 'publishing'
   >(initialReview ? 'review' : 'list');
   const [selected, setSelected] = useState(''),
     [search, setSearch] = useState('');
@@ -57,6 +67,10 @@ export function useAppsDialogContent(props: Props) {
   }, [search, category]);
   const [draft, setDraft] = useState(blank),
     [token, setToken] = useState('');
+  const draftSeed = useRef<ReturnType<typeof blank>>(draft);
+  const draftDirty = (Object.keys(draftSeed.current) as Array<keyof typeof draft>).some(
+    (key) => draftSeed.current[key] !== draft[key],
+  );
   const [toolCatalog, setToolCatalog] = useState<ToolCatalog>(),
     [toolsLoading, setToolsLoading] = useState(false);
   const [toolsError, setToolsError] = useState(''),
@@ -90,6 +104,10 @@ export function useAppsDialogContent(props: Props) {
   const personalOwner = isPersonalOwner(props);
   const allowed = useRef(props.canManage);
   allowed.current = props.canManage;
+  function resetDraft(value = blank()) {
+    draftSeed.current = value;
+    setDraft(value);
+  }
   function publishToolCatalog(value: ToolCatalog | undefined) {
     writableToolCatalog.current = value;
     setToolCatalog(value);
@@ -113,7 +131,7 @@ export function useAppsDialogContent(props: Props) {
           setSelected(app.id);
           setView('detail');
         } else {
-          setDraft(reviewDraft(target) || blank());
+          resetDraft(reviewDraft(target));
           if ('kind' in target) setCustomReview(target);
           setView('add');
         }
@@ -133,7 +151,7 @@ export function useAppsDialogContent(props: Props) {
         if (customReview) {
           setCustomReview(undefined);
           setSelected(app?.id || '');
-          setDraft(blank());
+          resetDraft();
           if (app) latest.current.onChanged?.();
         }
         setConfirm(null);
@@ -191,7 +209,7 @@ export function useAppsDialogContent(props: Props) {
       setView((previous) => (previous === 'review' ? 'list' : previous));
       setCustomReview(undefined);
       setToken('');
-      setDraft(blank());
+      resetDraft();
       setReauthorize(false);
       setConfirm(null);
     }
@@ -210,12 +228,13 @@ export function useAppsDialogContent(props: Props) {
       ((next === 'rules' || next === 'skills') &&
         (!scope.current(scope.ticket()) || !isPersonalOwner(latest.current)))
     )
-      return;
+      return false;
     pendingReview.current = undefined;
     if (customReview) {
       setCustomReview(undefined);
-      setDraft(blank());
+      resetDraft();
     }
+    if (next === 'add' && view === 'list' && !draftDirty) resetDraft();
     setView(next);
     setSelected(id);
     setError('');
@@ -225,6 +244,10 @@ export function useAppsDialogContent(props: Props) {
     setConfirm(null);
     setToken('');
     setReauthorize(false);
+    return true;
+  }
+  function cancelDraft() {
+    if (navigate('list')) resetDraft();
   }
   async function changeToolAccess(tool: ManagedAppTool, enabled: boolean) {
     const ticket = scope.ticket();
@@ -309,12 +332,13 @@ export function useAppsDialogContent(props: Props) {
       return;
     const next = providerDraft(id);
     if (!next) return;
-    if (draft.name || draft.url || draft.token || draft.shared || draft.authType !== 'none') {
-      setError(uiText('workspace:providerDraftRetained'));
+    if (draftDirty) {
+      const provider = appProviders.find((item) => item.id === id);
+      if (provider && matchesReviewedAddress(provider, draft.url)) navigate('add');
+      else setError(uiText('workspace:providerDraftRetained'));
       return;
     }
-    navigate('add');
-    setDraft(next);
+    if (navigate('add')) resetDraft(next);
   }
   async function mutate(
     work: () => Promise<ConnectedApp | void>,
@@ -349,7 +373,7 @@ export function useAppsDialogContent(props: Props) {
         setView('detail');
       }
       setToken('');
-      setDraft(blank());
+      resetDraft();
       setCustomReview(undefined);
       setReauthorize(false);
       setConfirm(null);
@@ -359,26 +383,31 @@ export function useAppsDialogContent(props: Props) {
       if (!scope.current(ticket)) return;
       const reviewedTarget =
         customReview ?? (initialReview && !('kind' in initialReview) ? initialReview : undefined);
+      const exactReview =
+        reviewedTarget && matchesReviewedAddress(reviewedTarget, draft.url)
+          ? reviewedTarget
+          : undefined;
       if (
         cause instanceof ApiError &&
         cause.status === 409 &&
         view === 'add' &&
-        reviewedTarget &&
-        matchesReviewedAddress(reviewedTarget, draft.url)
+        (exactReview || cause.code === 'APP_CONNECTION_EXISTS')
       ) {
         // Another client may have added this exact endpoint while the form was open.
         const current = await scope.request<ConnectedApp[]>('/apps').catch(() => undefined);
         if (!scope.current(ticket) || !latest.current.canManage) return;
         if (Array.isArray(current)) {
-          const app = reviewConnection(reviewedTarget, current);
+          const app = exactReview
+            ? reviewConnection(exactReview, current)
+            : connectionAtAppAddress(draft.url, current);
           if (app) {
             setApps(current);
             setSelected(app.id);
             setView('detail');
-            setDraft(blank());
+            resetDraft();
             setCustomReview(undefined);
             setNotice(uiText('workspace:appProposalExisting'));
-            if (customReview) latest.current.onChanged?.();
+            latest.current.onChanged?.();
             return;
           }
         }
@@ -417,6 +446,7 @@ export function useAppsDialogContent(props: Props) {
 
   return {
     view,
+    compact,
     selectedApp,
     personalOwner,
     props,
@@ -436,6 +466,8 @@ export function useAppsDialogContent(props: Props) {
     apps,
     visible,
     draft,
+    draftDirty,
+    cancelDraft,
     customReview,
     setError,
     mutate,

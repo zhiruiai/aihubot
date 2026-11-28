@@ -4,8 +4,55 @@ use axum::body::Body;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use openbot_backend::workspace::Table;
 use serde_json::json;
+use sha2::{Digest, Sha256};
 use workspace_media_support::raw;
 use workspace_support::Fixture;
+
+#[tokio::test]
+async fn thread_voice_recording_is_validated_and_retries_deliver_one_message() {
+    let f = Fixture::new().await;
+    let boot = f.bootstrap().await;
+    let cid = boot["conversations"][0]["id"].as_str().unwrap();
+    let root = uuid::Uuid::new_v4().to_string();
+    f.state.workspace.get(&f.workspace, &f.workspace)
+        .await
+        .unwrap()
+        .put(Table::Messages, &json!({"id":root,"conversationId":cid,"role":"user","kind":"text","content":"Thread root"}))
+        .await
+        .unwrap();
+    let mut wav = b"RIFF\xa4\x3e\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x80\x3e\x00\x00\x00\x7d\x00\x00\x02\x00\x10\x00data\x80\x3e\x00\x00".to_vec();
+    wav.extend([1; 16_000]);
+    let id = uuid::Uuid::new_v4().to_string();
+    let body = json!({"name":format!("recording-{id}.wav"),"type":"audio/wav","content":STANDARD.encode(&wav),"conversationId":cid,"threadRootId":root,"voiceRecordingId":id});
+    let upload_path = f.path("/files");
+    let post = |data| f.request("POST", &upload_path, Some(data), true, Some(&f.member));
+    let mut broken = body.clone();
+    broken["content"] = json!(STANDARD.encode(b"invalid"));
+    assert_eq!(post(broken).await.0, 422);
+    let mut missing_thread = body.clone();
+    missing_thread["threadRootId"] = json!(uuid::Uuid::new_v4().to_string());
+    assert_eq!(post(missing_thread).await.0, 409);
+    let (status, file) = post(body.clone()).await;
+    assert_eq!(status, 201, "{file}");
+    assert_eq!(file["sha256"], hex::encode(Sha256::digest(&wav)));
+    assert_eq!(post(body.clone()).await, (201, file));
+    let mut changed = body;
+    wav[44] = 2;
+    changed["content"] = json!(STANDARD.encode(&wav));
+    assert_eq!(post(changed).await.0, 409);
+    let snapshot = f.bootstrap().await;
+    let messages: Vec<_> = snapshot["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|message| message["metadata"]["fileId"] == id)
+        .collect();
+    assert_eq!(messages.len(), 1);
+    assert_eq!(messages[0]["threadRootId"], root);
+    assert_eq!(messages[0]["userId"], f.member);
+    assert_eq!(messages[0]["metadata"]["voiceRecording"]["durationMs"], 500);
+    f.close().await;
+}
 
 #[tokio::test]
 async fn upload_download_and_delete_preserve_bytes_actor_and_original_collision() {

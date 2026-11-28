@@ -204,6 +204,21 @@ async fn execute_authorized(
     let agent_id = active.agent_id.as_str();
     let conversation_id = active.conversation_id.as_str();
     let generation = context.generation;
+    if name == "find_skills" {
+        let mut output = super::skill_authoring::find(args)?;
+        access.authorize(state).await?;
+        active.family.authorize(state).await?;
+        authorize_membership(store, active).await?;
+        check_fence(active, generation)?;
+        if let Some(id) = super::skill_authoring::publish_find_result(
+            state, access, store, active, generation, &output,
+        )
+        .await?
+        {
+            output["messageId"] = json!(id);
+        }
+        return Ok(json!({"content":[{"type":"text","text":output.to_string()}],"details":output}));
+    }
     if matches!(
         name,
         "list_skills" | "read_skill" | "read_skill_resource" | "recall"
@@ -311,7 +326,7 @@ async fn execute_authorized(
     if agent.get("sharedBot").is_some() && access.shared().is_none() {
         return Err(ApiError::new(403, "共享 Bot 需要有效的来源授权。"));
     }
-    let conversation = WorkspaceStore::get_in(&mut tx, Table::Conversations, conversation_id)
+    let mut conversation = WorkspaceStore::get_in(&mut tx, Table::Conversations, conversation_id)
         .await?
         .ok_or_else(|| ApiError::new(409, "原会话已不存在。"))?;
     if !conversation["agentIds"]
@@ -320,8 +335,8 @@ async fn execute_authorized(
     {
         return Err(ApiError::new(409, "负责的 Bot 已离开当前会话。"));
     }
+    let mut skill_review = None;
     let output = match name {
-        "find_skills" => super::skill_authoring::find(args)?,
         "remember" => {
             let content = text(&args["content"], "记忆", 6000)?;
             let category = args["category"].as_str().unwrap_or("context");
@@ -355,7 +370,17 @@ async fn execute_authorized(
             if access.shared().is_some() {
                 return Err(ApiError::new(403, "共享 Bot 的技能由来源拥有者维护。"));
             }
-            super::skill_authoring::propose(&mut tx, agent_id, args).await?
+            let mut skill = super::skill_authoring::propose(&mut tx, agent_id, args).await?;
+            if agent["systemBot"] == "skill-creator" {
+                let message = super::skill_authoring::review_message(active, &skill);
+                skill["review"] = message["metadata"]["skillProposal"].clone();
+                skill["messageId"] = message["id"].clone();
+                conversation["updatedAt"] = message["createdAt"].clone();
+                WorkspaceStore::put_in(&mut tx, Table::Messages, &message).await?;
+                WorkspaceStore::put_in(&mut tx, Table::Conversations, &conversation).await?;
+                skill_review = Some(message);
+            }
+            skill
         }
         _ => return Err(ApiError::new(403, "此任务未授予该工具。")),
     };
@@ -363,6 +388,9 @@ async fn execute_authorized(
     active.family.authorize(state).await?;
     check_fence(active, generation)?;
     tx.commit().await?;
+    if let Some(message) = skill_review {
+        store.emit("message", message);
+    }
     store.emit("update", json!({}));
     Ok(json!({"content":[{"type":"text","text":output.to_string()}],"details":output}))
 }

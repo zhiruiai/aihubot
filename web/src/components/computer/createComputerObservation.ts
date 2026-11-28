@@ -4,7 +4,7 @@ import { ApiError } from '../../api';
 import { PRIVATE_FRAME_DENIED, readScreenFrame } from '../../computerFrameMedia';
 import type { ComputerState } from '../../../../shared/types';
 import { lifecycleCompleted, lifecycleCompletionNotice } from '../../computerLifecycle';
-import { screenIdentity } from '../../computerScope';
+import { screenIdentity, usesEgoBrowser } from '../../computerScope';
 import type { ComputerObservationContext } from './createComputerObservation.types';
 import { type ComputerAction, type Lease, type TakeoverStatus } from './types';
 export function createComputerObservation(read: () => ComputerObservationContext) {
@@ -229,6 +229,7 @@ export function createComputerObservation(read: () => ComputerObservationContext
       )
         return;
       const lease = leaseRef.current;
+      if (lease && usesEgoBrowser(computerRef.current)) return;
       const version = scope.ticket();
       const allowed = () =>
         current(version) &&

@@ -3,10 +3,12 @@ import type { SidebarRosterState } from './sidebar-roster.js';
 import type { SharedBotReference } from './shared-bots.js';
 import type { WorkspaceTimeZoneState } from './workspace-time-zone.js';
 import type { ChatAppContext, ConnectedApp } from './app-connections.js';
+import type { SystemBotId } from './system-bots.js';
 
 export type AgentStatus = 'idle' | 'working' | 'needs_input';
 export interface BotAgent {
   id: string;
+  systemBot?: SystemBotId;
   name: string;
   role: string;
   description: string;
@@ -64,6 +66,8 @@ export interface Message {
     | 'approval'
     | 'app_connection_proposal'
     | 'creation_preview'
+    | 'skill_proposal'
+    | 'skill_results'
     | 'question'
     | 'voice_call'
     | 'website_project'
@@ -256,6 +260,9 @@ export interface SyncToken {
   epoch: string;
   revision: number;
 }
+export type RunActivity =
+  'research' | 'files' | 'website' | 'skill' | 'collaborating' | 'connectedApp' | 'computer';
+
 export interface Bootstrap {
   sync: SyncToken;
   agents: BotAgent[];
@@ -272,6 +279,9 @@ export interface Bootstrap {
   runningRequests?: {
     conversationId: string;
     threadRootId?: string;
+    runId?: string;
+    activity?: RunActivity;
+    activityRevision?: number;
     requester?: import('./approvals.js').ActionRequester;
   }[];
   primaryBot?: PrimaryBotState;

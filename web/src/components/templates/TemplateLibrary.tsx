@@ -1,4 +1,4 @@
-import { uiText } from '../../i18n';
+import { currentLanguage, uiText } from '../../i18n';
 import { ChevronRight, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { BotTemplate, BotTemplateSummary } from '../../../../shared/bot-templates';
@@ -14,8 +14,11 @@ import { TeamStarterPicker } from '../team/TeamStarterPicker';
 import { useStarterBotInstall } from './useStarterBotInstall';
 import type { BotProfileDraft } from '../../botProfiles';
 import type { CreationStarter } from '../../../../shared/creation-requests';
+import type { SystemBotId } from '../../../../shared/system-bots';
+import { systemBotReceipt, systemStarterIds } from '../../systemBots';
+import { SystemBotDirectory } from './SystemBotDirectory';
 export function TemplateLibrary(props: Common) {
-  const [tab, setTab] = useState<'starters' | 'teams' | 'gallery' | 'mine'>('starters'),
+  const [tab, setTab] = useState<'system' | 'starters' | 'teams' | 'gallery' | 'mine'>('system'),
     [gallery, setGallery] = useState<BotTemplateSummary[]>([]),
     [mine, setMine] = useState<BotTemplate[]>([]),
     [query, setQuery] = useState(''),
@@ -25,13 +28,15 @@ export function TemplateLibrary(props: Common) {
   const [teamBusy, setTeamBusy] = useState(false);
   const [teamDirty, setTeamDirty] = useState(false);
   const [leave, setLeave] = useState<() => void>();
+  const [opening, setOpening] = useState<SystemBotId>();
+  const openingRef = useRef(false);
   const starterInstall = useStarterBotInstall(props);
-  const locked = teamBusy || starterInstall.busy;
+  const locked = teamBusy || starterInstall.busy || !!opening;
   const sequence = useRef(0),
     latest = useRef(props);
   latest.current = props;
   async function read() {
-    if (tab === 'starters' || tab === 'teams') return;
+    if (tab !== 'gallery' && tab !== 'mine') return;
     const ticket = props.scope.ticket(),
       order = ++sequence.current;
     if (!props.scope.current(ticket)) return;
@@ -62,7 +67,7 @@ export function TemplateLibrary(props: Common) {
   useEffect(() => {
     if (!props.owner && tab === 'mine') {
       setMine([]);
-      setTab('starters');
+      setTab('system');
       return;
     }
     if (tab === 'gallery' || tab === 'mine') void read();
@@ -91,6 +96,26 @@ export function TemplateLibrary(props: Common) {
       setTab(next);
     });
   }
+  async function openSystemBot(id: SystemBotId) {
+    const ticket = props.scope.ticket();
+    if (openingRef.current || !latest.current.owner || !props.scope.current(ticket)) return;
+    openingRef.current = true;
+    setOpening(id);
+    setError('');
+    try {
+      const result = systemBotReceipt(
+        await props.scope.request(`/system-bots/${id}`, 'POST', { locale: currentLanguage() }),
+        id,
+      );
+      if (latest.current.owner && props.scope.current(ticket))
+        latest.current.onSystemBotOpen?.(result);
+    } catch {
+      if (props.scope.current(ticket)) setError(uiText('workspace:systemBotOpenFailed'));
+    } finally {
+      openingRef.current = false;
+      if (props.scope.current(ticket)) setOpening(undefined);
+    }
+  }
   if (starter && props.owner)
     return (
       <StarterTemplateCreate
@@ -105,11 +130,21 @@ export function TemplateLibrary(props: Common) {
   return (
     <Dialog
       title={uiText('workspace:botGalleryTitle')}
-      className={`bot-template-dialog${tab === 'starters' ? ' bot-gallery-dialog' : ''}`}
+      className={`bot-template-dialog bot-gallery-frame${tab === 'starters' ? ' bot-gallery-dialog' : ''}`}
       scrollBody={tab !== 'starters'}
       onClose={() => navigate(props.onClose)}
     >
       <div className="segmented" role="tablist" aria-label={uiText('common:text_02a897db6c07')}>
+        <button
+          type="button"
+          role="tab"
+          disabled={locked}
+          aria-selected={tab === 'system'}
+          className={tab === 'system' ? 'active' : ''}
+          onClick={() => pickTab('system')}
+        >
+          {uiText('workspace:systemBotsTab')}
+        </button>
         <button
           type="button"
           role="tab"
@@ -178,12 +213,20 @@ export function TemplateLibrary(props: Common) {
           </div>
         </div>
       )}
-      {tab === 'starters' ? (
+      {tab === 'system' ? (
+        <SystemBotDirectory
+          canOpen={props.owner && !!props.onSystemBotOpen}
+          pending={opening}
+          error={error}
+          onOpen={(id) => void openSystemBot(id)}
+        />
+      ) : tab === 'starters' ? (
         <StarterTemplateCatalog
           canCreate={props.owner}
           disabled={starterInstall.busy}
           onInstall={starterInstall.install}
           installError={starterInstall.error}
+          excludedIds={systemStarterIds}
           current={() => props.scope.current(props.scope.ticket())}
           onChoose={(profile, origin) => {
             if (latest.current.owner && props.scope.current(props.scope.ticket()))

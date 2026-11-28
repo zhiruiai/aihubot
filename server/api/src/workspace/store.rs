@@ -269,6 +269,13 @@ impl WorkspaceStore {
             revision,
         });
     }
+    pub(crate) fn emit_run_activity(&self, data: Value) {
+        let _ = self.events.send(WorkspaceEvent {
+            event: "run-activity".to_owned(),
+            data,
+            revision: self.revision.load(Ordering::SeqCst),
+        });
+    }
     pub fn subscribe(&self) -> broadcast::Receiver<WorkspaceEvent> {
         self.events.subscribe()
     }

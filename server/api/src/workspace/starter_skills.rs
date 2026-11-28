@@ -52,7 +52,7 @@ impl Pack {
     }
 }
 
-fn selected(entry: &'static Value, language: &str) -> Result<Vec<Pack>> {
+pub(super) fn selected(entry: &'static Value, language: &str) -> Result<Vec<Pack>> {
     let mut seen = HashSet::new();
     entry
         .as_array()

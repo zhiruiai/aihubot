@@ -100,17 +100,19 @@ export function ConversationDetails({
             </IconButton>
           </div>
           <div className="detail-identity">
-            {conversation?.isGroup ? (
-              <GroupAvatar agents={members} size={71} />
+            {conversation.isGroup ? (
+              <GroupAvatar agents={members} size={46} />
             ) : (
-              <Avatar agent={lead} size={64} />
+              <Avatar agent={lead} size={46} />
             )}
-            <h2>{conversation?.title}</h2>
-            <p>{conversation?.isGroup ? uiText('workspace:text_e6c435204ba8') : lead?.role}</p>
-            <p className="field-help">
-              {conversationVisibility(account?.workspace.kind)}
-              {account?.workspace.kind === 'team' && uiText('workspace:text_09c95b68e4ff')}
-            </p>
+            <div className="detail-identity-copy">
+              <h2>{conversation.title}</h2>
+              {!conversation.isGroup && lead?.role && <p>{lead.role}</p>}
+              <p>
+                {conversationVisibility(account?.workspace.kind)}
+                {account?.workspace.kind === 'team' && uiText('workspace:text_09c95b68e4ff')}
+              </p>
+            </div>
           </div>
           <DetailTabs value={detailTab} group={!!conversation.isGroup} onChange={setDetailTab} />
           <div
@@ -147,10 +149,7 @@ export function ConversationDetails({
                     <span className="resource-icon lavender">
                       <BookOpen size={16} />
                     </span>
-                    <span>
-                      {uiText('workspace:text_b80e99482ac0')}
-                      <small>{uiText('workspace:text_5f3fcaac3777')}</small>
-                    </span>
+                    <span>{uiText('workspace:text_b80e99482ac0')}</span>
                     <span className="count">{memories.length}</span>
                     <ChevronRight size={14} />
                   </button>

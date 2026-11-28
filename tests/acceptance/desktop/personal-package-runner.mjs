@@ -265,8 +265,15 @@ export async function checkPersonalProcesses(resources, temporary) {
     await task(fixtures[0]);
     checks.realPiFileDelivery = true;
     const firstToken = launched.token;
-    phase = 'first-stop';
+    phase = 'cancel-restart';
+    await observeChildren();
+    const canceled = assert.rejects(
+      runtime.start({ signal, hostControl: false, onExit: () => controller.abort() }),
+      { name: 'AbortError' },
+    );
+    await Promise.all([canceled, runtime.stop()]);
     await stop();
+    checks.canceledRestartRemovedProcesses = true;
     checks.firstStopRemovedProcesses = true;
     phase = 'restart';
     await start(firstToken);

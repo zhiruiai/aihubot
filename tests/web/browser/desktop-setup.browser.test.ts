@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import test from 'node:test';
 import { chromium } from 'playwright-core';
+
+const require = createRequire(import.meta.url);
+const setupAsset = require('../../../desktop/session-policy.cjs').createSetupProtocolHandler() as (
+  request: Pick<Request, 'url' | 'method'>,
+) => Promise<Response>;
 
 test(
   'desktop setup presents the available local action before supplementary help at narrow sizes',
@@ -34,20 +39,26 @@ test(
           `,
           });
           await page.route('https://setup.example.test/**', async (route) => {
-            const file = new URL(route.request().url()).pathname.slice(1) || 'index.html';
-            assert.ok(['index.html', 'styles.css', 'app.js', 'i18n.js', 'logo.svg'].includes(file));
+            const { pathname, search } = new URL(route.request().url());
+            const response = await setupAsset({
+              url: `openbot-app://setup${pathname}${search}`,
+              method: route.request().method(),
+            });
+            assert.equal(response.status, 200);
             return route.fulfill({
-              contentType: file.endsWith('.css')
-                ? 'text/css'
-                : file.endsWith('.js')
-                  ? 'text/javascript'
-                  : file.endsWith('.svg')
-                    ? 'image/svg+xml'
-                    : 'text/html',
-              body: await readFile('desktop/ui/' + file),
+              headers: Object.fromEntries(response.headers),
+              body: Buffer.from(await response.arrayBuffer()),
             });
           });
           await page.goto('https://setup.example.test/');
+          const fontLoaded = await page.evaluate(async () => {
+            const font = await document.fonts.load(
+              '400 14px "Alimama FangYuanTi VF"',
+              '工作空间 aihubot',
+            );
+            return font.some((face) => face.status === 'loaded');
+          });
+          assert.equal(fontLoaded, true, 'the setup page loads its bundled font under CSP');
           await page.waitForFunction(() => document.activeElement?.id === 'start-local');
           const first = page.locator('#start-local');
           const bounds = await first.boundingBox();

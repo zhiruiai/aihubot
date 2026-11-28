@@ -91,7 +91,7 @@ function ScopedBrief({ kind, active, configured, workspaceId, userId, onUse }: P
         onClick={() => setOpen(!open)}
       >
         <Sparkles size={15} aria-hidden="true" />
-        {uiText(kind === 'bot' ? 'bots:smartProfileTitle' : 'bots:smartThemeTitle')}
+        {uiText(kind === 'bot' ? 'bots:smartProfileDraftTitle' : 'bots:smartThemeTitle')}
       </button>
       {open && (
         <div className="creation-brief-body">

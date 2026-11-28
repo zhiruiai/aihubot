@@ -28,11 +28,6 @@ export function WorkspaceLayout(model: WorkspaceModel) {
     model,
     blocked: call.active || (model.mobileHome && !model.mobileChat),
   });
-  const recruiterFromCreate = useRecruiterShortcut({
-    model,
-    entry: 'create',
-    blocked: call.active,
-  });
   const {
     mobileChat,
     showDetail,
@@ -190,7 +185,7 @@ export function WorkspaceLayout(model: WorkspaceModel) {
             </Dialog>
           }
         >
-          <WorkspacePeopleDialogs {...model} recruiterShortcut={recruiterFromCreate} />
+          <WorkspacePeopleDialogs {...model} />
           <WorkspaceResourceDialogs {...model} openWebsiteSearchResult={website.openSearchResult} />
           <WorkspaceSharingDialogs {...model} />
           <WorkspaceTaskDialogs {...model} />

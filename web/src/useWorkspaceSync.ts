@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { Bootstrap, Message } from '../../shared/types';
+import {
+  mergeRunActivity,
+  parseRunActivityUpdate,
+  type RunActivityUpdate,
+} from './runActivitySync';
 import { createWorkspaceSnapshotSource } from './workspaceSnapshot';
 import { createWorkspaceSync, type SyncState } from './workspaceSync';
 
@@ -8,6 +13,7 @@ export function useWorkspaceSync(callbacks: {
   userId?: string;
   snapshot: (data: Bootstrap) => void;
   message: (message: Message) => void;
+  setData: Dispatch<SetStateAction<Bootstrap | null>>;
 }) {
   const latest = useRef(callbacks);
   latest.current = callbacks;
@@ -27,10 +33,11 @@ export function useWorkspaceSync(callbacks: {
         if (status === 403 && workspaceId) window.dispatchEvent(new Event('openbot:revalidate'));
       },
     });
+    const activity = new Map<string, RunActivityUpdate>();
     const sync = createWorkspaceSync({
       fetch: source.read,
       snapshot: (data) => {
-        if (source.current()) latest.current.snapshot(data);
+        if (source.current()) latest.current.snapshot(mergeRunActivity(data, activity));
       },
       message: (message) => {
         if (source.current()) latest.current.message(message);
@@ -60,7 +67,22 @@ export function useWorkspaceSync(callbacks: {
         void sync.refresh();
       }
     });
+    stream.addEventListener('run-activity', (event) => {
+      if (!source.current()) return;
+      let update: RunActivityUpdate | undefined;
+      try {
+        update = parseRunActivityUpdate(JSON.parse(event.data));
+      } catch {
+        return;
+      }
+      if (!update || update.revision <= (activity.get(update.runId)?.revision ?? 0)) return;
+      activity.delete(update.runId);
+      activity.set(update.runId, update);
+      if (activity.size > 128) activity.delete(activity.keys().next().value!);
+      latest.current.setData((data) => mergeRunActivity(data, activity));
+    });
     stream.onerror = () => {
+      activity.clear();
       sync.disconnected();
       if (source.current()) window.dispatchEvent(new Event('openbot:revalidate'));
     };

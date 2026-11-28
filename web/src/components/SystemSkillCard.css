@@ -1,0 +1,43 @@
+.system-skill-card {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 440px);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 13px;
+}
+.system-skill-title,
+.system-skill-card li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.system-skill-title svg {
+  color: var(--accent);
+}
+.system-skill-card ul,
+.system-skill-card p {
+  margin: 0;
+}
+.system-skill-card ul {
+  padding: 0;
+  list-style: none;
+}
+.system-skill-card li {
+  justify-content: space-between;
+  min-width: 0;
+  padding-block: 7px;
+  border-top: 1px solid var(--border);
+}
+.system-skill-card li span {
+  overflow-wrap: anywhere;
+}
+.system-skill-card li button {
+  flex: none;
+  min-height: 34px;
+}
+.modal.system-skill-dialog {
+  width: min(620px, calc(100vw - 24px));
+}

@@ -91,12 +91,22 @@ export async function resolveBrowserTarget(url: URL, allowed = allowedBrowserOri
 }
 
 /** A pinned-address egress proxy: redirects and subrequests cannot bypass host checks. */
-export async function createBrowserNetworkProxy() {
+export async function createBrowserNetworkProxy(probeOrigin?: string) {
   const allowed = allowedBrowserOrigins();
   const sockets = new Set<Socket>();
   const server = createServer(async (req, res) => {
     try {
       const url = new URL(req.url ?? '');
+      // A managed browser proves that its first navigation traverses this proxy.
+      // The synthetic origin never reaches DNS, the network, or another service.
+      if (probeOrigin && req.method === 'GET' && url.href === `${probeOrigin}/`) {
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store',
+        });
+        res.end('<!doctype html><title>aihubot managed browser proxy</title><h1>Proxy ready</h1>');
+        return;
+      }
       const target = await resolveBrowserTarget(url, allowed);
       if (url.protocol !== 'http:') throw new Error('HTTPS requires CONNECT.');
       const headers: Record<string, string | string[] | undefined> = {

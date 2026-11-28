@@ -5,6 +5,7 @@ import type { ConnectedApp } from '../../../../shared/app-connections';
 import { appConnectionStatus } from '../../appConnections';
 import { AppOAuthPanel } from '../AppOAuthPanel';
 import { AppPolicyPanel } from './AppPolicyPanel';
+import { AppProviderMark } from './AppProviderMark';
 import '../AppsDialog.css';
 import { AppToolListView } from './AppToolListView';
 import { checked } from './parts';
@@ -38,21 +39,26 @@ export function AppConnectionDetailsView(model: AppsDialogContentModel) {
   ) : (
     <>
       <div className="apps-connection-summary">
-        <span className={`apps-status app-status-${selectedApp.status}`}>
-          {appConnectionStatus(selectedApp.status)}
-        </span>
-        <p>{selectedApp.url}</p>
-        <small>
-          {selectedApp.authType === 'bearer'
-            ? selectedApp.hasCredential
-              ? uiText('apps:text_e3e981c1623f')
-              : uiText('apps:text_d18e616c40f8')
-            : selectedApp.authType === 'oauth'
-              ? uiText('apps:text_6328ea1156ca')
-              : uiText('apps:text_41dda397a0fa')}{' '}
-          {uiText('apps:text_d9dcf2b663cc')}
-          {checked(selectedApp.checkedAt)}
-        </small>
+        <div className="apps-connection-identity">
+          <AppProviderMark endpoint={selectedApp.url} />
+          <div>
+            <span className="provider-status" data-status={selectedApp.status}>
+              {appConnectionStatus(selectedApp.status)}
+            </span>
+            <p>{selectedApp.url}</p>
+            <small>
+              {selectedApp.authType === 'bearer'
+                ? selectedApp.hasCredential
+                  ? uiText('apps:text_e3e981c1623f')
+                  : uiText('apps:text_d18e616c40f8')
+                : selectedApp.authType === 'oauth'
+                  ? uiText('apps:text_6328ea1156ca')
+                  : uiText('apps:text_41dda397a0fa')}{' '}
+              {uiText('apps:text_d9dcf2b663cc')}
+              {checked(selectedApp.checkedAt)}
+            </small>
+          </div>
+        </div>
         {selectedApp.error && <p className="error-text">{serviceText(selectedApp.error)}</p>}
         {selectedApp.authorization && (
           <details>

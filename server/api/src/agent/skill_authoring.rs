@@ -1,6 +1,10 @@
+use super::{
+    authority::ExecutionAccess, registry::ActiveRun, run_context::direct, tools::check_fence,
+};
 use crate::{
+    db::{State, iso, now},
     error::{ApiError, Result, only_fields, text},
-    workspace::{knowledge, workflow_skills},
+    workspace::{Table, WorkspaceStore, knowledge, workflow_skills},
 };
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
@@ -40,7 +44,9 @@ pub(super) fn find(args: &Value) -> Result<Value> {
     only_fields(args, &["query", "language", "offset"])?;
     let language = match args.get("language") {
         None => "zh-CN",
-        Some(value) => value.as_str().ok_or_else(|| ApiError::bad("技能目录语言无效。"))?,
+        Some(value) => value
+            .as_str()
+            .ok_or_else(|| ApiError::bad("技能目录语言无效。"))?,
     };
     if !matches!(language, "zh-CN" | "en") {
         return Err(ApiError::bad("技能目录语言无效。"));
@@ -89,6 +95,72 @@ pub(super) fn find(args: &Value) -> Result<Value> {
     }
     Ok(json!({"items":entries,"matched":matches.len(),"nextOffset":
         (offset + entries.len() < matches.len()).then_some(offset + entries.len())}))
+}
+
+/// Only the dedicated finder can attach a result in its own requested DM.
+pub(super) async fn publish_find_result(
+    state: &State,
+    access: &ExecutionAccess,
+    store: &WorkspaceStore,
+    active: &ActiveRun,
+    generation: u64,
+    output: &Value,
+) -> Result<Option<String>> {
+    let items = output["items"]
+        .as_array()
+        .expect("built-in catalog results");
+    if items.is_empty()
+        || active.kind != "user"
+        || active.depth != 0
+        || active.background
+        || !access.as_user().is_some_and(|actor| actor.is_owner)
+    {
+        return Ok(None);
+    }
+    let agent = store.get(Table::Agents, &active.agent_id).await?;
+    if !agent
+        .as_ref()
+        .is_some_and(|agent| agent["systemBot"] == "skill-finder")
+    {
+        return Ok(None);
+    }
+    let id = format!("skill-results-{}", active.root_run_id);
+    let mut tx = store.begin().await?;
+    let Some(mut chat) =
+        WorkspaceStore::get_in(&mut tx, Table::Conversations, &active.conversation_id)
+            .await?
+            .filter(|chat| direct(chat, &active.agent_id))
+    else {
+        return Ok(None);
+    };
+    if WorkspaceStore::get_in(&mut tx, Table::Messages, &id)
+        .await?
+        .is_some()
+    {
+        return Ok(None);
+    }
+    let ids: Vec<_> = items
+        .iter()
+        .take(3)
+        .map(|item| item["id"].clone())
+        .collect();
+    let stamp = iso(now());
+    let mut message = json!({
+        "id":id,"conversationId":active.conversation_id,"agentId":active.agent_id,
+        "role":"assistant","kind":"skill_results","content":items[0]["name"],"status":"done",
+        "createdAt":stamp,"metadata":{"skillResults":{"agentId":active.agent_id,"skillIds":ids}}
+    });
+    super::threads::stamp(&mut message, active.thread_root_id.as_deref());
+    chat["updatedAt"] = json!(stamp);
+    WorkspaceStore::put_in(&mut tx, Table::Messages, &message).await?;
+    WorkspaceStore::put_in(&mut tx, Table::Conversations, &chat).await?;
+    access.authorize_owner(state).await?;
+    active.family.authorize(state).await?;
+    check_fence(active, generation)?;
+    tx.commit().await?;
+    store.emit("message", message);
+    store.emit("update", json!({}));
+    Ok(Some(id))
 }
 
 fn body(agent_id: &str, args: &Value) -> Result<Value> {
@@ -142,6 +214,26 @@ pub(super) async fn propose(
     args: &Value,
 ) -> Result<Value> {
     knowledge::stage_skill(conn, &body(agent_id, args)?, None).await
+}
+
+pub(super) fn review_message(active: &ActiveRun, skill: &Value) -> Value {
+    let skill_id = skill["id"].as_str().expect("persisted skill has an ID");
+    let mut message = json!({
+        "id": format!("skill-proposal-{skill_id}"),
+        "conversationId": active.conversation_id,
+        "agentId": active.agent_id,
+        "role": "assistant",
+        "kind": "skill_proposal",
+        "content": skill["name"],
+        "status": "done",
+        "createdAt": skill["createdAt"],
+        "metadata": {"skillProposal": {
+            "kind":"authored", "skillId":skill_id, "agentId":active.agent_id,
+            "name":skill["name"], "version":skill["version"]
+        }}
+    });
+    super::threads::stamp(&mut message, active.thread_root_id.as_deref());
+    message
 }
 
 #[cfg(test)]

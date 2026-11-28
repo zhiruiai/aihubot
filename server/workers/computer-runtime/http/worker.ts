@@ -2,6 +2,7 @@ import express from 'express';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { resolve } from 'node:path';
 import { type BrowserScreenSession } from '../browser-engine.js';
+import type { EgoBrowserSession } from '../ego-browser.js';
 import { ComputerOperationRegistry, operationCleanupUnknown } from '../computer-operations.js';
 import {
   COMPUTER_WORKER_PROTOCOL,
@@ -61,6 +62,7 @@ export function createComputerWorker(options: {
   workspaceDir: string;
   desktopAdapter?: DesktopAdapter;
   browserSession?: BrowserScreenSession;
+  egoBrowser?: EgoBrowserSession;
   /** Trusted pool construction only; never populated from an HTTP payload. */
   instanceId?: string;
   screenId?: string;
@@ -93,6 +95,8 @@ export function createComputerWorker(options: {
     );
   if (options.hostShell && !sharedScreen)
     throw new Error('A host shell requires a workspace-scoped standalone worker.');
+  if (options.egoBrowser && (!sharedScreen || options.screenOnly || options.browserSession))
+    throw new Error('Ego Browser requires a workspace-scoped standalone worker.');
   const desktopAdapter =
     options.desktopAdapter ??
     (options.linuxDesktop ? createLinuxDesktopAdapter(options.linuxDesktop) : undefined);
@@ -102,6 +106,7 @@ export function createComputerWorker(options: {
     desktopAdapter,
     accessibilityAdapter,
     browserSession: options.browserSession,
+    egoBrowser: options.egoBrowser,
   });
   const shell = new IsolatedShellRunner(resolve(options.workspaceDir), options.isolatedShell);
   const hostShell = new HostShellRunner(resolve(options.workspaceDir), options.hostShell);

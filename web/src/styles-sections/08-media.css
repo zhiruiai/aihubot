@@ -1,9 +1,3 @@
-@media (min-width: 1700px) {
-  .app-shell {
-    margin: 24px auto;
-    height: calc(100dvh - 48px);
-  }
-}
 @media (max-width: 1150px) {
   .app-shell {
     grid-template-columns: 232px minmax(310px, 1fr);
@@ -47,16 +41,16 @@
     width: 100%;
     border: 0;
     flex-shrink: 0;
-    background: light-dark(#fcfcfc, var(--surface));
+    background: var(--surface);
   }
   .sidebar-toolbar {
-    height: 73px;
+    height: 64px;
     padding: 0 21px;
   }
   .app-wordmark {
     display: block;
     font-size: 24px;
-    color: light-dark(#2d2930, var(--text));
+    color: var(--text);
     letter-spacing: -0.9px;
   }
   .toolbar-actions {
@@ -70,8 +64,8 @@
     margin: 0 20px 15px;
     height: 35px;
     border-radius: 9px;
-    background: light-dark(#f1f1f3, var(--surface-subtle));
-    border-color: light-dark(#ededee, var(--border));
+    background: var(--surface-subtle);
+    border-color: var(--border);
   }
   .search-box input {
     font-size: 13px;

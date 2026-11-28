@@ -1,6 +1,7 @@
 import { uiText } from '../../i18n';
 import {
   BookOpen,
+  ChevronDown,
   ChevronRight,
   FolderOpen,
   LibraryBig,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
 } from 'lucide-react';
 import { appConnectionStatus } from '../../appConnections';
@@ -22,7 +24,9 @@ import './AppApprovalRules.css';
 import { SharedBotApps } from '../SharedBotApps';
 import { EnvironmentLink } from './parts';
 import { AppProviderCatalog, ProviderCategoriesView } from './AppProviderCatalog';
+import { AppProviderMark } from './AppProviderMark';
 import type { useAppsDialogContent } from './useAppsDialogContent';
+
 export type AppsDialogContentModel = ReturnType<typeof useAppsDialogContent>;
 export function AppConnectionsListView({
   feedback,
@@ -30,6 +34,7 @@ export function AppConnectionsListView({
 }: AppsDialogContentModel & { feedback: ReactNode }) {
   const {
     props,
+    compact,
     busy,
     navigate,
     uncertain,
@@ -59,6 +64,45 @@ export function AppConnectionsListView({
         .map((agent) => (
           <SharedBotApps key={agent.id} agent={agent} userId={props.userId!} />
         ))}
+    </section>
+  );
+  const connections = (
+    <section className="apps-workspace-connections" aria-label={uiText('apps:text_cb74a861cb66')}>
+      <h3>{uiText('apps:text_cb74a861cb66')}</h3>
+      {loading && !apps.length ? (
+        <p className="apps-connections-empty" role="status">
+          <Loader2 size={16} className="spin" aria-hidden="true" />
+          {uiText('apps:text_d5bf3e74fdb1')}
+        </p>
+      ) : visible.length ? (
+        <div className="integration-list apps-connection-items">
+          {visible.map((app) => (
+            <button
+              type="button"
+              className="integration"
+              key={app.id}
+              onClick={() => navigate('detail', app.id)}
+            >
+              <AppProviderMark endpoint={app.url} />
+              <span>
+                <strong>{app.name}</strong>
+                <small>{app.url}</small>
+              </span>
+              <span className="integration-status">
+                <span className="provider-status" data-status={app.status}>
+                  {appConnectionStatus(app.status)}
+                </span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="apps-connections-empty" role="status">
+          <Link2 size={16} aria-hidden="true" />
+          {search.trim() ? uiText('apps:text_61f00459f7b7') : uiText('apps:text_2101ac3a8835')}
+        </p>
+      )}
     </section>
   );
   return (
@@ -98,7 +142,12 @@ export function AppConnectionsListView({
       </div>
       <div className="apps-scroll" ref={listScroll}>
         {feedback}
-        {
+        <details className="apps-private-menu" open={compact ? undefined : true}>
+          <summary hidden={!compact}>
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            {uiText('workspace:providerWorkspaceTools')}
+            <ChevronDown size={15} aria-hidden="true" />
+          </summary>
           <div className="apps-private-tools">
             {props.publishingAccounts && props.workspaceId && props.userId && (
               <button
@@ -159,8 +208,9 @@ export function AppConnectionsListView({
               </>
             )}
           </div>
-        }
+        </details>
         {props.initialSharedBotId && publisher}
+        {visible.length > 0 && connections}
         <AppProviderCatalog
           apps={apps}
           category={category}
@@ -170,46 +220,7 @@ export function AppConnectionsListView({
           onSelect={model.selectProvider}
           onOpen={(id) => navigate('detail', id)}
         />
-        <section
-          className="apps-workspace-connections"
-          aria-label={uiText('apps:text_cb74a861cb66')}
-        >
-          <h3>{uiText('apps:text_cb74a861cb66')}</h3>
-          {loading && !apps.length ? (
-            <p className="apps-connections-empty" role="status">
-              <Loader2 size={16} className="spin" aria-hidden="true" />
-              {uiText('apps:text_d5bf3e74fdb1')}
-            </p>
-          ) : visible.length ? (
-            <div className="integration-list apps-connection-items">
-              {visible.map((app) => (
-                <button
-                  type="button"
-                  className="integration"
-                  key={app.id}
-                  onClick={() => navigate('detail', app.id)}
-                >
-                  <span className="integration-icon lavender">
-                    <Link2 size={18} aria-hidden="true" />
-                  </span>
-                  <span>
-                    <strong>{app.name}</strong>
-                    <small>{app.url}</small>
-                  </span>
-                  <span className={`integration-status app-status-${app.status}`}>
-                    {appConnectionStatus(app.status)}
-                    <ChevronRight size={14} aria-hidden="true" />
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="apps-connections-empty" role="status">
-              <Link2 size={16} aria-hidden="true" />
-              {search.trim() ? uiText('apps:text_61f00459f7b7') : uiText('apps:text_2101ac3a8835')}
-            </p>
-          )}
-        </section>
+        {visible.length === 0 && connections}
         {!props.initialSharedBotId && publisher}
       </div>
       <footer className="apps-environment" aria-label={uiText('apps:text_7958d84e9a3f')}>

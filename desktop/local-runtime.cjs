@@ -15,6 +15,7 @@ const {
 const { tmpdir, userInfo } = require('node:os');
 const { isAbsolute, join } = require('node:path');
 const { setTimeout: pause } = require('node:timers/promises');
+const { installedEgoBrowser } = require('./ego-browser.cjs');
 
 const bundleName = 'bambooshift-runtime';
 const bundledAccessibilityHelper =
@@ -96,7 +97,7 @@ function privateDirectory(path) {
   return path;
 }
 
-function writeConfig(dataDir, bundle, token, desktopDriver) {
+function writeConfig(dataDir, bundle, token, desktopDriver, egoBrowser) {
   const profile = privateDirectory(join(dataDir, 'local-workspace'));
   const data = privateDirectory(join(profile, 'data'));
   const target = join(profile, 'service.json');
@@ -112,6 +113,7 @@ function writeConfig(dataDir, bundle, token, desktopDriver) {
         localDesktop: {
           bootstrapToken: token,
           accessibilityHelper: bundle.accessibilityHelper,
+          ...(egoBrowser ? { egoBrowser } : {}),
           ...(desktopDriver ? { hostControl: true, desktopDriver } : {}),
         },
       }) + '\n',
@@ -153,7 +155,10 @@ function readLocalSelection(dataDir) {
     if (value === '1\n') return { hostControl: false };
     const selected = JSON.parse(value);
     if (selected.version === 1 && typeof selected.hostControl === 'boolean')
-      return { hostControl: selected.hostControl };
+      return {
+        hostControl: selected.hostControl,
+        ...(selected.useEgo === true ? { useEgo: true } : {}),
+      };
   } catch {
     // Missing or invalid preference leaves the workspace choice open.
   }
@@ -168,7 +173,11 @@ function saveLocalSelection(dataDir, selected) {
     else {
       writeFileSync(
         temp,
-        JSON.stringify({ version: 1, hostControl: selected.hostControl === true }) + '\n',
+        JSON.stringify({
+          version: 1,
+          hostControl: selected.hostControl === true,
+          ...(selected.useEgo === true ? { useEgo: true } : {}),
+        }) + '\n',
         { flag: 'wx', mode: 0o600 },
       );
       renameSync(temp, marker);
@@ -276,16 +285,11 @@ function createLocalRuntime({
   architecture = process.arch,
   startTimeoutMs = 25_000,
   stopTimeoutMs = 5_000,
+  findEgo = installedEgoBrowser,
 }) {
-  let current, pendingHost;
-  function stop(job = current) {
-    if (!job) {
-      pendingHost?.controller.abort();
-      return pendingHost?.ready.then(
-        () => {},
-        () => {},
-      );
-    }
+  let current, starting;
+  function stopChild(job = current) {
+    if (!job) return;
     if (!job.stopping && !job.closed) {
       job.stopping = true;
       job.child.kill('SIGTERM');
@@ -300,34 +304,45 @@ function createLocalRuntime({
     return job.done;
   }
 
-  async function start({ signal, onExit, hostControl = false }) {
-    if (current || pendingHost) await stop();
+  function stop() {
+    const operation = starting;
+    operation?.controller.abort();
+    const stopped = stopChild();
+    if (!operation) return stopped;
+    return Promise.allSettled([operation.done, stopped]).then(() => {});
+  }
+
+  function start({ signal, onExit, hostControl = false, useEgo = false }) {
+    // A replacement waits for the previous startup and its child processes before claiming the profile.
+    const stopped = stop();
+    const controller = new AbortController();
+    const operation = { controller };
+    starting = operation;
+    const startupSignal = AbortSignal.any([signal, controller.signal]);
+    operation.done = Promise.resolve(stopped)
+      .then(() => startChild({ signal: startupSignal, onExit, hostControl, useEgo }))
+      .finally(() => {
+        if (starting === operation) starting = undefined;
+      });
+    return operation.done;
+  }
+
+  async function startChild({ signal, onExit, hostControl, useEgo }) {
     signal.throwIfAborted();
     const bundle = runtimeBundle(resourcesPath, platform, architecture);
     if (!bundle) throw Error('localRuntimeUnavailable');
+    const egoBrowser = useEgo ? findEgo(platform) : undefined;
+    if (useEgo && !egoBrowser) throw Error('localEgoUnavailable');
     let host;
     if (hostControl) {
       if (!bundle.cua) throw Error('localHostControlUnavailable');
-      const controller = new AbortController();
-      const pending = {
-        controller,
-        ready: startCuaHost(bundle.cua, {
-          signal: AbortSignal.any([signal, controller.signal]),
-          timeoutMs: Math.min(startTimeoutMs, 8_000),
-        }),
-      };
-      pendingHost = pending;
-      try {
-        host = await pending.ready;
-      } finally {
-        if (pendingHost === pending) pendingHost = undefined;
-      }
+      host = await startCuaHost(bundle.cua, { signal, timeoutMs: Math.min(startTimeoutMs, 8_000) });
     }
     let child;
     const token = randomBytes(32).toString('hex');
     try {
       signal.throwIfAborted();
-      const config = writeConfig(dataDir, bundle, token, host?.driver);
+      const config = writeConfig(dataDir, bundle, token, host?.driver, egoBrowser);
       child = spawn(bundle.server, ['--config', config], {
         cwd: bundle.root,
         detached: true,
@@ -344,7 +359,7 @@ function createLocalRuntime({
       child.once('close', () => {
         job.closed = true;
         clearTimeout(job.killTimer);
-        if (!job.stopping) onExit();
+        if (job.ready && !job.stopping) onExit();
         Promise.resolve(host?.stop())
           .catch(() => {})
           .finally(() => {
@@ -388,9 +403,10 @@ function createLocalRuntime({
       });
       signal.throwIfAborted();
       if (job.stopping || job.closed) throw Error('localRuntimeFailed');
+      job.ready = true;
       return { origin, token };
     } catch (error) {
-      await stop(job);
+      await stopChild(job);
       throw error;
     }
   }
@@ -398,6 +414,7 @@ function createLocalRuntime({
   return {
     available: () => Boolean(runtimeBundle(resourcesPath, platform, architecture)),
     hostControlAvailable: () => Boolean(runtimeBundle(resourcesPath, platform, architecture)?.cua),
+    egoAvailable: () => Boolean(findEgo(platform)),
     start,
     stop,
   };

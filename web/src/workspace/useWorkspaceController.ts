@@ -151,6 +151,7 @@ export function useWorkspaceController() {
   const sync = useWorkspaceSync({
     workspaceId: account?.workspace.id || currentWorkspaceId(),
     userId: currentUserId,
+    setData: workspaceState.setData,
     snapshot: (b) => {
       notifications.baseline(b);
       voice.baseline(b);

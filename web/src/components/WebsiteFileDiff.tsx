@@ -98,56 +98,54 @@ export function WebsiteFileDiff({
         <p>{uiText('workspace:websiteNoFileChanges')}</p>
       )}
       {!!state.rows.length && (
-        <div className="website-file-diff-scroll" tabIndex={0}>
-          <table aria-label={uiText('workspace:websiteDiffLines')}>
-            <colgroup>
-              <col className="website-diff-number" />
-              <col className="website-diff-number" />
-              <col className="website-diff-sign" />
-              <col />
-            </colgroup>
-            <thead>
-              <tr>
-                <th scope="col">{uiText('workspace:websiteDiffBefore')}</th>
-                <th scope="col">{uiText('workspace:websiteDiffAfter')}</th>
-                <th scope="col" colSpan={2}>
-                  {uiText('workspace:websiteDiffContent')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {state.rows.map((row, index) =>
-                row.kind === 'gap' ? (
-                  <tr className="website-diff-gap" key={index}>
-                    <td colSpan={4}>
-                      {uiText('workspace:websiteDiffUnchanged', { count: row.count })}
-                    </td>
-                  </tr>
-                ) : (
-                  <tr className={`website-diff-${row.kind}`} key={index}>
-                    <td className="website-diff-number">{row.before ?? ''}</td>
-                    <td className="website-diff-number">{row.after ?? ''}</td>
-                    <td
-                      className="website-diff-sign"
-                      aria-label={
-                        row.kind === 'added'
-                          ? uiText('workspace:websiteDiffAddedLine')
-                          : row.kind === 'removed'
-                            ? uiText('workspace:websiteDiffRemovedLine')
-                            : undefined
-                      }
-                    >
-                      {row.kind === 'added' ? '+' : row.kind === 'removed' ? '−' : ' '}
-                    </td>
-                    <td className="website-diff-code">
-                      <code>{row.text || ' '}</code>
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        </div>
+        <table aria-label={uiText('workspace:websiteDiffLines')}>
+          <colgroup>
+            <col className="website-diff-number" />
+            <col className="website-diff-number" />
+            <col className="website-diff-sign" />
+            <col />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">{uiText('workspace:websiteDiffBefore')}</th>
+              <th scope="col">{uiText('workspace:websiteDiffAfter')}</th>
+              <th scope="col" colSpan={2}>
+                {uiText('workspace:websiteDiffContent')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.rows.map((row, index) =>
+              row.kind === 'gap' ? (
+                <tr className="website-diff-gap" key={index}>
+                  <td colSpan={4}>
+                    {uiText('workspace:websiteDiffUnchanged', { count: row.count })}
+                  </td>
+                </tr>
+              ) : (
+                <tr className={`website-diff-${row.kind}`} key={index}>
+                  <td className="website-diff-number">{row.before ?? ''}</td>
+                  <td className="website-diff-number">{row.after ?? ''}</td>
+                  <td
+                    className="website-diff-sign"
+                    aria-label={
+                      row.kind === 'added'
+                        ? uiText('workspace:websiteDiffAddedLine')
+                        : row.kind === 'removed'
+                          ? uiText('workspace:websiteDiffRemovedLine')
+                          : undefined
+                    }
+                  >
+                    {row.kind === 'added' ? '+' : row.kind === 'removed' ? '−' : ' '}
+                  </td>
+                  <td className="website-diff-code">
+                    <code>{row.text || ' '}</code>
+                  </td>
+                </tr>
+              ),
+            )}
+          </tbody>
+        </table>
       )}
       {state.truncated && <p role="status">{uiText('workspace:websiteDiffTruncated')}</p>}
     </div>

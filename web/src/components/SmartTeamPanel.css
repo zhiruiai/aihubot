@@ -224,7 +224,8 @@
   gap: 8px;
 }
 .team-starter-heading h3 {
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
 }
 .team-starter-options {
   display: grid;
@@ -240,7 +241,7 @@
   padding: 6px 9px;
   border: 1px solid var(--border);
   border-radius: 11px;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   text-align: start;
   font: inherit;
@@ -312,4 +313,24 @@
   margin: 3px 0 0;
   color: var(--text-secondary);
   line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .team-starter-picker {
+    padding: 12px;
+  }
+  .team-starter-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .team-starter-option {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px;
+    padding-inline: 7px;
+  }
+  .team-starter-option-icon {
+    width: 24px;
+    height: 24px;
+  }
+  .team-starter-option-arrow {
+    display: none;
+  }
 }

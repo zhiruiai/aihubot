@@ -70,6 +70,7 @@ export async function harness(
     effects: Array<() => void> = [];
   const hooks = {
     ...React,
+    useId: () => `fixture-${cursor++}`,
     useState(initial: any) {
       const index = cursor++;
       slots[index] ||= { value: typeof initial === 'function' ? initial() : initial };

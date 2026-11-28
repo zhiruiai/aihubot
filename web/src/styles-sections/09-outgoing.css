@@ -1,33 +1,11 @@
-.outgoing .message-bubble {
-  color: light-dark(#f7f7f8, var(--text));
-}
-.message-author {
-  font-size: 12px;
-}
-.conversation-preview {
-  color: light-dark(#77777e, var(--text-secondary));
-  font-size: 12px;
-}
-.conversation-heading time {
-  color: light-dark(#808087, var(--text-secondary));
-  font-size: 12px;
-}
 .section-label {
   color: light-dark(#717179, var(--text-secondary));
   font-size: 12px;
 }
 .section-help,
-.detail-identity p,
 .subtle-status {
   color: light-dark(#7b7b83, var(--text-secondary));
   font-size: 12px;
-}
-.detail-tabs button {
-  font-size: 12px;
-  color: light-dark(#777780, var(--text-secondary));
-}
-.detail-tabs button.active {
-  color: light-dark(#46464e, var(--text));
 }
 .routine-copy {
   font-size: 12px;
@@ -57,17 +35,10 @@
   color: light-dark(#89729e, var(--text-secondary));
 }
 .composer textarea::placeholder {
-  color: light-dark(#8e8e99, var(--text-muted));
+  color: var(--text-muted);
 }
 .composer-footnote {
-  color: light-dark(#9999a2, var(--text-muted));
-}
-.detail-identity p {
-  line-height: 1.7;
-}
-.details-toolbar {
-  color: light-dark(#82828c, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text-muted);
 }
 .details-footer {
   color: light-dark(#90909a, var(--text-muted));
@@ -187,12 +158,6 @@
 .file-copy small {
   font-size: 12px;
   color: light-dark(#87828f, var(--text-secondary));
-}
-.search-box input::placeholder {
-  color: light-dark(#878791, var(--text-secondary));
-}
-.empty-conversation p {
-  color: light-dark(#81788c, var(--text-secondary));
 }
 .detail-empty p {
   color: light-dark(#8d8299, var(--text-secondary));

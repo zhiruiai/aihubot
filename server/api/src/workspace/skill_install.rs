@@ -1,4 +1,7 @@
-use super::{Table, WorkspaceStore, access, knowledge, mutations, skill_packages::Package};
+use super::{
+    Table, WorkspaceStore, access, knowledge, mutations,
+    skill_packages::{Package, verified_files},
+};
 use crate::{
     db::State,
     error::{ApiError, Body, Result, only_fields},
@@ -6,9 +9,45 @@ use crate::{
 use axum::{
     Json,
     extract::{Path, State as Extract},
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, StatusCode, header},
+    response::{IntoResponse, Response},
 };
+use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
+
+/// Return the exact verified resources in the shape used by the installation review.
+pub async fn review_package(
+    Extract(state): Extract<State>,
+    Path((wid, id)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Result<Response> {
+    let grant = access::require(&state, &headers, &wid, true, true).await?;
+    let store = grant.store(&state).await?;
+    let mut tx = store.pool.begin().await?;
+    let skill = mutations::find(&mut tx, Table::Skills, &id).await?;
+    let package = &skill["skillPackage"];
+    let files = verified_files(&mut tx, &id, package).await?;
+    tx.commit().await?;
+    let fields = ["license", "compatibility", "metadata", "allowed-tools"];
+    let frontmatter: serde_json::Map<String, Value> = fields
+        .into_iter()
+        .filter_map(|key| {
+            package["frontmatter"]
+                .get(key)
+                .map(|value| (key.to_owned(), value.clone()))
+        })
+        .collect();
+    let files: Vec<Value> = files.into_iter()
+        .filter(|(path, _)| path != "SKILL.md")
+        .map(|(path, bytes)| json!({"path":path,"base64":STANDARD.encode(&bytes),"size":bytes.len()}))
+        .collect();
+    grant.authorize(&state).await?;
+    let result = json!({
+        "name":skill["name"],"description":skill["description"],"content":skill["content"],
+        "skillPackage":{"root":package["root"],"frontmatter":frontmatter,"files":files}
+    });
+    Ok(([(header::CACHE_CONTROL, "private, no-store")], Json(result)).into_response())
+}
 
 /// A human's installation decision includes the full reviewed package and the
 /// current active version. Store resources and activate in the same transaction.

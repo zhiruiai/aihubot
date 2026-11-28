@@ -352,7 +352,15 @@ test(
         const bounds = await control.boundingBox();
         assert.ok(bounds && bounds.y >= 0 && bounds.y + bounds.height <= 480);
       }
-      await dialog.getByRole('tab', { name: '预览', exact: true }).click();
+      const preview = dialog.getByRole('tab', { name: '预览', exact: true });
+      await preview.click();
+      await preview.press('Tab');
+      assert.ok(
+        await iframe.evaluate((node) => node === document.activeElement),
+        'the narrow preview can move from its tabs to the interactive document',
+      );
+      await page.keyboard.press('Shift+Tab');
+      assert.ok(await preview.evaluate((node) => node === document.activeElement));
       const reopened = await (await iframe.elementHandle())?.contentFrame();
       assert.ok(
         reopened === lesson,

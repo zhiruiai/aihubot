@@ -12,22 +12,24 @@ import 'core/third_party_licenses.dart';
 import 'features/bots/avatar_camera.dart';
 import 'theme.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   registerBundledLicenses();
   unawaited(discardAbandonedAvatarPhotos());
-  if (kIsWeb) {
-    try {
-      final font = FontLoader(openBotWebCjkFontFamily);
-      font.addFont(rootBundle.load('assets/fonts/OpenBotSansSC-Regular.woff2'));
-      await font.load().timeout(const Duration(seconds: 15));
-    } catch (_) {
-      debugPrint('OpenBot web font could not be loaded.');
-    }
-  }
+  if (kIsWeb) unawaited(_loadWebCjkFallback());
   runApp(
     OpenBotApp(
       session: AppSession(ApiClient(SessionVault(DeviceSecretStore()))),
     ),
   );
+}
+
+Future<void> _loadWebCjkFallback() async {
+  try {
+    final font = FontLoader(openBotWebCjkFontFamily);
+    font.addFont(rootBundle.load('assets/fonts/OpenBotSansSC-Regular.woff2'));
+    await font.load().timeout(const Duration(seconds: 15));
+  } catch (_) {
+    debugPrint('OpenBot web fallback font could not be loaded.');
+  }
 }

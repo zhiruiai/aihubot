@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { build } from 'esbuild';
+import { serveAppProviderMark } from '../fixtures/browser/appProviderMarks';
 import { chromium, type Route } from 'playwright-core';
 import type { PrivateSkillTeamPublication } from '../../../shared/team-skills';
 import type { PrivateSkill } from '../../../web/src/privateSkills';
@@ -110,6 +111,8 @@ test(
         });
       if (url.pathname === '/fixture.js')
         return route.fulfill({ contentType: 'text/javascript', body: js });
+      const mark = serveAppProviderMark(route);
+      if (mark) return mark;
       assert.equal(request.headers()['x-openbot-expected-user'], userId);
       if (url.pathname === `${base}/apps`) return route.fulfill({ json: [] });
       if (url.pathname === `${base}/private-skills`)
@@ -178,6 +181,7 @@ test(
     let { shelf, teamSelector, publish, sync } = locators();
     async function openShelf() {
       await page.goto(url);
+      await page.locator('.apps-private-menu summary').click();
       await page.getByRole('button', { name: 'Private skills', exact: true }).click();
     }
     async function review(teamId: string) {

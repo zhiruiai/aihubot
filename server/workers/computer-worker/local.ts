@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import type { BrowserContext, Page } from 'playwright-core';
 import type { ComputerState } from '../../../shared/types.js';
 import type { BrowserScreenSession } from '../computer-runtime/browser-engine.js';
-import { browserEnvironment } from '../computer-runtime/browser-environment.js';
+import type { EgoBrowserSession } from '../computer-runtime/ego-browser.js';
 import { createBrowserTabs } from '../computer-runtime/browser-tabs.js';
 import { executeBrowserPage } from '../computer-runtime/browser-page.js';
 import {
@@ -16,7 +16,6 @@ import {
   type DesktopAdapter,
   type DesktopInput,
 } from '../computer-runtime/desktop.js';
-import { createBrowserNetworkProxy } from './network.js';
 import {
   type ComputerSurface,
   type TakeoverState,
@@ -30,6 +29,7 @@ import {
 } from './protocol.js';
 import { attachBrowserImage } from './attach-image.js';
 import { captureDownload } from './download.js';
+import { launchLocalBrowser } from './local-browser.js';
 import { executeLocalFileAction } from './local-files.js';
 import { localComputerStatus } from './local-status.js';
 import { appendTakeoverAudit, executeBrowserTakeoverInput } from './local-takeover.js';
@@ -44,7 +44,7 @@ export class LocalComputer {
   private context?: BrowserContext;
   private page?: Page;
   private launching?: Promise<Page>;
-  private proxy?: Awaited<ReturnType<typeof createBrowserNetworkProxy>>;
+  private proxy?: Awaited<ReturnType<typeof launchLocalBrowser>>['proxy'];
   private surface: ComputerSurface = 'browser';
   private readonly desktop: DesktopAdapter;
   private readonly accessibilityDesktop?: DesktopAdapter;
@@ -62,6 +62,7 @@ export class LocalComputer {
       accessibilityAdapter?: DesktopAdapter;
       downloadTimeoutMs?: number;
       browserSession?: BrowserScreenSession;
+      egoBrowser?: EgoBrowserSession;
     } = {},
   ) {
     this.desktop = leaseOptions.desktopAdapter ?? createDesktopAdapter();
@@ -178,6 +179,7 @@ export class LocalComputer {
     this.takeover = lease;
     try {
       if (this.surface === 'desktop') await this.assertDesktopReady();
+      else if (this.leaseOptions.egoBrowser) await this.leaseOptions.egoBrowser.handOff();
       else await this.browser();
       this.assertLease(lease.id);
       await this.auditTakeover('start');
@@ -195,6 +197,7 @@ export class LocalComputer {
   }
   async endTakeover(leaseId: string): Promise<TakeoverState> {
     this.assertLease(leaseId);
+    if (this.surface === 'browser') await this.leaseOptions.egoBrowser?.resume();
     this.takeover = undefined;
     await this.auditTakeover('end');
     return this.takeoverStatus();
@@ -208,6 +211,8 @@ export class LocalComputer {
     if (this.surface === 'desktop') await this.assertDesktopReady();
     const input = validateTakeoverInput(raw, this.dimensions(), this.surface);
     this.assertLease(input.leaseId);
+    if (this.surface === 'browser' && this.leaseOptions.egoBrowser)
+      throw new Error('请直接在 Ego Lite 浏览器窗口中操作。');
     if (this.surface === 'desktop') {
       const { leaseId: _lease, ...native } = input;
       await this.desktop.execute(native as DesktopInput, options);
@@ -232,9 +237,10 @@ export class LocalComputer {
     const state = localComputerStatus(
       this.surface,
       this.desktopState,
-      this.page,
+      this.leaseOptions.egoBrowser?.isOpen() ?? (!!this.page && !this.page.isClosed()),
       this.takeoverStatus().active,
       this.browserState,
+      !!this.leaseOptions.egoBrowser,
     );
     if (this.leaseOptions.browserSession && !this.leaseOptions.browserSession.tabs)
       state.capabilities = state.capabilities.filter((value) => value !== 'browser-tabs-v1');
@@ -258,43 +264,14 @@ export class LocalComputer {
         await this.close();
       }
     }
-    this.launching = (async () => {
-      const { chromium } = await import('playwright-core');
-      await mkdir(this.profileDir, { recursive: true, mode: 0o700 });
-      const executablePath = process.env.OPENBOT_BROWSER_EXECUTABLE;
-      try {
-        this.proxy = await createBrowserNetworkProxy();
-        this.context = await chromium.launchPersistentContext(this.profileDir, {
-          ...(executablePath ? { executablePath } : { channel: 'chrome' }),
-          headless: process.env.OPENBOT_BROWSER_HEADLESS !== 'false',
-          env: browserEnvironment(this.profileDir),
-          viewport,
-          deviceScaleFactor: 1,
-          acceptDownloads: false,
-          serviceWorkers: 'block',
-          timeout: 30_000,
-          proxy: { server: this.proxy.url, bypass: '<-loopback>' },
-          args: ['--disable-quic', '--force-webrtc-ip-handling-policy=disable_non_proxied_udp'],
-        });
-      } catch {
-        await this.proxy?.close();
-        this.proxy = undefined;
-        throw new Error(
-          '无法启动独立浏览器。请安装 Chrome，或设置 OPENBOT_BROWSER_EXECUTABLE。OpenBot 不会读取你现有的浏览器登录信息。',
-        );
-      }
-      await this.context.route('**/*', (route) => {
-        const protocol = new URL(route.request().url()).protocol;
-        return ['http:', 'https:'].includes(protocol)
-          ? route.continue()
-          : route.abort('blockedbyclient');
-      });
-      this.context.on('page', (page) => {
-        this.page = page;
-      });
-      this.page = this.context.pages()[0] ?? (await this.context.newPage());
-      return this.page;
-    })();
+    this.launching = launchLocalBrowser(this.profileDir, (page) => {
+      this.page = page;
+    }).then(({ page, context, proxy }) => {
+      this.context = context;
+      this.proxy = proxy;
+      this.page = page;
+      return page;
+    });
     try {
       return await this.launching;
     } finally {
@@ -329,6 +306,12 @@ export class LocalComputer {
       const frame = await this.desktop.capture({ signal: options.signal });
       authorize();
       return frame.png;
+    }
+    if (this.leaseOptions.egoBrowser) {
+      if (this.takeover) throw new Error('接管期间请直接查看 Ego Lite 浏览器窗口。');
+      const frame = await this.leaseOptions.egoBrowser.screenshot({ ...options, authorize });
+      authorize();
+      return frame;
     }
     if (this.leaseOptions.browserSession) this.page = this.leaseOptions.browserSession.peek()?.page;
     if (!this.page || this.page.isClosed())
@@ -408,7 +391,21 @@ export class LocalComputer {
           `当前为 ${mode[this.surface]} 模式，请使用对应操作；模式只能由用户手动切换。`,
         );
     }
-    if (['browser_tabs', 'browser_select_tab', 'browser_close_tab', 'browser_attach_image'].includes(action.type)) {
+    if (
+      this.leaseOptions.egoBrowser &&
+      action.type.startsWith('browser_') &&
+      action.type !== 'browser_screenshot'
+    ) {
+      return this.leaseOptions.egoBrowser.execute(action, {
+        ...options,
+        authorize: () => this.assertAgentAccess(),
+      });
+    }
+    if (
+      ['browser_tabs', 'browser_select_tab', 'browser_close_tab', 'browser_attach_image'].includes(
+        action.type,
+      )
+    ) {
       const tabs = this.leaseOptions.browserSession
         ? this.leaseOptions.browserSession.tabs
         : this.browserTabs;
@@ -475,6 +472,10 @@ export class LocalComputer {
     if (separate) this.accessibilityDesktop?.setEnabled(false);
     await Promise.all([this.desktop.close(), separate && this.accessibilityDesktop?.close()]);
     if (this.desktopState) this.desktopState = { ...this.desktopState, enabled: false };
+    if (this.leaseOptions.egoBrowser) {
+      await this.leaseOptions.egoBrowser.close();
+      return;
+    }
     if (this.leaseOptions.browserSession) {
       await this.leaseOptions.browserSession.close();
       this.context = undefined;

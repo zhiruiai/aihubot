@@ -1,5 +1,5 @@
 import { uiText } from '../../i18n';
-import { ArrowLeft, Info, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Info, Loader2, ShieldCheck } from 'lucide-react';
 import '../AppsDialog.css';
 import './AppsDialogLayout.css';
 import { Dialog } from '../UI';
@@ -27,20 +27,30 @@ export function AppsDialogContentView(model: AppsDialogContentModel) {
     loading,
     refresh,
   } = model;
+  const sharing = [
+    uiText('apps:text_5d66e5c7df87'),
+    props.team ? uiText('apps:text_9c355cebc5ef') : '',
+    uiText('apps:text_de9a8e7d0608'),
+  ]
+    .filter(Boolean)
+    .join(' ');
   const feedback = (
     <>
-      <p className="apps-sharing">
-        <ShieldCheck size={16} />
-        <span>
-          {[
-            uiText('apps:text_5d66e5c7df87'),
-            props.team ? uiText('apps:text_9c355cebc5ef') : '',
-            uiText('apps:text_de9a8e7d0608'),
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        </span>
-      </p>
+      {view === 'list' ? (
+        <details className="apps-permission-guide">
+          <summary>
+            <ShieldCheck size={16} aria-hidden="true" />
+            {uiText('workspace:providerConnectionPermissions')}
+            <ChevronDown size={15} aria-hidden="true" />
+          </summary>
+          <p>{sharing}</p>
+        </details>
+      ) : (
+        <p className="apps-sharing">
+          <ShieldCheck size={16} aria-hidden="true" />
+          <span>{sharing}</span>
+        </p>
+      )}
       {!props.canManage && <p className="field-help">{uiText('apps:text_172dacbe79fe')}</p>}
       {error && (
         <p className="error-text" role="alert">
@@ -88,7 +98,11 @@ export function AppsDialogContentView(model: AppsDialogContentModel) {
                       ? uiText('workspace:packagedSkillsTitle')
                       : uiText('apps:text_b1bea2878095')
       }
-      subtitle={`${props.workspaceName} · ${props.team ? uiText('apps:text_92ee0cd82f1c') : uiText('apps:text_7c96c5f47c00')}`}
+      subtitle={
+        props.team
+          ? `${props.workspaceName} · ${uiText('apps:text_92ee0cd82f1c')}`
+          : props.workspaceName
+      }
       onClose={close}
       className={`apps-dialog apps-${view}-dialog`}
     >

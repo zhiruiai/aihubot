@@ -10,6 +10,7 @@ import { createAppConnectionScope } from '../../appConnections';
 import '../SettingsDialog.css';
 import {
   changed,
+  freeModelDraft,
   fromProfile,
   NEW_PROFILE,
   newProfile,
@@ -61,6 +62,13 @@ export function useModelSettingsDialog({
     (profile.provider !== draft.provider ||
       normalizeAddress(profile.baseUrl || '') !== normalizeAddress(draft.baseUrl))
   );
+  const setupRequired = !(active?.configured ?? settings.configured);
+  const useOnSave =
+    setupRequired &&
+    !!draft &&
+    Boolean(
+      draft.apiKey.trim() || draft.baseUrl.trim() || (!endpointChanged && profile?.configured),
+    );
 
   useEffect(() => {
     if (visible) scope.resume();
@@ -130,19 +138,26 @@ export function useModelSettingsDialog({
     setError('');
     setNotice('');
   }
-  function add(copy = false) {
+  function add(source?: 'copy' | 'free') {
+    const copy = source === 'copy';
     const value =
-      copy && draft
-        ? {
-            ...draft,
-            name: uiText('settings:profileCopyName', { name: draft.name.slice(0, 70) }),
-            apiKey: '',
-          }
-        : drafts[NEW_PROFILE] || newProfile();
+      source === 'free'
+        ? freeModelDraft()
+        : copy && draft
+          ? {
+              ...draft,
+              name: uiText('settings:profileCopyName', { name: draft.name.slice(0, 70) }),
+              apiKey: '',
+            }
+          : drafts[NEW_PROFILE] || newProfile();
     setDrafts((previous) => ({ ...previous, [NEW_PROFILE]: value }));
     setSelected(NEW_PROFILE);
     setError('');
-    setNotice(copy ? uiText('settings:text_e70a7ae921d9') : uiText('settings:text_80a2718f6d8d'));
+    setNotice(
+      source === 'free'
+        ? ''
+        : uiText(copy ? 'settings:text_e70a7ae921d9' : 'settings:text_80a2718f6d8d'),
+    );
     requestAnimationFrame(() => nameRef.current?.focus());
   }
   function resetDraft() {
@@ -182,7 +197,7 @@ export function useModelSettingsDialog({
         baseUrl: draft.baseUrl.trim(),
         vision: !!draft.baseUrl.trim() && draft.vision,
         ...(draft.apiKey.trim() ? { apiKey: draft.apiKey.trim() } : {}),
-        activate: false,
+        activate: useOnSave,
       });
       if (!scope.current(ticket)) return;
       updateResult(result.profile, result.settings);
@@ -194,9 +209,13 @@ export function useModelSettingsDialog({
       });
       setSelected(result.profile.id);
       setNotice(
-        result.profile.id === result.settings.profileId
-          ? uiText('settings:text_a196c0a91779')
-          : uiText('settings:text_dfd3457aa5c0'),
+        setupRequired
+          ? result.settings.configured
+            ? uiText('settings:modelSetupReady')
+            : uiText('settings:modelSetupSavedIncomplete')
+          : result.profile.id === result.settings.profileId
+            ? uiText('settings:text_a196c0a91779')
+            : uiText('settings:text_dfd3457aa5c0'),
       );
     } catch (cause) {
       if (scope.current(ticket)) setError((cause as Error).message);
@@ -207,7 +226,8 @@ export function useModelSettingsDialog({
   }
   async function activate() {
     const ticket = scope.ticket();
-    if (!scope.current(ticket) || !profile || dirty || locked || pendingRef.current) return;
+    if (!scope.current(ticket) || !profile?.configured || dirty || locked || pendingRef.current)
+      return;
     pendingRef.current = true;
     requestSequence.current++;
     setPending('activate');
@@ -239,6 +259,8 @@ export function useModelSettingsDialog({
     onClose,
     active,
     settings,
+    setupRequired,
+    useOnSave,
     locked,
     loadProfiles,
     add,

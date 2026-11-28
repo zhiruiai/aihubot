@@ -76,7 +76,7 @@ pub(crate) async fn deliver(
     let id = uuid::Uuid::new_v4().to_string();
     // Reuse exclusive file publication so subsequent source edits do not change this delivery.
     let (saved_name, uploaded) = directory.upload(public_name, &bytes, &id)?;
-    let file = json!({"id":id,"name":saved_name,"size":bytes.len(),"type":source["type"],
+    let file = json!({"id":id,"name":saved_name,"downloadName":public_name,"size":bytes.len(),"type":source["type"],
         "createdAt":iso(now()),"conversationId":context.active.conversation_id,
         "source":{"kind":"workspace_delivery","fileId":source["id"],"sha256":expected}});
     let mut message = json!({"id":message_id,"conversationId":context.active.conversation_id,

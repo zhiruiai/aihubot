@@ -1,0 +1,115 @@
+.composer .composer-voice-recording {
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.composer .composer-voice-recording:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.composer-recording-panel {
+  min-width: 0;
+  margin-block: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-subtle);
+}
+
+.composer-recording-controls,
+.composer-recording-status,
+.composer-recording-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.composer-recording-controls {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.composer-recording-status,
+.composer-recording-preview {
+  flex: 1 1 150px;
+  min-width: 0;
+  padding-inline-start: 5px;
+}
+
+.composer-recording-status {
+  flex-wrap: wrap;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.composer-recording-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: light-dark(#c63044, #f47e8c);
+}
+
+.composer-recording-preview .voice-memo-controls {
+  margin: 0;
+}
+
+.composer-recording-actions {
+  margin-inline-start: auto;
+}
+
+.composer-recording-actions > button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.composer-recording-stop,
+.composer-recording-send {
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.composer-recording-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding-inline: 9px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.voice-recording-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-inline: 5px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.composer-recording-controls + .voice-recording-error {
+  margin-top: 6px;
+}
+
+.voice-recording-card {
+  width: min(100%, 318px);
+  border: 1px solid var(--border);
+  border-radius: 21px;
+  background: var(--bubble);
+}
+
+.voice-recording-card > strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.voice-recording-card > strong svg {
+  color: var(--accent);
+}

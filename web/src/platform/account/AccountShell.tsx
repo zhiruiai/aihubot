@@ -20,14 +20,11 @@ export function AccountShell({
         <span>aihubot{operator && <small>{uiText('account:text_e0f17eefe421')}</small>}</span>
       </a>
       <section className="platform-auth-card">
-        <AppBrandMark size={64} />
         <h1>{title}</h1>
         {subtitle && <p className="platform-auth-subtitle">{subtitle}</p>}
         {children}
       </section>
-      <footer>
-        {operator ? uiText('account:text_e49a9a1fcfdf') : uiText('account:text_731b94938d9f')}
-      </footer>
+      {operator && <footer>{uiText('account:text_e49a9a1fcfdf')}</footer>}
     </main>
   );
 }

@@ -69,6 +69,7 @@ async fn managed_skill_runs_only_after_approval_with_exact_package_and_attached_
         host_control: true,
         desktop_driver: None,
         accessibility_helper: None,
+        ego_browser: None,
     });
     let state = State::open(config).await.unwrap();
     let router = product_router(state.clone());

@@ -262,6 +262,14 @@ async fn save(
         }
         p["vision"] = value.clone();
     }
+    if p["provider"] == "kilo-free"
+        && (p["baseUrl"] != "https://ai-gateway.kilo.ai/api/v1"
+            || p["model"] != "kilo-auto/free"
+            || p["vision"] == true
+            || body.get("apiKey").is_some())
+    {
+        return Err(ApiError::bad("Kilo 免费试用只能使用官方免密钥文本模型。"));
+    }
     let clear = body["clearApiKey"] == true
         || old["provider"] != p["provider"]
         || old["baseUrl"] != p["baseUrl"];

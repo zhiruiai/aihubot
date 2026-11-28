@@ -6,6 +6,7 @@ export interface ComputerInputContext {
   pausePrivateFrames: () => void;
   inputBusy: boolean;
   teachingBlocked?: boolean;
+  egoBrowser?: boolean;
   scope: {
     key: string;
     baseUrl: string | undefined;

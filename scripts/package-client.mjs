@@ -25,6 +25,7 @@ import { desktopProductName, readDesktopProductName } from './publishing/package
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const licenseFiles = ['LICENSE', 'NOTICE', 'THIRD_PARTY.md'];
+const fontNotice = 'licenses/alimama-fangyuanti-LICENSE.txt';
 const entryFiles = [
   'package.json',
   'main.cjs',
@@ -41,6 +42,7 @@ const entryFiles = [
   'language.cjs',
   'appearance.cjs',
   'local-runtime.cjs',
+  'ego-browser.cjs',
   'product-view.cjs',
 ];
 const uiExtensions = new Set([
@@ -286,6 +288,8 @@ export async function packageClient(options) {
       await copyFile(join(source, file), targetPath);
     }
     for (const file of licenseFiles) await copyFile(join(projectRoot, file), join(stage, file));
+    await mkdir(join(stage, 'licenses'));
+    await copyFile(join(projectRoot, 'mobile/assets', fontNotice), join(stage, fontNotice));
     const runtimePath = target.withRuntime ? join(working, 'bambooshift-runtime') : undefined;
     const bundledRuntime = runtimePath
       ? await stageDesktopRuntime({
@@ -404,7 +408,7 @@ export async function packageClient(options) {
           platform: target.platform,
           arch: target.arch,
           packagedAt: new Date().toISOString(),
-          sourceFiles: [...files, ...licenseFiles],
+          sourceFiles: [...files, ...licenseFiles, `mobile/assets/${fontNotice}`],
           bundles: [relative(output, destination)],
           localSignature:
             target.platform === 'darwin' ? (signingProfile ? 'local-certificate' : 'ad-hoc') : null,

@@ -40,6 +40,10 @@ test('Bot Gallery exposes built-in Bots, read-only teams and published templates
   try {
     await ui.flush();
     assert.equal(component(ui.tree, 'Dialog').props.title, 'Bot 广场');
+    assert.equal(ui.button('系统 Bot').props['aria-selected'], true);
+    assert.equal(component(ui.tree, 'SystemBotDirectory').props.canOpen, false);
+    ui.button('aihubot 原创').props.onClick();
+    await ui.flush();
     assert.ok(component(ui.tree, 'StarterTemplateCatalog'));
     ui.button('团队模板').props.onClick();
     await ui.flush();
@@ -126,6 +130,8 @@ test('direct use retries the same stock request across reopening and keeps autho
   for (const attempt of [1, 2]) {
     const ui = await harness(catalogFile, 'TemplateLibrary', props, { window: { sessionStorage } });
     try {
+      await ui.flush();
+      ui.button('aihubot 原创').props.onClick();
       await ui.flush();
       const install = component(ui.tree, 'StarterTemplateCatalog').props.onInstall;
       await install('research', 'zh-CN');

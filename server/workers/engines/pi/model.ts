@@ -1,4 +1,5 @@
 import type { ModelRuntime } from '@earendil-works/pi-coding-agent';
+import { KILO_FREE_PROFILE } from '../../../../shared/free-model.js';
 import type { StartRun } from '../../agent-runtime/protocol.js';
 
 /** Each child receives one profile and cannot discover host credentials. */
@@ -8,6 +9,15 @@ export async function createWorkerModel(
   signal: AbortSignal,
 ) {
   const profile = run.profile;
+  const isKiloFree = profile.provider === KILO_FREE_PROFILE.provider;
+  if (
+    isKiloFree &&
+    (profile.baseUrl !== KILO_FREE_PROFILE.baseUrl ||
+      profile.model !== KILO_FREE_PROFILE.model ||
+      profile.apiKey ||
+      profile.vision)
+  )
+    throw Error('Kilo Free requires the official anonymous text model endpoint.');
   if (!profile.baseUrl && ['google-vertex', 'amazon-bedrock'].includes(profile.provider))
     throw Error('Ambient cloud credential providers are unavailable.');
   if (profile.baseUrl) {
@@ -40,12 +50,15 @@ export async function createWorkerModel(
     signal,
   });
   const apiKey = profile.apiKey || (profile.baseUrl ? 'local' : undefined);
+  const headers: Record<string, null> = { 'OpenAI-Organization': null, 'OpenAI-Project': null };
+  // The SDK requires a nonempty local value. Delete the HTTP auth header for anonymous inference.
+  if (isKiloFree) headers.Authorization = null;
   runtime.getAuth = async (value, options) => {
     options?.signal?.throwIfAborted();
     const provider = typeof value === 'string' ? value : value.provider;
     if (provider !== profile.provider || !apiKey) return undefined;
     return {
-      auth: { apiKey, headers: { 'OpenAI-Organization': null, 'OpenAI-Project': null } },
+      auth: { apiKey, headers },
       env: {},
       source: 'workspace-profile',
     };

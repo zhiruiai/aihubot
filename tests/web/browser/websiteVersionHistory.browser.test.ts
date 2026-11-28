@@ -326,8 +326,18 @@ test(
       await page.getByRole('combobox', { name: 'Message about Second revision' }).count(),
       0,
     );
-    await page.setViewportSize({ width: 390, height: 740 });
+    await page.setViewportSize({ width: 320, height: 740 });
     const panel = page.getByRole('dialog', { name: 'Second revision' });
+    assert.ok(
+      await panel
+        .locator('h2')
+        .evaluate(
+          (title) =>
+            title.scrollWidth <= title.clientWidth + 1 &&
+            title.scrollHeight <= title.clientHeight + 1,
+        ),
+      'the title stays readable beside the version actions on a 320px screen',
+    );
     await panel.getByRole('button', { name: 'Version history' }).click();
     await panel.getByRole('list', { name: 'Version history' }).getByText('Viewing now').waitFor();
     await panel.getByRole('button', { name: /Initial site/ }).click();
@@ -369,14 +379,16 @@ test(
     await page.frameLocator('iframe').getByRole('heading', { name: 'New landing page' }).waitFor();
     await page.getByRole('combobox', { name: 'Message about Second revision' }).waitFor();
     assert.equal(await page.locator('.website-project-latest').count(), 0);
-    snapshot.messages.push(incoming.message);
-    snapshot.sync.revision = 1;
-    await page.evaluate(() => {
-      const fixture = window as unknown as { websiteFixtureStream: EventTarget };
-      fixture.websiteFixtureStream.dispatchEvent(
-        new MessageEvent('update', { lastEventId: 'fixture:1', data: '{}' }),
-      );
-    });
+    async function deliver(message: Message) {
+      snapshot.messages.push(message);
+      await page.evaluate((revision) => {
+        const fixture = window as unknown as { websiteFixtureStream: EventTarget };
+        fixture.websiteFixtureStream.dispatchEvent(
+          new MessageEvent('update', { lastEventId: 'fixture:' + revision, data: '{}' }),
+        );
+      }, ++snapshot.sync.revision);
+    }
+    await deliver(incoming.message);
     const newDelivery = page.locator('.website-project-latest');
     await newDelivery.getByText('A newer delivery is available · Version 4').waitFor();
     await page.frameLocator('iframe').getByRole('heading', { name: 'New landing page' }).waitFor();
@@ -390,6 +402,20 @@ test(
     await page.getByRole('combobox', { name: 'Message about Newly delivered site' }).waitFor();
     assert.equal(await input.inputValue(), 'A draft in the main chat.');
     assert.equal(await page.locator('.website-project-latest').count(), 0);
+
+    await page.getByRole('tab', { name: 'Changes' }).click();
+    await changes.getByText('Version 3 → Version 4', { exact: true }).waitFor();
+    await deliver({ ...initial.message, id: 'restored-original' });
+    await newDelivery.getByText('A newer delivery is available · Version 1').waitFor();
+    await changes.getByText('Version 3 → Version 4', { exact: true }).waitFor();
+
+    await newDelivery.getByRole('button', { name: 'View latest delivery' }).click();
+    await inspectOriginal.waitFor();
+    assert.equal(await page.getByRole('tab', { name: 'Changes' }).count(), 0);
+    await history.click();
+    await list.getByRole('button', { name: /First revision/ }).click();
+    await page.getByRole('tab', { name: 'Changes' }).click();
+    await changes.getByText('Version 1 → Version 2', { exact: true }).waitFor();
     assert.deepEqual(errors, []);
   },
 );

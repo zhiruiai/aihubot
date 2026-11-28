@@ -1,11 +1,19 @@
 :root {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: light-dark(#232323, var(--text));
-  background: light-dark(#f4f5f6, var(--bg-canvas));
+  font-family: var(
+    --font-interface,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif
+  );
+  color: var(--text);
+  background: var(--bg-canvas);
   font-synthesis: none;
-  font-size: 13px;
-  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 440;
   -webkit-font-smoothing: antialiased;
 }
 * {
@@ -41,18 +49,18 @@ button:disabled {
 }
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid light-dark(#9170db, var(--accent));
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: light-dark(#a899bf, var(--accent-border)) !important;
-  box-shadow: 0 0 0 3px light-dark(#9b85c512, var(--shadow-soft));
+  border-color: var(--accent-border) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
 }
 a {
-  color: light-dark(#6b5f94, var(--accent));
+  color: var(--accent);
   text-decoration: none;
 }
 a:hover {
@@ -76,24 +84,19 @@ button {
 }
 .app-shell {
   display: grid;
-  grid-template-columns: 260px minmax(340px, 1fr);
-  height: calc(100dvh - 32px);
-  max-width: 1660px;
-  margin: 16px auto;
-  background: light-dark(#fff, var(--surface));
-  border: 1px solid light-dark(#dedfe2, var(--border));
-  border-radius: 15px;
+  grid-template-columns: 268px minmax(0, 1fr);
+  height: 100dvh;
+  background: var(--surface);
   overflow: hidden;
-  box-shadow: 0 12px 70px light-dark(#17222e0c, var(--shadow-soft));
 }
 .app-shell.with-detail {
-  grid-template-columns: 260px minmax(340px, 1fr) 282px;
+  grid-template-columns: 268px minmax(0, 1fr) 286px;
 }
 .sidebar {
   display: flex;
   flex-direction: column;
-  background: light-dark(#f8f8f8, var(--surface-subtle));
-  border-right: 1px solid light-dark(#eaeaea, var(--border));
+  background: var(--surface-subtle);
+  border-right: 1px solid var(--border);
   min-height: 0;
 }
 .sidebar-toolbar {
@@ -110,14 +113,13 @@ button {
   gap: 9px;
   min-width: 0;
   font-weight: 600;
-  font-size: 12px;
-  color: light-dark(#9a9a9d, var(--text-muted));
-  letter-spacing: 0.1px;
+  font-size: 16px;
+  color: var(--text);
 }
 .toolbar-actions {
   display: flex;
-  gap: 3px;
-  margin-left: auto;
+  gap: 4px;
+  margin-inline-start: auto;
 }
 .icon-button {
   width: 29px;
@@ -127,53 +129,51 @@ button {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: light-dark(#707174, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .icon-button:hover {
-  background: light-dark(#e9e9e9, var(--surface-hover));
-  color: light-dark(#272727, var(--text));
+  background: var(--surface-hover);
+  color: var(--text);
 }
 .toolbar-actions .icon-button {
-  width: 30px;
-  height: 30px;
-  border: 1px solid light-dark(#e5e5e5, var(--border));
-  background: light-dark(#fdfdfd, var(--surface));
-  border-radius: 50%;
-  color: light-dark(#464646, var(--text));
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 .toolbar-actions .icon-button:hover {
-  background: light-dark(#ededed, var(--surface-hover));
+  background: var(--surface-hover);
 }
 .search-box {
-  margin: 0 12px 15px;
+  margin: 0 12px 12px;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 8px;
-  height: 29px;
-  background: light-dark(#ededee, var(--surface-subtle));
-  border: 1px solid light-dark(#e6e6e6, var(--border));
-  border-radius: 7px;
-  color: light-dark(#9b9b9f, var(--text-muted));
+  height: 36px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
 }
 .search-box input {
   min-width: 0;
   width: 100%;
   border: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: 13px;
   padding: 0;
   outline: none;
   box-shadow: none !important;
 }
 .search-box input::placeholder {
-  color: light-dark(#999, var(--text-muted));
+  color: var(--text-muted);
 }
 .search-box kbd {
   font-family: inherit;
   font-size: 12px;
   white-space: nowrap;
-  color: light-dark(#aaa, var(--text-muted));
+  color: var(--text-muted);
 }
 .conversation-list {
   overflow: auto;
@@ -193,10 +193,11 @@ button {
   min-height: 64px;
 }
 .conversation-row:hover {
-  background: light-dark(#eeeeef, var(--surface-hover));
+  background: var(--surface-hover);
 }
 .conversation-row.selected {
-  background: light-dark(#e6e6e7, var(--accent-soft));
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 var(--accent-border);
 }
 .conversation-avatar {
   flex-shrink: 0;
@@ -360,18 +361,18 @@ button {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .conversation-heading > span {
-  font-weight: 500;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
 }
 .conversation-heading time {
-  color: light-dark(#9b9b9d, var(--text-muted));
+  color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
 }
@@ -380,12 +381,12 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: light-dark(#929294, var(--text-muted));
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.4;
 }
 .preview-working {
-  color: light-dark(#9272c2, var(--text-muted));
+  color: var(--accent);
 }
 .status-dot {
   position: absolute;
@@ -422,22 +423,22 @@ button {
 }
 .sidebar-bottom {
   padding: 12px 12px 10px;
-  border-top: 1px solid light-dark(#efeff0, var(--border));
+  border-top: 1px solid var(--border);
 }
 .connect-apps {
   display: flex;
   align-items: center;
   width: 100%;
-  border: 1px solid light-dark(#e1e1e3, var(--border));
-  border-radius: 9px;
-  height: 35px;
-  gap: 7px;
-  background: light-dark(#fff, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 36px;
+  gap: 8px;
+  background: var(--surface);
   padding: 0 10px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .connect-apps:hover {
-  background: light-dark(#f2f2f3, var(--surface-hover));
+  background: var(--surface-hover);
 }
 /* Browser defaults shrink small text below the product's minimum type size. */
 small,

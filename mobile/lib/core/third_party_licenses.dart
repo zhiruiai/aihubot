@@ -8,6 +8,9 @@ void registerBundledLicenses() {
   _registered = true;
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(const [
+      'Alimama FangYuanTi VF',
+    ], await rootBundle.loadString('assets/licenses/alimama-fangyuanti-LICENSE.txt'));
+    yield LicenseEntryWithLineBreaks(const [
       'BoopFace eye-pose interpolation',
     ], await rootBundle.loadString('assets/licenses/boopface-LICENSE.txt'));
     yield LicenseEntryWithLineBreaks(const [

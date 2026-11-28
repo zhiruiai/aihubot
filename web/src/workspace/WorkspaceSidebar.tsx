@@ -3,16 +3,7 @@ import { NewChatPicker } from '../components/NewChatPicker';
 import { AppBrandMark } from '../components/AppBrandMark';
 import { uiText } from '../i18n';
 import { searchShortcutLabel } from '../keyboardShortcuts';
-import {
-  ChevronRight,
-  FolderOpen,
-  LayoutGrid,
-  Plus,
-  Search,
-  Settings,
-  Terminal,
-  Zap,
-} from 'lucide-react';
+import { ChevronRight, LayoutGrid, Plus, Search, Settings, Zap } from 'lucide-react';
 import { MobileBotShortcuts, MobileHomeHeader } from '../components/MobileHome';
 import { SidebarRosterList } from '../components/SidebarRoster';
 import { IconButton } from '../components/UI';
@@ -191,15 +182,7 @@ export function WorkspaceSidebar({
               <Zap size={14} />
             </span>
             <span>{uiText('workspace:text_b1bea2878095')}</span>
-            <span className="app-symbols">
-              <span className="symbol-files">
-                <FolderOpen size={13} />
-              </span>
-              <span className="symbol-terminal">
-                <Terminal size={12} />
-              </span>
-            </span>
-            <ChevronRight size={13} />
+            <ChevronRight size={14} aria-hidden="true" />
           </button>
           <div className="profile-row">
             {account ? (

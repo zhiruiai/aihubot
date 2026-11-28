@@ -24,6 +24,7 @@ pub(crate) struct ActiveRun {
     pub agent_id: String,
     pub background: bool,
     pub kind: &'static str,
+    pub(super) activity: std::sync::Mutex<super::run_activity::RunActivityState>,
     pub memory_writes: AtomicUsize,
     pub memory_characters: AtomicUsize,
     pub cancelled: Arc<AtomicBool>,
@@ -81,8 +82,13 @@ impl AgentRegistry {
         let prefix = format!("{workspace}:");
         self.active.lock().await.iter().filter(|(key, _)| key.starts_with(&prefix))
             .map(|(_, run)| {
-                let mut request = json!({"conversationId":run.conversation_id});
+                let mut request = json!({"conversationId":run.conversation_id,"runId":run.run_id});
                 super::threads::stamp(&mut request, run.thread_root_id.as_deref());
+                let activity = run.activity();
+                request["activityRevision"] = json!(activity.revision);
+                if let Some(activity) = activity.phase {
+                    request["activity"] = json!(activity);
+                }
                 if !run.background {
                     request["requester"] = json!({"userId":run.user_id,"name":run.user_name,"messageId":run.message_id});
                 }

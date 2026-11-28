@@ -276,6 +276,17 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
         )}
         {mode === 'bot' && props.canCreateBot && (
           <div className="bot-creation-options">
+            {props.onBrowseSystemBots && (
+              <button
+                type="button"
+                className="secondary-button"
+                disabled={manualLocked || avatarEdits.pending}
+                onClick={() => navigate(() => latest.current.onBrowseSystemBots?.())}
+              >
+                <UserPlus size={16} aria-hidden="true" />
+                {uiText('workspace:systemBotsTab')}
+              </button>
+            )}
             <button
               type="button"
               className="secondary-button starter-trigger"
@@ -285,25 +296,6 @@ export function CreateDialogContentView(model: CreateDialogContentModel) {
               <Layers3 size={16} aria-hidden="true" />
               {uiText('workspace:starterBrowse')}
             </button>
-            {props.recruiterShortcut && (
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={manualLocked || avatarEdits.pending}
-                onClick={() => navigate(() => void latest.current.recruiterShortcut?.open(''))}
-              >
-                {props.recruiterShortcut.pending ? (
-                  <Loader2 size={16} className="spin" aria-hidden="true" />
-                ) : (
-                  <UserPlus size={16} aria-hidden="true" />
-                )}
-                {uiText(
-                  props.recruiterShortcut.pending
-                    ? 'workspace:composerRecruiterOpening'
-                    : 'workspace:creationAskRecruiter',
-                )}
-              </button>
-            )}
           </div>
         )}
         {mode === 'team' ? (

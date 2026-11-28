@@ -39,7 +39,11 @@ async function toolbar(initial: Partial<Message> = {}) {
   const focus = (name: string) => () => {
     calls.push(['focus', name]);
   };
-  const options = [{ focus: focus('first') }, { focus: focus('second') }];
+  const getClientRects = () => [rectangle(0, 30, 0, 30)];
+  const options = [
+    { focus: focus('first'), getClientRects },
+    { focus: focus('second'), getClientRects },
+  ];
   const panel = {
     dataset: {} as { below?: string },
     style: {} as { translate?: string },
@@ -83,7 +87,7 @@ async function toolbar(initial: Partial<Message> = {}) {
       const panelNode = all(tree, (node) => node.props?.role === 'group')[0];
       if (panelNode) panelNode.props.ref.current = panel;
       for (const node of all(tree, (node) => node.type === 'button' && node.props?.ref))
-        node.props.ref.current = { focus: focus(node.props['aria-label']) };
+        node.props.ref.current = { focus: focus(node.props['aria-label']), getClientRects };
     },
   );
   await ui.flush();

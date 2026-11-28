@@ -100,6 +100,7 @@ impl Reservation {
             agent_id: agent.to_owned(),
             background: grant.background(),
             kind,
+            activity: Default::default(),
             memory_writes: AtomicUsize::new(0),
             memory_characters: AtomicUsize::new(0),
             cancelled: Arc::new(AtomicBool::new(false)),

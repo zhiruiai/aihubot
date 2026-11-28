@@ -41,7 +41,7 @@
     gap: 9px;
   }
   .dialog-form label {
-    font-size: 12px;
+    font-size: 13px;
   }
   .dialog-form input,
   .dialog-form select,
@@ -66,24 +66,23 @@
 }
 .dialog-form label,
 .field-label {
-  color: light-dark(#55545d, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text);
+  font-size: 13px;
 }
 .dialog-form input,
 .dialog-form textarea,
 .dialog-form select {
-  color: light-dark(#333338, var(--text));
+  color: var(--text);
 }
 .dialog-form input::placeholder,
 .dialog-form textarea::placeholder {
-  color: light-dark(#909099, var(--text-muted));
-  font-size: 12px;
+  color: var(--text-muted);
 }
 .dialog-form h3 {
   color: light-dark(#55545d, var(--text-secondary));
 }
 .secondary-button {
-  color: light-dark(#756180, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .info-box {
   color: light-dark(#786c83, var(--text-secondary));

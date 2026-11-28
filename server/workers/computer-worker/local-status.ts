@@ -1,14 +1,15 @@
 import { hostname, platform } from 'node:os';
-import type { Page } from 'playwright-core';
+import { EGO_BROWSER_CAPABILITY } from '../../../shared/computer-screens.js';
 import type { ComputerState } from '../../../shared/types.js';
 import { capabilities, type ComputerSurface } from './protocol.js';
 
 export function localComputerStatus(
   surface: ComputerSurface,
   desktop: ComputerState['desktop'],
-  page: Page | undefined,
+  browserOpen: boolean,
   takeover: boolean,
   browser?: { available: boolean; reason?: string },
+  egoBrowser = false,
 ): ComputerState {
   const status =
     surface === 'accessibility'
@@ -21,7 +22,7 @@ export function localComputerStatus(
           : desktop?.reason || '整机桌面权限不可用'
         : browser?.available === false
           ? browser.reason || '浏览器不可用'
-          : page && !page.isClosed()
+          : browserOpen
             ? '浏览器已就绪'
             : '本机工作区已连接 · 浏览器尚未打开';
   return {
@@ -32,9 +33,17 @@ export function localComputerStatus(
     surface,
     desktop,
     status: takeover ? '正在人工接管 · Bot 电脑操作暂停' : status,
-    capabilities:
-      browser?.available === false
-        ? capabilities.filter((value) => !value.startsWith('browser'))
-        : capabilities,
+    capabilities: browserCapabilities(browser?.available !== false, egoBrowser),
   };
+}
+
+function browserCapabilities(available: boolean, egoBrowser: boolean) {
+  if (!available) return capabilities.filter((value) => !value.startsWith('browser'));
+  if (!egoBrowser) return capabilities;
+  return [
+    ...capabilities.filter(
+      (value) => value !== 'browser-download' && value !== 'browser-attach-image-v1',
+    ),
+    EGO_BROWSER_CAPABILITY,
+  ];
 }

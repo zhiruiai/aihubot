@@ -54,6 +54,7 @@ json.dump({{'ok': True, 'result': result}}, sys.stdout)
             host_control: true,
             desktop_driver: None,
             accessibility_helper: Some(helper),
+            ego_browser: None,
         });
         let state = State::open(config.clone()).await.unwrap();
         let opened = request(

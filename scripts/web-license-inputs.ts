@@ -37,6 +37,27 @@ export function webLicenseInputs(root: string, surface: 'product' | 'operations'
     enforce: 'post',
     async writeBundle(options, bundle) {
       const outDir = resolve(options.dir!);
+      const fontNotice = 'licenses/alimama-fangyuanti-LICENSE.html';
+      const fontNoticeSource = await readFile(
+        join(root, 'mobile/assets/licenses/alimama-fangyuanti-LICENSE.txt'),
+        'utf8',
+      );
+      const escapedNotice = fontNoticeSource
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+      const notice = [
+        '<!doctype html>',
+        '<html lang="zh-CN">',
+        '<meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        '<title>Alimama FangYuanTi VF</title>',
+        `<main><pre style="white-space:pre-wrap">${escapedNotice}</pre></main>`,
+        '</html>',
+        '',
+      ].join('\n');
+      await mkdir(join(outDir, 'licenses'), { recursive: true });
+      await writeFile(join(outDir, fontNotice), notice);
       const packages = new Map<string, WebDependency>();
       for (const output of Object.values(bundle)) {
         if (output.type !== 'chunk') continue;
@@ -46,9 +67,9 @@ export function webLicenseInputs(root: string, surface: 'product' | 'operations'
           if (pkg) packages.set(pkg.packagePath, pkg);
         }
       }
-      const files = [];
+      const files = [{ path: fontNotice, sha256: digest(notice) }];
       for (const output of Object.values(bundle)) {
-        if (!/\.(?:js|css|html)$/.test(output.fileName)) continue;
+        if (!/\.(?:js|css|html|woff2)$/.test(output.fileName)) continue;
         const bytes = await readFile(join(outDir, output.fileName));
         files.push({ path: output.fileName, sha256: digest(bytes) });
       }

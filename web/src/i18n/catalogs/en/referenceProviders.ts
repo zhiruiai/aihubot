@@ -35,8 +35,8 @@ export default {
   composerAppsKeywords:
     'apps connect MCP authorization Notion Linear GitHub GitLab Sentry Jira Confluence Atlassian Slack Microsoft Learn Cloudflare Docs DeepWiki Context7 AWS Knowledge',
   providerCatalog: 'App directory',
-  providerCatalogHelp:
-    'Choose a provider, review its details, then connect it. Some services ask you to authorize an account.',
+  providerConnectionPermissions: 'How connections are authorized',
+  providerWorkspaceTools: 'Manage apps and skills',
   providerCategories: 'App categories',
   providerCategory_all: 'All',
   providerCategory_productivity: 'Productivity',
@@ -45,29 +45,42 @@ export default {
   providerAuth_none: 'No sign-in required',
   providerAuth_oauth: 'Browser sign-in',
   providerAuth_bearer: 'Access token',
-  providerNotion: 'Search and organize pages in the Notion workspace you authorize.',
+  providerNotion:
+    'Authorize to work with pages your account can access in the chosen Notion workspace.',
   providerLinear: 'Read issues and projects through Linear’s read-only service.',
   providerGitHub: 'Read repositories and issues. Supply a token with the permissions you need.',
   providerSentry: 'Investigate errors and issues in the Sentry projects you authorize.',
   providerSlack: 'Search public Slack channels and read their threads.',
   providerAtlassian:
     'Search Jira work and Confluence pages you can access. Your site may require admin approval.',
+  providerMiro: 'Work with boards in the Miro team you authorize. An admin may need to enable MCP.',
+  providerMonday:
+    'Work with monday.com boards and tasks. An account admin must approve the connector.',
   providerGitLab:
     'Work with issues and merge requests in your authorized GitLab.com groups. The top-level group must allow MCP.',
+  providerClickUp: 'Work with tasks, lists, and docs in the ClickUp workspace you authorize.',
+  providerWebflow: 'Work with CMS content and site data on the Webflow sites you authorize.',
+  providerTodoist: 'Read and update tasks and projects in the Todoist account you authorize.',
+  providerAirtable: 'Find and update records in Airtable bases covered by your access.',
+  providerAttio: 'Find and update CRM records in the Attio workspace you authorize.',
+  providerIntercom: 'Search support conversations and contacts. This preset uses the US region.',
   providerMicrosoftLearn: 'Search official Microsoft and Azure docs and code examples.',
   providerCloudflareDocs: 'Search official Cloudflare developer docs.',
   providerDeepWiki: 'Explore documentation and architecture for public GitHub repositories.',
   providerContext7: 'Look up current library documentation and version-specific code examples.',
   providerAwsKnowledge:
     'Search official AWS docs, architecture guidance, and regional availability.',
+  providerExa: 'Search the web and fetch public pages. Anonymous requests are rate-limited.',
+  providerMintlifyDocs: 'Search Mintlify’s public documentation for setup and hosting guidance.',
   providerDocumentation: 'Provider instructions',
   providerDocumentationLabel: '{{name}} provider instructions',
-  providerConnectedLabel: 'View connected {{name}}',
-  providerConfigureLabel: 'Configure {{name}}',
-  providerConnected: 'Connected',
+  providerConnectedLabel: 'Open {{name}}',
+  providerContinueLabel: 'Continue connecting {{name}}',
+  providerConfigureLabel: 'Add {{name}}',
+  providerConnected: 'Open',
   providerContinue: 'Continue',
   providerConfigure: 'Add',
   providerNoResults: 'No providers match this search.',
   providerDraftRetained:
-    'Your unfinished connection details are preserved. Open Add connection to finish them, or close this dialog to discard the draft before choosing another app.',
+    'You have an unfinished connection. Select Add to resume, or select Cancel in the form before configuring another app.',
 };

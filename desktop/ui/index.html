@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <title data-i18n="pageTitle">连接工作空间 · aihubot</title>
     <link rel="icon" type="image/svg+xml" href="./logo.svg" />
     <link rel="stylesheet" href="./styles.css" />
@@ -32,16 +32,14 @@
             <img
               class="orb"
               src="./logo.svg"
-              width="144"
-              height="144"
+              width="72"
+              height="72"
               alt="aihubot 吉祥物"
               data-i18n-alt="mascot"
             />
           </div>
           <h1 id="page-title" data-i18n="heading">连接你的工作空间</h1>
-          <p class="intro" data-i18n="intro">
-            在这台电脑创建工作空间，或连接已有的 aihubot 服务。
-          </p>
+          <p class="intro" data-i18n="intro">在这台电脑创建工作空间，或连接已有的 aihubot 服务。</p>
           <div class="workspace-note">
             <span class="note-icon" aria-hidden="true"></span>
             <div>
@@ -74,6 +72,15 @@
                 <small id="host-control-help" data-i18n="hostControlHelp">
                   开启整机桌面和本机终端。整机桌面需要录屏和辅助功能权限。只需点按控件或填表时，打开聊天里的「电脑
                   → Mac 应用」。
+                </small>
+              </span>
+            </label>
+            <label id="ego-browser-option" class="host-control-option" hidden>
+              <input id="use-ego-browser" type="checkbox" aria-describedby="ego-browser-help" />
+              <span>
+                <strong data-i18n="useEgoBrowser">使用 Ego Lite 工作浏览器</strong>
+                <small id="ego-browser-help" data-i18n="egoBrowserHelp">
+                  为 Bot 打开独立的 Ego 窗口。接管期间在该窗口操作，完成后回到 aihubot 交还。
                 </small>
               </span>
             </label>

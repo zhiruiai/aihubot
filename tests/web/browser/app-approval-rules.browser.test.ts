@@ -166,6 +166,7 @@ test(
     await review.getByRole('button', { name: 'Save and allow' }).click();
     await page.getByText('Saved exact permission').waitFor();
     await page.getByRole('button', { name: 'View app connection' }).click();
+    await page.locator('.apps-private-menu summary').press('Enter');
     await page.getByRole('button', { name: 'Saved app permissions' }).click();
     const dialog = page.getByRole('dialog', { name: 'Saved app permissions' });
     await dialog.getByText('fixture-org/demo #17', { exact: true }).waitFor();

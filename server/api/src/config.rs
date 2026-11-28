@@ -31,6 +31,12 @@ pub struct LocalDesktopConfig {
     pub host_control: bool,
     pub desktop_driver: Option<DesktopDriverConfig>,
     pub accessibility_helper: Option<PathBuf>,
+    pub ego_browser: Option<EgoBrowserConfig>,
+}
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct EgoBrowserConfig {
+    pub executable_path: PathBuf,
 }
 #[derive(Clone, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -139,6 +145,9 @@ impl Config {
                 || self.operations.is_some()
                 || local.accessibility_helper.as_ref().is_some_and(|helper| {
                     !cfg!(target_os = "macos") || !helper.is_absolute() || !helper.is_file()
+                })
+                || local.ego_browser.as_ref().is_some_and(|browser| {
+                    !cfg!(target_os = "macos") || !browser.executable_path.is_absolute()
                 })
                 || local.desktop_driver.as_ref().is_some_and(|driver| {
                     !local.host_control

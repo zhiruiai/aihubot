@@ -142,39 +142,48 @@
 }
 .website-project-history ol {
   display: grid;
-  gap: 2px;
+  gap: 6px;
   margin: 0;
-  padding: 6px 12px;
+  padding: 8px 12px;
   list-style: none;
 }
 .website-project-history li > * {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 3px 8px;
+  gap: 4px 8px;
   width: 100%;
   min-height: 36px;
   padding: 8px;
-  border-radius: 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
   color: var(--text-secondary);
   font-size: 12px;
   text-align: start;
   overflow-wrap: anywhere;
 }
-.website-project-history li > button:hover,
-.website-project-history [aria-current='true'] {
+.website-project-history li > button:hover {
   background: var(--surface-hover);
+  color: var(--text);
+}
+.website-project-history [aria-current='true'] {
+  border-color: var(--border);
+  background: var(--surface-raised);
   color: var(--text);
 }
 .website-project-history strong {
   flex-basis: 100%;
   font-size: 13px;
+  font-weight: 600;
 }
 .website-project-history span {
   color: var(--accent);
 }
 .website-project-history .website-version-number {
-  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
 }
 .website-version-changes {
@@ -330,13 +339,35 @@
   }
 }
 @container website-project (width < 420px) {
-  .website-project-edit {
-    max-inline-size: 86px;
-    padding-inline: 7px;
-    white-space: normal;
+  .website-project-header,
+  .website-project-panel > .modal-header {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
   }
-  .website-project-edit svg {
-    display: none;
+  .website-project-heading,
+  .website-project-panel > .modal-header > :first-child {
+    padding-inline-end: 42px;
+  }
+  .website-project-header h2,
+  .website-project-panel > .modal-header h2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+  }
+  .website-project-actions > .icon-button,
+  .website-project-panel > .modal-header .icon-button {
+    position: absolute;
+    inset-block-start: max(7px, env(safe-area-inset-top));
+    inset-inline-end: 8px;
+  }
+  .website-project-actions .website-project-action,
+  .website-project-panel > .modal-header .website-project-action {
+    padding-inline: 8px;
   }
   .website-project-toolbar {
     gap: 4px;

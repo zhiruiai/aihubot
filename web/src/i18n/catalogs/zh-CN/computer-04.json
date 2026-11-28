@@ -1,4 +1,6 @@
 {
+  "egoTakeoverTitle": "请在 Ego Lite 窗口操作",
+  "egoTakeoverHelp": "接管期间暂停 Bot 访问页面。完成后，请回到这里结束接管。",
   "privateTakeoverMasked": "人工接管期间，画面已设为私密。",
   "privateTakeoverUnsupported": "升级这台电脑后，即可启用私密接管。",
   "privateTakeoverVisible": "私密画面只在当前窗口显示，结束接管后会清除。",

@@ -73,6 +73,11 @@ test('a token-limited reply reports the output limit and its partial text', asyn
   const f = await fixture((_body, res) => stream(res, partial, undefined, 'length'));
   try {
     f.send(f.input);
+    await f.until(
+      () => f.events.some((e) => e.type === 'started'),
+      'Pi worker initialized',
+      30_000,
+    );
     await f.until(() => f.events.some((e) => e.type === 'settled'), 'truncated reply settled');
     const end = f.events.find(
       (e) => e.event?.type === 'message_end' && e.event.message.role === 'assistant',
@@ -86,6 +91,31 @@ test('a token-limited reply reports the output limit and its partial text', asyn
     await f.close();
   }
 });
+
+for (const [status, code] of [
+  [429, 'MODEL_RATE_LIMITED'],
+  [504, 'MODEL_TIMEOUT'],
+] as const) {
+  test(`provider HTTP ${status} returns ${code} without leaking upstream details`, async () => {
+    const f = await fixture((_body, res) => {
+      res.writeHead(status, { 'Content-Type': 'application/json', 'Retry-After': '0' });
+      res.end(JSON.stringify({ error: { message: 'Synthetic private upstream body' } }));
+    });
+    try {
+      f.send(f.input);
+      await f.until(
+        () => f.events.some((event) => event.type === 'settled'),
+        'provider failure settled',
+      );
+      const settled = f.events.find((event) => event.type === 'settled');
+      assert.equal(settled.status, 'error');
+      assert.equal(settled.code, code);
+      assert.doesNotMatch(JSON.stringify(f.events), /Synthetic private upstream body/);
+    } finally {
+      await f.close();
+    }
+  });
+}
 
 test('aborting the process-owned run produces cancellation without completing or dispatching another model call', async () => {
   const f = await fixture((_body, res) => {

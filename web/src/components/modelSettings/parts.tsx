@@ -1,4 +1,5 @@
 import { uiText, localizedData } from '../../i18n';
+import { KILO_FREE_PROFILE } from '../../../../shared/free-model';
 import type { AppSettings, ModelProfile } from '../../../../shared/types';
 import '../SettingsDialog.css';
 export interface ProfileDraft {
@@ -13,6 +14,7 @@ export const NEW_PROFILE = '__new_profile__';
 export const providers = localizedData(
   () =>
     [
+      [KILO_FREE_PROFILE.provider, uiText('settings:modelFreeProvider')],
       ['deepseek', uiText('settings:text_b5742e19a9a7')],
       ['anthropic', 'Anthropic'],
       ['openai', 'OpenAI'],
@@ -27,6 +29,12 @@ export const newProfile = (): ProfileDraft => ({
   provider: 'deepseek',
   model: 'deepseek-flash',
   baseUrl: '',
+  vision: false,
+  apiKey: '',
+});
+export const freeModelDraft = (): ProfileDraft => ({
+  ...KILO_FREE_PROFILE,
+  name: uiText('settings:modelFreeProvider'),
   vision: false,
   apiKey: '',
 });

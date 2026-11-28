@@ -5,7 +5,7 @@ import { chromium, type Locator } from 'playwright-core';
 import catalog from '../../../shared/bot-starter-templates.json';
 
 const origin = 'https://bot-gallery-layout.example.test';
-const total = Object.keys(catalog).length;
+const total = Object.keys(catalog).length - 2;
 const pageCount = Math.ceil(total / 4);
 
 async function bounds(locator: Locator) {
@@ -27,14 +27,27 @@ test(
           import { TemplateLibrary } from './web/src/components/templates/TemplateLibrary';
           import { initializeLanguage } from './web/src/i18n';
           initializeLanguage().setLanguage('zh-CN');
-          const scope = {ticket: () => 1, current: () => true, request: async () => []};
+          const scope = {
+            ticket: () => 1,
+            current: () => true,
+            request: async (path, method, body) => {
+              if (method !== 'POST' || body.locale !== 'zh-CN') throw Error('Invalid system request');
+              const id = path.split('/').pop();
+              return { systemBot: id, agentId: id, conversationId: 'chat-'+id,
+                agent: { id, name: id, role: 'Fixture role', systemBot: id },
+                conversation: { id: 'chat-'+id, title: id, agentIds: [id], isGroup: false }};
+            }
+          };
           createRoot(document.getElementById('root')).render(
-            <TemplateLibrary owner scope={scope} onClose={() => {}} />
+            <TemplateLibrary owner scope={scope} onClose={() => {}} onSystemBotOpen={(receipt) => {
+              document.getElementById('root').dataset.opened = receipt.conversation.id;
+            }} />
           );
         `,
         resolveDir: process.cwd(),
         loader: 'tsx',
       },
+      loader: { '.woff2': 'dataurl' },
       bundle: true,
       write: false,
       outdir: 'fixture',
@@ -75,6 +88,15 @@ test(
       await page.setViewportSize(viewport);
       await page.goto(origin);
       const dialog = page.getByRole('dialog', { name: 'Bot 广场' });
+      const system = dialog.getByRole('region', { name: '系统 Bot' });
+      assert.equal(await system.locator('article').count(), 4);
+      const open = system.getByRole('button', { name: '打开招聘助理的对话' });
+      await open.click();
+      await page.waitForFunction(
+        () => document.getElementById('root')?.dataset.opened === 'chat-recruiter',
+      );
+      assert.ok(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth + 1));
+      await dialog.getByRole('tab', { name: 'aihubot 原创', exact: true }).click();
       const cards = dialog.locator('.starter-card');
       await cards.first().waitFor();
       const header = await bounds(dialog.locator('.modal-header'));

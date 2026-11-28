@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { build } from 'esbuild';
+import { serveAppProviderMark } from '../fixtures/browser/appProviderMarks';
 import { chromium } from 'playwright-core';
 import defaults from '../../../shared/publishing-sites.json';
 
@@ -68,6 +69,8 @@ test(
         });
       if (url.pathname === '/fixture.js')
         return route.fulfill({ contentType: 'text/javascript', body: js });
+      const mark = serveAppProviderMark(route);
+      if (mark) return mark;
       if (url.pathname.endsWith('/apps')) return route.fulfill({ json: [] });
       assert.equal(url.pathname, `/api/workspaces/${wid}/publishing-sites`);
       if (req.method() === 'POST') {
@@ -82,6 +85,7 @@ test(
     });
     async function open(member = false) {
       await page.goto(home + (member ? '?member' : ''));
+      await page.locator('.apps-private-menu summary').click();
       await page.getByRole('button', { name: 'Publishing accounts' }).click();
     }
     const platform = page.getByRole('combobox', { name: 'Platform', exact: true });
@@ -90,7 +94,10 @@ test(
     await open();
     await page.getByText(/workspace members who can take it over/).waitFor();
     const platformField = await platform.boundingBox();
-    assert.ok(platformField && platformField.height >= 36, 'The platform field remains easy to tap');
+    assert.ok(
+      platformField && platformField.height >= 36,
+      'The platform field remains easy to tap',
+    );
     for (const preset of defaults) {
       assert.equal(
         await platform

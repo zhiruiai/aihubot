@@ -122,22 +122,37 @@ impl AgentProcess {
     }
 }
 
-pub(super) fn output_limit_error(event: &Value) -> Option<ApiError> {
-    (event["status"] == "error" && event["code"] == "MODEL_OUTPUT_LIMIT").then(|| {
-        ApiError::new(
+pub(super) fn model_failure(event: &Value) -> Option<ApiError> {
+    if event["status"] != "error" {
+        return None;
+    }
+    let (status, message, code) = match event["code"].as_str()? {
+        "MODEL_OUTPUT_LIMIT" => (
             502,
             "模型达到输出长度上限，回复尚未完成。请缩小本次要求，或分段继续。",
-        )
-        .with_code("MODEL_OUTPUT_LIMIT")
-    })
+            "MODEL_OUTPUT_LIMIT",
+        ),
+        "MODEL_RATE_LIMITED" => (
+            429,
+            "当前模型请求达到服务商限额，请稍后重试或手动选择其他模型。",
+            "MODEL_RATE_LIMITED",
+        ),
+        "MODEL_TIMEOUT" => (
+            504,
+            "模型服务响应超时，请稍后重试或手动选择其他模型。",
+            "MODEL_TIMEOUT",
+        ),
+        _ => return None,
+    };
+    Some(ApiError::new(status, message).with_code(code))
 }
 
 pub(super) fn check_run_settlement(event: &Value, input_is_current: bool) -> Result<()> {
-    let output_limit = output_limit_error(event);
-    if !input_is_current && (event["status"] == "completed" || output_limit.is_some()) {
+    let model_error = model_failure(event);
+    if !input_is_current && (event["status"] == "completed" || model_error.is_some()) {
         return Err(ApiError::new(409, "新要求已排队，旧回复已停止。").with_code("RUN_SUPERSEDED"));
     }
-    if let Some(error) = output_limit {
+    if let Some(error) = model_error {
         return Err(error);
     }
     match event["status"].as_str() {

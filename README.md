@@ -1,95 +1,75 @@
-<h1 align="center"><img src="web/public/icon-192.png" alt="" width="88" height="88"><br><img src="docs/demo/office-cover.svg" alt="aihubot" width="960"></h1>
+<h1 align="center"><img src="web/public/icon-192.png" width="66" height="66" alt=""><br>aihubot</h1>
 
-**English** · [简体中文](README.zh-CN.md)
+<p align="center"><strong>Give Bots a task, get files and websites back, and revise them in the same conversation.</strong></p>
 
-**aihubot is a self-hosted Bot workspace.** Give a Bot a brief, open its delivery, then change a constraint in the original conversation and review the new version.
+<p align="center">English · <a href="README.zh-CN.md">简体中文</a> · <a href="#quick-start">Quick start</a> · <a href="https://github.com/zhiruiai/aihubot/releases">Download</a></p>
 
-[Open the six interactive projects](https://zhiruiai.github.io/aihubot/work/) · [Recordings and evidence](docs/office-workflows.md) · [Quick start](#quick-start) · [Download](https://github.com/zhiruiai/aihubot/releases/latest)
+aihubot is a self-hostable workspace for Bots. Share materials with one Bot or a workgroup. Open the deliverable, check the changes, and download it from the conversation. Your team can resume work from any version.
 
-## The main hall closed. All six sessions stayed on.
+## Deliver, revise, and review in one conversation
 
-The first delivery shows three conflicts after the main hall closes. The coordinator replies to the same chat with a revised schedule and an exportable calendar. Open either version, inspect the file changes and continue editing from the version you choose.
+The main hall closes before opening, and the backup theater is available at 13:15. The project coordinator delivers a revised website and an exportable emergency calendar. All six sessions stay on the schedule, and venue conflicts drop from three to zero. [Try the event board](https://zhiruiai.github.io/aihubot/work/operations/) · [Workflow verification](docs/office-workflows.md)
 
-[![The aihubot chat beside version 2 of the event schedule, with all six sessions and no venue conflicts](docs/demo/workspace-delivery-current.webp)](https://zhiruiai.github.io/aihubot/work/operations/)
+![The original conversation beside the updated event board, showing all six sessions and zero venue conflicts](docs/demo/workspace-delivery-current.webp)
 
-The screenshots come from an isolated demo workspace. Rust and Pi saved both versions of the fictional event using a local scripted model. [View the file comparison](docs/demo/workspace-diff-current.webp) · [Try the event board](https://zhiruiai.github.io/aihubot/work/operations/)
+Open the original version or compare revisions file by file. Select **Revise this version** to continue in the same conversation.
 
-## Create a Bot and bring it into a group
+![File changes between two versions next to the original conversation](docs/demo/workspace-diff-current.webp)
 
-In **Bot Gallery**, open a template to see its role, instructions, and included skill packages. Use it directly to start a chat, or edit the profile first. [Bot templates](docs/bot-templates.md)
+In the event workgroup, the coordinator asks the Researcher to confirm venue access and setup times, then delivers a downloadable handoff sheet in the group chat.
 
-![The aihubot Bot Gallery showing the Researcher and its included skills](docs/demo/bot-gallery-current.webp)
+![The event workgroup shows the Researcher’s findings, the delegation record, and the downloadable handoff sheet](docs/demo/workspace-group-delivery-current.webp)
 
-From **New chat → Create a work group**, search for Bots by name or role. The selected participants stay visible as you search. Create the group from the footer once its roster is ready.
+## Open a system Bot
 
-<details>
-<summary>See the three-Bot group setup</summary>
+The **Bot Gallery** lets you talk to the Recruiter, Skill Finder, Skill Creator, or Connector Builder. Describe the task to get an editable Bot proposal, a skill package you can review, a connection approval card, or source files. Each system Bot reopens the same conversation.
 
-![The aihubot group creation dialog with three selected Bots and the create action visible](docs/demo/create-group-current.webp)
+![The Bot Gallery shows four system Bots with direct links to their conversations](docs/demo/bot-gallery-current.en.webp)
 
-</details>
+To work with several Bots, create a workgroup. Search by name or role and check the selected members before starting the conversation.
 
-## Start with one math problem
+<p align="center"><img src="docs/demo/create-group-current.en.webp" width="540" alt="Workgroup setup with selected Bots and the Create group button"></p>
 
-Use the After-School Adventure Crew in the Bot Gallery. Try a ten-frame for Grade 1 arithmetic or a balance for Grade 7 linear equations. Work through a different example and explain your reasoning in the original conversation. [Learning guide](docs/education.md)
+## Review a skill and install it on a Bot
 
-## The rain shells will miss opening day
+A skill can contain `SKILL.md`, scripts, references, and templates. In Data Quality Review, you can read the checklist and see the supporting CSV template and Python script before installing the package on the Researcher. [Skill packages and execution](docs/bot-models-and-skills.md)
 
-There are 72 hours until a pop-up opens. Its main supplier now needs 96 hours and the buyer has ¥1,400 less to spend. The Bot changes the three orders from **3 / 1 / 2 cartons to 1 / 3 / 2**. Switch lead times and budgets, inspect the projected margin and download the matching order.
+<p align="center"><img src="docs/demo/skill-package-current.en.webp" width="650" alt="Data Quality Review shows its package files and the Researcher as the target Bot"></p>
 
-[![Browser footage of six delivered projects, from an outdoor buying desk and a playable coffee film to a reproducible field study](docs/demo/work-studio.gif)](https://zhiruiai.github.io/aihubot/work/)
+## Connect apps and check the available tools
 
-## Try the work
+**Connect apps** has 22 MCP presets. The directory shows connection status and sign-in requirements. The available tools depend on the provider and the permissions granted to your account. The example shows Exa connected alongside public tools that require no sign-in. [App connections](docs/app-connections.md)
 
-Each cover opens a working project in Chinese, with no sign-in. Four use fictional business briefs. The technology and research cases use public sources. All six went through a real model and the Rust delivery service.
+![The app directory shows an active Exa connection and public tools](docs/demo/app-directory-current.en.webp)
 
-| Operations and evidence | Content and decisions |
-| --- | --- |
-| [![Restock a rain-delayed pop-up](docs/showcase-work/posters/commerce.jpg)](https://zhiruiai.github.io/aihubot/work/commerce/)<br>**[Restock a rain-delayed pop-up](https://zhiruiai.github.io/aihubot/work/commerce/)**<br>Change cash and lead time, then download the matching purchase order. | [![Watch the 30-second cut](docs/showcase-work/posters/editorial.jpg)](https://zhiruiai.github.io/aihubot/work/editorial/)<br>**[Watch the 30-second cut](https://zhiruiai.github.io/aihubot/work/editorial/)**<br>Review individual shots and take home the vertical coffee film. |
-| [![Rescue a six-session event](docs/showcase-work/posters/operations.jpg)](https://zhiruiai.github.io/aihubot/work/operations/)<br>**[Rescue a six-session event](https://zhiruiai.github.io/aihubot/work/operations/)**<br>Close the main hall and export the replacement schedule to a calendar. | [![Vote on a bookstore pilot](docs/showcase-work/posters/board.jpg)](https://zhiruiai.github.io/aihubot/work/board/)<br>**[Vote on a bookstore pilot](https://zhiruiai.github.io/aihubot/work/board/)**<br>Check the 600-seat arithmetic and take the eight-week proposal to a vote. |
-| [![Choose a field database](docs/showcase-work/posters/market.jpg)](https://zhiruiai.github.io/aihubot/work/market/)<br>**[Choose a field database](https://zhiruiai.github.io/aihubot/work/market/)**<br>Switch between offline sampling and concurrent central writes. Inspect the primary sources. | [![Investigate a sign reversal](docs/showcase-work/posters/research.jpg)](https://zhiruiai.github.io/aihubot/work/research/)<br>**[Investigate a sign reversal](https://zhiruiai.github.io/aihubot/work/research/)**<br>Inspect individual penguin observations and compare pooled and within-species correlations. |
+## Send voice messages in chat
+
+Record up to 60 seconds and listen before sending. Play the voice message in the conversation or reply thread where you sent it.
+
+![An inline voice message with playback controls, progress, and duration](docs/demo/voice-recording-current.webp)
+
+Screenshots come from a running product in an isolated workspace. The event walkthrough uses fictional data and scripted model responses.
 
 ## Quick start
 
-- **Join a team.** Open your administrator’s product URL in a browser, or enter it in the macOS Apple Silicon or Windows x64 connection client. Extract the full Windows ZIP before starting the app.
-- **Host a workspace.** The Linux x64 package includes the Rust API, both web apps and the workers. Follow the guide to install the Node.js dependencies and configure a private data directory. [Linux installation](server/api/deployment/README.md#install-and-configure)
-- **Work on this Mac.** The macOS source build with the bundled runtime can start a local personal workspace and execute approved tasks. Public desktop connection clients require a running aihubot server. [Desktop setup](docs/desktop-client.md) · [Releases](https://github.com/zhiruiai/aihubot/releases)
+**Join a workspace** at the URL your administrator provides. The desktop connector supports Apple silicon macOS and Windows x64. Extract the Windows ZIP before opening it. A Linux x64 service package is available for self-hosting. Computer access is governed by the execution device's permissions. [Download](https://github.com/zhiruiai/aihubot/releases) · [Desktop installation](docs/desktop-client.md) · [Linux deployment](server/api/deployment/README.md#install-and-configure)
 
-### Run from source
+**Run from source** with Rust, Node.js 22.19 or later, and npm.
 
-Install stable Rust, Node.js 22.19 or later and npm.
-
-```sh
+~~~sh
 git clone https://github.com/zhiruiai/aihubot.git
 cd aihubot
 npm ci
 npm run configure:local
 npm run dev
-```
+~~~
 
-Open the product URL printed in the terminal. Under **Settings → Models**, save your provider URL, model name and API key, then select **Set as default**. Each Bot inherits the workspace default unless you assign another profile. [Configuration guide](docs/quickstart.en.md)
+Open the URL printed in the terminal. Under **Settings → Models**, choose **Free trial · Kilo** as the provider and select **Save and use in chats**. If you already have a model, save the trial as a separate profile and choose **Set as default** when you want to use it. Kilo requires no account or API key. Requests are limited by IP address, and providers may retain prompts and outputs. Use sample data for the trial. [Kilo free model and data policy](https://kilo.ai/docs/gateway/models-and-providers#kilo-autofree)
 
-### Try your first task
+Use the local preview to try file delivery in a temporary workspace. [Local preview](CONTRIBUTING.md#run-a-sample-task-locally)
 
-> Turn these meeting notes into a Markdown action list and deliver the file here. The content team owes 12 guides on Wednesday. The operations lead owes five reviews on Friday. The budget is still open.
+## Architecture and license
 
-Open the file card. Ask the Bot to split the 12 guides across Wednesday and Thursday. Check that the total stays at 12 and the budget remains open. To try a local walkthrough before connecting a provider, run `npm run dev:preview` with its scripted model and temporary workspace. [Preview instructions](CONTRIBUTING.md#run-a-sample-task-locally)
+The web app and Electron client share a React interface. Rust owns workspace data, task state, and permissions. Pi calls the selected model in a separate worker. Rust checks each tool invocation. MCP connects external tools, and Flutter source is available for mobile. [Architecture](docs/architecture.md) · [Protocols](docs/capabilities-and-protocols.md)
 
-## Websites, skills and publishing
-
-- **Website delivery.** Open a delivered site from chat, compare revisions, revisit the first version and continue in its original thread. The version-history recording shows saved deliveries from a real model. The playable Starport Landing example comes from a scripted conversation. [Version-history recording](docs/demo/website-delivery.gif) · [Play Starport Landing](https://zhiruiai.github.io/aihubot/en/)
-- **Install and run a skill.** In the Bot’s settings, open **Choose and manage skills → Choose from skill library**. Inspect the files in **Data quality review**, install it, attach a CSV and select the skill with `/`. Its Python script returns an exit code and row statistics. The execution Mac needs Python 3 and local command access. [Skill packages and execution](docs/bot-models-and-skills.md)
-- **Plan and publish.** The Content Operations and Publishing Bot turns a brief into an operating plan and a downloadable article. Connect a Zhihu account to save a platform draft or submit the chosen version, then check the platform receipt. [Zhihu workflow](docs/zhihu-articles.md) · [Publishing accounts](docs/publishing.md)
-
-<details>
-<summary>See how to review a local skill package before installing it</summary>
-
-![The skill import review showing the package instructions and its order-checking script before installation](docs/demo/skill-package-current.webp)
-
-</details>
-
-## Architecture and contributing
-
-React powers the web and Electron workspace. Rust owns task state, permissions, receipts and workspace SQLite data. The Pi worker calls the configured model and requests tools from Rust. MCP connections expose authorized external tools. Flutter is available as source. [Architecture](docs/architecture.md) · [Protocol support and limits](docs/capabilities-and-protocols.md)
-
-Original project code is MIT licensed. Bundled artwork, skills and dependencies retain their respective licenses. [Contribute](CONTRIBUTING.md) · [Report a problem](https://github.com/zhiruiai/aihubot/issues) · [Security](SECURITY.md) · [MIT license](LICENSE) · [Third-party notices](THIRD_PARTY.md)
+Original code is MIT-licensed. Bundled avatars, skill packages, and dependencies retain their own licenses. [Contribute](CONTRIBUTING.md) · [Report an issue](https://github.com/zhiruiai/aihubot/issues) · [Security](SECURITY.md) · [License](LICENSE) · [Third-party notices](THIRD_PARTY.md)

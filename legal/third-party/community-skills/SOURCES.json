@@ -1,5 +1,5 @@
 {
-  "reviewedOn": "2026-11-17",
+  "reviewedOn": "2026-11-27",
   "adaptations": [
     {
       "recipeIds": ["systematic-debugging", "behavior-first"],
@@ -73,6 +73,36 @@
       "licenseFile": "anthropic-frontend-LICENSE.txt",
       "changes": "Complete upstream skill retained unchanged as a reference. BambooShift adds its own host workflow and acceptance resources.",
       "packageLicense": "MIT AND Apache-2.0"
+    },
+    {
+      "recipeIds": [
+        "excalidraw-diagram-generator"
+      ],
+      "repository": "github/awesome-copilot",
+      "revision": "8ecd5b17f02fe5fbebf35eccd1867265eded811f",
+      "paths": [
+        "skills/excalidraw-diagram-generator/SKILL.md",
+        "skills/excalidraw-diagram-generator/references/excalidraw-schema.md",
+        "skills/excalidraw-diagram-generator/references/element-types.md"
+      ],
+      "license": "MIT",
+      "licenseFile": "github-awesome-copilot-LICENSE.txt",
+      "changes": "Introduced a bilingual workflow using existing workspace tools. Selected upstream references retained verbatim with source hashes. No upstream executables or dependencies installed."
+    },
+    {
+      "recipeIds": [
+        "agent-architecture"
+      ],
+      "repository": "github/awesome-copilot",
+      "revision": "8ecd5b17f02fe5fbebf35eccd1867265eded811f",
+      "paths": [
+        "skills/agent-architecture/SKILL.md",
+        "skills/agent-architecture/references/architecture-contract.md",
+        "skills/agent-architecture/references/validation-loop.md"
+      ],
+      "license": "MIT",
+      "licenseFile": "github-awesome-copilot-LICENSE.txt",
+      "changes": "Introduced a bilingual workflow using existing workspace tools. Selected upstream references retained verbatim with source hashes. No upstream executables or dependencies installed."
     }
   ],
   "references": [

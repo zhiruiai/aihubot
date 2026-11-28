@@ -153,10 +153,38 @@ async fn in_flight_results_cannot_publish_after_stop_or_membership_revocation() 
         }))
         .await;
         group.configure(&model).await;
+        let mut events = group.store.subscribe();
         group
             .send("Wait for actual evidence.", "followUp", revoke)
             .await;
         wait_gate(&provider.arrived).await;
+        let activity = tokio::time::timeout(std::time::Duration::from_secs(5), async {
+            loop {
+                let event = events.recv().await.unwrap();
+                if event.event == "run-activity" {
+                    break event.data;
+                }
+            }
+        })
+        .await
+        .unwrap();
+        assert_eq!(activity["activity"], "research");
+        assert_eq!(activity["revision"], 1);
+        let snapshot_path = group.f.path("/bootstrap");
+        let snapshot = || {
+            group
+                .f
+                .request("GET", &snapshot_path, None, false, Some(&group.f.owner))
+        };
+        let (status, current) = snapshot().await;
+        assert_eq!(status, 200);
+        let running = current["runningRequests"].as_array().unwrap();
+        assert_eq!(running.len(), 1);
+        assert_eq!(running[0]["conversationId"], group.cid);
+        assert_eq!(running[0]["activity"], "research");
+        assert_eq!(running[0]["runId"], activity["runId"]);
+        assert_eq!(running[0]["activityRevision"], activity["revision"]);
+        assert!(!running[0].to_string().contains("Delayed public evidence"));
         if revoke {
             sqlx::query("DELETE FROM memberships WHERE workspace_id=? AND user_id=?")
                 .bind(&group.f.workspace)
@@ -169,6 +197,9 @@ async fn in_flight_results_cannot_publish_after_stop_or_membership_revocation() 
         }
         provider.release.add_permits(1);
         assert!(cards(&group.done().await).is_empty());
+        let (status, settled) = snapshot().await;
+        assert_eq!(status, 200);
+        assert_eq!(settled["runningRequests"], json!([]));
         assert_eq!(provider.requests.load(Ordering::SeqCst), 1);
         group.close().await;
     }
@@ -228,11 +259,31 @@ async fn steering_preserves_prior_evidence_and_fences_the_old_in_flight_generati
                 _ if !body.to_string().contains("NEW_CURRENT_REQUIREMENT") => {
                     finish("Awaiting the new requirement.")
                 }
-                _ if !last_tool(&body).starts_with("Public web search results.") => call(
-                    "web_search",
-                    json!({"query":"Fresh source for revised requirement"}),
-                ),
-                _ => finish("The revised requirement has current evidence."),
+                _ => {
+                    let messages = body["messages"].as_array().unwrap();
+                    let revised = messages
+                        .iter()
+                        .rposition(|message| {
+                            message["role"] == "user"
+                                && message["content"]
+                                    .to_string()
+                                    .contains("NEW_CURRENT_REQUIREMENT")
+                        })
+                        .unwrap();
+                    if messages[revised + 1..].iter().any(|message| {
+                        message["role"] == "tool"
+                            && message["content"]
+                                .as_str()
+                                .is_some_and(|text| text.starts_with("Public web search results."))
+                    }) {
+                        finish("The revised requirement has current evidence.")
+                    } else {
+                        call(
+                            "web_search",
+                            json!({"query":"Fresh source for revised requirement"}),
+                        )
+                    }
+                }
             }
         })
     }))
@@ -240,7 +291,7 @@ async fn steering_preserves_prior_evidence_and_fences_the_old_in_flight_generati
     group.configure(&model).await;
     let original = group.send("Initial research.", "followUp", false).await;
     wait_gate(&provider.arrived).await;
-    group
+    let revised = group
         .send(
             "NEW_CURRENT_REQUIREMENT: revise the research.",
             "steer",
@@ -251,13 +302,24 @@ async fn steering_preserves_prior_evidence_and_fences_the_old_in_flight_generati
     let messages = group.done().await;
     let receipts = cards(&messages);
     assert_eq!(receipts.len(), 2, "{messages:?}");
-    assert_ne!(receipts[0]["id"], receipts[1]["id"]);
-    assert_ne!(
-        receipts[0]["metadata"]["inputGeneration"],
-        receipts[1]["metadata"]["inputGeneration"]
-    );
+    let initial = receipts
+        .iter()
+        .find(|card| {
+            card["metadata"]["runId"] == original["delivery"]["runId"]
+                && card["metadata"]["inputGeneration"] == 0
+        })
+        .unwrap();
+    let current = receipts
+        .iter()
+        .find(|card| card["id"] != initial["id"])
+        .unwrap();
+    if current["metadata"]["runId"] == initial["metadata"]["runId"] {
+        assert_eq!(current["metadata"]["inputGeneration"], 1);
+    } else {
+        assert_eq!(current["metadata"]["inputMessageId"], revised["id"]);
+        assert_eq!(current["metadata"]["inputGeneration"], 0);
+    }
     for card in receipts {
-        assert_eq!(card["metadata"]["runId"], original["delivery"]["runId"]);
         assert_eq!(card["metadata"]["webResearch"]["searches"], 1);
         assert_eq!(card["metadata"]["webResearch"]["issues"], json!([]));
     }

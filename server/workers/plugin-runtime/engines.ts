@@ -26,7 +26,11 @@ export type EngineToolEndEvent = {
   parentToolCallId?: string;
 };
 export type EngineEvent = EngineMessageEvent | EngineToolEndEvent;
-export class ModelOutputLimitError extends Error {}
+export class ModelTurnError extends Error {
+  constructor(readonly code: 'MODEL_OUTPUT_LIMIT' | 'MODEL_RATE_LIMITED' | 'MODEL_TIMEOUT') {
+    super(code);
+  }
+}
 export type EngineOptions = {
   run: StartRun;
   signal: AbortSignal;

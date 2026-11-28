@@ -89,40 +89,43 @@
 }
 .empty-conversation {
   text-align: center;
-  padding: 70px 10px 30px;
+  padding: 58px 12px 24px;
 }
 .empty-conversation h2 {
-  font-size: 19px;
-  font-weight: 550;
-  margin: 20px 0 10px;
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 16px 0 8px;
 }
 .empty-conversation p {
-  font-size: 12px;
-  color: light-dark(#96919e, var(--text-muted));
-  line-height: 1.7;
-  max-width: 320px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  max-width: 380px;
   margin: 0 auto;
 }
 .starter-prompts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 265px;
-  margin: 30px auto;
+  display: grid;
+  gap: 7px;
+  max-width: 320px;
+  margin: 22px auto 0;
 }
 .starter-prompts button {
-  border: 1px solid light-dark(#e8e5ec, var(--border));
-  border-radius: 10px;
-  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 7px 11px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-align: left;
-  color: light-dark(#9a91a5, var(--text-muted));
-  font-size: 12px;
+  gap: 8px;
+  text-align: start;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .starter-prompts button:hover {
-  background: light-dark(#f6f3fa, var(--surface-hover));
+  background: var(--surface-hover);
+  color: var(--text);
 }
 .search-empty {
   text-align: center;
@@ -322,32 +325,31 @@
 }
 .primary-button,
 .secondary-button {
-  padding: 9px 13px;
+  padding: 8px 13px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 34px;
+  min-height: 36px;
   white-space: nowrap;
 }
 .primary-button {
-  background: light-dark(#29262c, var(--solid));
-  color: light-dark(#fff, var(--solid-ink));
-  border: 1px solid light-dark(#29262c, var(--solid));
+  background: var(--solid);
+  color: var(--solid-ink);
+  border: 1px solid transparent;
 }
 .primary-button:hover:not(:disabled) {
-  background: light-dark(#514558, var(--solid-hover));
+  background: var(--solid-hover);
 }
 .secondary-button {
-  border: 1px solid light-dark(#e2dee7, var(--border));
-  background: light-dark(white, var(--surface));
-  color: light-dark(#8e829a, var(--text-secondary));
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-secondary);
 }
 .secondary-button:hover:not(:disabled) {
-  background: light-dark(#f7f3fa, var(--surface-hover));
-  border-color: light-dark(#d7cadf, var(--border));
+  background: var(--surface-hover);
 }
 .segmented {
   display: flex;

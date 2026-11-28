@@ -451,7 +451,9 @@ async fn consume(
                         let stable_call = hex::encode(Sha256::digest(sdk_call.as_bytes()));
                         let tool_input = if name == super::website_delivery::READ_TOOL {delivered_input.as_ref().unwrap_or(input)} else {input};
                         let context=tools::ToolContext{active,input:tool_input,catalog,generation:delivered_generation,call_id:&stable_call};
+                        active.set_tool_activity(store, name, delivered_generation);
                         let outcome=tools::execute(state,grant,store,&context,event["name"].as_str().unwrap_or(""),&event["arguments"]).await;
+                        active.set_activity(store, None);
                         let response=match outcome{Ok(value)=>json!({"type":"tool_result","runId":active.run_id,"callId":event["callId"],"result":value}),Err(error)=>json!({"type":"tool_result","runId":active.run_id,"callId":event["callId"],"error":error.message})};
                         grant.authorize(state).await?;
                         active.family.authorize(state).await?;

@@ -66,6 +66,28 @@
     "documentation": "https://docs.slack.dev/ai/slack-mcp-server/"
   },
   {
+    "id": "miro",
+    "name": "Miro",
+    "category": "productivity",
+    "mark": "M",
+    "url": "https://mcp.miro.com/",
+    "authType": "oauth",
+    "descriptionKey": "providerMiro",
+    "keywords": "whiteboard workshop collaboration design diagram 白板 协作 设计 流程图",
+    "documentation": "https://help.miro.com/hc/en-us/articles/31625301583890-How-to-enable-Miro-s-MCP-Server-user-guide"
+  },
+  {
+    "id": "monday",
+    "name": "monday.com",
+    "category": "productivity",
+    "mark": "Mo",
+    "url": "https://mcp.monday.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerMonday",
+    "keywords": "work management project tasks boards 项目管理 工作看板 任务",
+    "documentation": "https://developer.monday.com/api-reference/docs/mcp-dynamic-client-registration"
+  },
+  {
     "id": "gitlab",
     "name": "GitLab",
     "category": "code",
@@ -75,6 +97,72 @@
     "descriptionKey": "providerGitLab",
     "keywords": "repository issue merge request 代码仓库 议题 合并请求",
     "documentation": "https://docs.gitlab.com/user/model_context_protocol/mcp_server/"
+  },
+  {
+    "id": "clickup",
+    "name": "ClickUp",
+    "category": "productivity",
+    "mark": "CU",
+    "url": "https://mcp.clickup.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerClickUp",
+    "keywords": "tasks lists documents work management 任务 清单 文档 项目管理",
+    "documentation": "https://developer.clickup.com/docs/connect-an-ai-assistant-to-clickups-mcp-server"
+  },
+  {
+    "id": "webflow",
+    "name": "Webflow",
+    "category": "productivity",
+    "mark": "W",
+    "url": "https://mcp.webflow.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerWebflow",
+    "keywords": "website design CMS content pages 网站 设计 内容管理 页面",
+    "documentation": "https://developers.webflow.com/mcp/reference/getting-started"
+  },
+  {
+    "id": "todoist",
+    "name": "Todoist",
+    "category": "productivity",
+    "mark": "T",
+    "url": "https://ai.todoist.net/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerTodoist",
+    "keywords": "tasks projects reminders lists 任务 待办 项目 清单",
+    "documentation": "https://www.todoist.com/help/todoist/todoist-and-ai/connect-todoist-to-an-ai-assistant-xMSzFfHng"
+  },
+  {
+    "id": "airtable",
+    "name": "Airtable",
+    "category": "productivity",
+    "mark": "A",
+    "url": "https://mcp.airtable.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerAirtable",
+    "keywords": "bases records tables database spreadsheet 表格 数据库 记录",
+    "documentation": "https://support.airtable.com/articles/9897799762-using-the-airtable-mcp-server"
+  },
+  {
+    "id": "attio",
+    "name": "Attio",
+    "category": "productivity",
+    "mark": "At",
+    "url": "https://mcp.attio.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerAttio",
+    "keywords": "crm company contacts deals accounts 客户管理 联系人 公司 商机",
+    "documentation": "https://docs.attio.com/mcp/overview"
+  },
+  {
+    "id": "intercom",
+    "name": "Intercom",
+    "category": "productivity",
+    "mark": "I",
+    "url": "https://mcp.intercom.com/mcp",
+    "authType": "oauth",
+    "descriptionKey": "providerIntercom",
+    "keywords": "customer support conversations helpdesk contacts 客服 对话 工单 客户",
+    "documentation": "https://developers.intercom.com/docs/guides/mcp"
   },
   {
     "id": "microsoft-learn",
@@ -130,5 +218,27 @@
     "descriptionKey": "providerAwsKnowledge",
     "keywords": "Amazon AWS S3 EC2 Lambda IAM CDK CloudFormation regions documentation architecture 亚马逊 云服务 开发文档 区域 架构",
     "documentation": "https://awslabs.github.io/mcp/servers/aws-knowledge-mcp-server"
+  },
+  {
+    "id": "exa",
+    "name": "Exa",
+    "category": "productivity",
+    "mark": "EX",
+    "url": "https://mcp.exa.ai/mcp",
+    "authType": "none",
+    "descriptionKey": "providerExa",
+    "keywords": "web search market research public webpages links 联网搜索 市场调研 公开网页",
+    "documentation": "https://exa.ai/docs/get-started/exa-mcp"
+  },
+  {
+    "id": "mintlify-docs",
+    "name": "Mintlify Docs",
+    "category": "code",
+    "mark": "MD",
+    "url": "https://www.mintlify.com/docs/mcp",
+    "authType": "none",
+    "descriptionKey": "providerMintlifyDocs",
+    "keywords": "documentation docs hosting search developer guide 文档托管 知识库 开发文档",
+    "documentation": "https://www.mintlify.com/docs/ai/model-context-protocol"
   }
 ]

@@ -152,11 +152,11 @@
 .mobile-bot-shortcuts {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
+  gap: 9px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  padding: 8px 7px 18px;
+  padding: 5px 7px 11px;
   margin: 0 0 3px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
@@ -165,19 +165,19 @@
   display: none;
 }
 .mobile-bot-shortcut {
-  flex: 0 0 87px;
+  flex: 0 0 76px;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 4px 0;
+  gap: 3px;
+  padding: 3px 0;
   border-radius: 11px;
   scroll-snap-align: start;
 }
 .mobile-bot-portrait {
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -192,13 +192,13 @@
   padding: 0 2px;
   font-size: 12px;
   line-height: 1.5;
-  color: light-dark(#807389, var(--text-secondary));
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .mobile-bot-shortcut.selected .mobile-bot-name {
-  color: light-dark(#6f5383, var(--accent));
+  color: var(--accent);
 }
 .mobile-bot-working {
   position: absolute;

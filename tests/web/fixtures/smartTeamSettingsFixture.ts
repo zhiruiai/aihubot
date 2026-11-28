@@ -33,7 +33,11 @@ export function text(node: any): string {
 export function all(node: any, predicate: (value: any) => boolean): any[] {
   if (!node || typeof node !== 'object') return [];
   if (Array.isArray(node)) return node.flatMap((child) => all(child, predicate));
-  return [...(predicate(node) ? [node] : []), ...all(node.props?.children, predicate)];
+  return [
+    ...(predicate(node) ? [node] : []),
+    ...all(node.props?.children, predicate),
+    ...all(node.props?.footer, predicate),
+  ];
 }
 
 export const component = (tree: any, name: string) => {
@@ -73,6 +77,7 @@ export async function harness(
     effects: Array<() => void> = [];
   const hooks = {
     ...React,
+    useId: () => `fixture-${cursor++}`,
     useState(initial: any) {
       const index = cursor++;
       slots[index] ||= { value: typeof initial === 'function' ? initial() : initial };

@@ -184,11 +184,11 @@ test('unresolved active routing is not rendered as missing model configuration',
 
 test('the rendered composer and voice-memo entry follow this Bot even when another model is configured', async () => {
   const { compile, all } = await import('./fixtures/botProfilesFixture');
-  const { ChatComposer } = await compile('web/src/workspace/ChatComposer.tsx');
+  const { ChatComposerView } = await compile('web/src/workspace/ChatComposer.tsx');
   for (const configured of [true, false]) {
     const bot = { ...lead, modelConfigured: configured };
     const view = expandPureViews(
-      ChatComposer({
+      ChatComposerView({
         conversation: { ...group, isGroup: false, agentIds: [bot.id] },
         lead: bot,
         members: [bot],

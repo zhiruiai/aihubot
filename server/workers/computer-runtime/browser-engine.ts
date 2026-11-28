@@ -30,7 +30,8 @@ export interface SharedBrowserEngineOptions {
 
 type Screen = {
   epoch: number;
-  pages: Set<Page>;
+  pages: Map<Page, number>;
+  selectionOrder: number;
   active?: Page;
   opening?: { epoch: number; promise: Promise<{ page: Page; context: BrowserContext }> };
   closing?: Promise<void>;
@@ -92,6 +93,10 @@ export function createSharedBrowserEngine(options: SharedBrowserEngineOptions): 
       .finally(() => rt.ownership.delete(promise));
     return promise;
   }
+  function selectPage(screen: Screen, page: Page | undefined) {
+    screen.active = page;
+    if (page) screen.pages.set(page, ++screen.selectionOrder);
+  }
   function adopt(page: Page, owner: Owner) {
     if (owners.has(page)) return;
     if (!live(owner) || page.isClosed()) {
@@ -99,18 +104,25 @@ export function createSharedBrowserEngine(options: SharedBrowserEngineOptions): 
       return;
     }
     owners.set(page, owner);
-    owner.screen.pages.add(page);
-    owner.screen.active = page;
+    const screen = owner.screen;
+    selectPage(screen, page);
     page.on('download', (download) => void download.cancel().catch(() => {}));
     page.on('popup', (popup) => adopt(popup, owner));
     page.once('close', () => {
-      owner.screen.pages.delete(page);
-      if (owner.screen.active === page) {
-        owner.screen.active = [...owner.screen.pages].reverse().find((candidate) => {
-          const entry = owners.get(candidate);
-          return !!entry && live(entry) && !candidate.isClosed();
-        });
+      screen.pages.delete(page);
+      if (screen.active !== page) return;
+
+      // Return to the most recently used live tab without changing the tab list order.
+      let previous: Page | undefined;
+      let previousOrder = 0;
+      for (const [candidate, order] of screen.pages) {
+        const entry = owners.get(candidate);
+        if (order > previousOrder && entry && live(entry) && !candidate.isClosed()) {
+          previous = candidate;
+          previousOrder = order;
+        }
       }
+      screen.active = previous;
     });
   }
   function discover(rt: Runtime, page: Page): Promise<void> {
@@ -248,7 +260,13 @@ export function createSharedBrowserEngine(options: SharedBrowserEngineOptions): 
     const prior = screens.get(id);
     if (prior) return prior.session;
     if (options.exclusiveScreen && screens.size) throw new Error('独立浏览器只能绑定一个画面。');
-    const state: Screen = { epoch: 0, pages: new Set(), failed: false, session: undefined! };
+    const state: Screen = {
+      epoch: 0,
+      pages: new Map(),
+      selectionOrder: 0,
+      failed: false,
+      session: undefined!,
+    };
     const peek = () => {
       const page = state.active;
       const owner = page && owners.get(page);
@@ -259,14 +277,12 @@ export function createSharedBrowserEngine(options: SharedBrowserEngineOptions): 
     const session: BrowserScreenSession = {
       tabs: createBrowserTabs({
         pages: () =>
-          [...state.pages].filter((page) => {
+          [...state.pages.keys()].filter((page) => {
             const owner = owners.get(page);
             return !!owner && owner.screen === state && live(owner);
           }),
         active: () => peek()?.page,
-        select: (page) => {
-          state.active = page;
-        },
+        select: (page) => selectPage(state, page),
       }),
       peek,
       async open() {
@@ -316,7 +332,7 @@ export function createSharedBrowserEngine(options: SharedBrowserEngineOptions): 
         const work = (async () => {
           await pending?.catch(() => {});
           try {
-            await Promise.all([...state.pages].map(closePage));
+            await Promise.all([...state.pages.keys()].map(closePage));
             if (runtime) await drain(runtime);
           } catch (error) {
             state.failed = true;

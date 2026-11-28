@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 42px;
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -48,8 +48,12 @@
   padding: 3px;
 }
 .skill-browser .skill-version-tabs button {
-  min-height: 34px;
-  padding: 5px;
+  flex-flow: column nowrap;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 3px;
+  line-height: 1.25;
 }
 .skill-browser .skill-manager-list {
   gap: 3px;
@@ -60,7 +64,8 @@
   align-items: center;
   gap: 9px;
   width: 100%;
-  padding: 9px;
+  min-height: 44px;
+  padding: 7px 9px;
   border: 1px solid transparent;
   border-radius: 10px;
   text-align: start;
@@ -80,19 +85,20 @@
 }
 .skill-picker-copy {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   flex: 1;
 }
 .skill-picker-copy strong,
 .skill-picker-copy small {
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .skill-picker-copy strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .skill-picker-copy small {
@@ -133,7 +139,7 @@
 }
 .skill-detail-heading h3 {
   color: var(--text);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -165,7 +171,7 @@
   padding: 6px 10px;
   border-radius: 8px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
 }
 .skill-detail-tabs [aria-selected='true'] {
   background: var(--accent-soft);
@@ -177,7 +183,7 @@
   overflow: auto;
   overscroll-behavior: contain;
   padding: 16px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text-secondary);
   overflow-wrap: anywhere;
@@ -275,7 +281,7 @@
     gap: 8px;
   }
   .skill-detail-heading h3 {
-    font-size: 15px;
+    font-size: 16px;
   }
   .skill-detail-tabs {
     padding-inline: 6px;

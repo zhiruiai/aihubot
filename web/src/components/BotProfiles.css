@@ -20,6 +20,11 @@
 .bot-create > .modal-body > .segmented {
   margin-bottom: 14px;
 }
+@media (min-width: 761px) {
+  .modal:is(.bot-create-bot, .bot-create-group) {
+    width: min(560px, calc(100vw - 48px));
+  }
+}
 .bot-create .member-choice {
   padding-inline: 9px;
   border-radius: 8px;
@@ -153,13 +158,13 @@
 }
 .bot-settings-preview h3 {
   margin: 0 0 5px;
-  color: light-dark(#66566f, var(--text-secondary));
-  font-size: 16px;
+  color: var(--text);
+  font-size: 18px;
 }
 .bot-settings-preview p {
   margin: 0;
-  color: light-dark(#8b7e95, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -229,8 +234,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: var(--muted, #887395);
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .group-recipient-tags {
   display: flex;
@@ -245,11 +250,11 @@
   align-items: center;
   gap: 4px;
   padding-left: 10px;
-  border: 1px solid light-dark(#e7deed, var(--border));
-  border-radius: 12px;
-  background: light-dark(#faf7fc, var(--surface));
-  color: light-dark(#786985, var(--text-secondary));
-  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-size: 13px;
   max-width: 100%;
 }
 .group-recipient-tag > span {
@@ -258,7 +263,7 @@
 }
 .group-recipient-tag small {
   margin-left: 5px;
-  color: var(--purple, #9363ed);
+  color: var(--text-secondary);
 }
 .group-recipient-tag .icon-button {
   width: 44px;

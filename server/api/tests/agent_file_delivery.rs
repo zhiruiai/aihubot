@@ -1,6 +1,8 @@
 mod agent_delegation_support;
+mod workspace_media_support;
 mod workspace_support;
 use agent_delegation_support::*;
+use axum::body::Body;
 use openbot_backend::workspace::Table;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -94,18 +96,29 @@ async fn final_file_delivery_is_a_real_card_and_keeps_its_bytes_after_source_edi
     assert_eq!(files[0]["metadata"]["fileId"], receipt["fileId"]);
     assert_eq!(files[0]["metadata"]["name"], "report.html");
     let id = receipt["fileId"].as_str().unwrap();
-    let response = group
-        .f
-        .request(
+    for legacy in [false, true] {
+        if legacy {
+            let mut file = group.store.get(Table::Files, id).await.unwrap().unwrap();
+            file.as_object_mut().unwrap().remove("downloadName");
+            group.store.put(Table::Files, &file).await.unwrap();
+        }
+        let (status, headers, bytes) = workspace_media_support::raw(
+            &group.f,
             "GET",
             &group.f.path(&format!("/files/{id}/download")),
-            None,
+            "application/json",
+            Body::empty(),
             false,
             Some(&group.f.owner),
         )
         .await;
-    assert_eq!(response.0, 200, "{}", response.1);
-    assert_eq!(response.1["invalid"], "<h1>FINAL_SYNTHETIC_REPORT</h1>");
+        assert_eq!(status, 200);
+        assert_eq!(bytes, b"<h1>FINAL_SYNTHETIC_REPORT</h1>");
+        assert_eq!(
+            headers["content-disposition"],
+            "attachment; filename=\"download\"; filename*=UTF-8''report.html"
+        );
+    }
     let records = group.store.list(Table::Files).await.unwrap();
     assert_eq!(records.len(), 2);
     let original = records

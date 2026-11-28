@@ -27,7 +27,7 @@
   "text_9a73bf07c9ed": "Sign in to view",
   "text_9b2ce4cb1c81": "Reload account information",
   "text_9b353d7d5e98": "Sign in to continue authorization",
-  "text_9b9b857fdd2f": "All Bots in this workspace can use the connection. Each call still requires the owner's approval.",
+  "text_9b9b857fdd2f": "The connection is shared with Bots in this workspace. Tool calls follow the workspace’s approval rules.",
   "text_9f310762c764": "I confirm this is the intended service and agree to share this connection within the workspace.",
   "text_a0c7716669b5": "You",
   "text_a0ce5a06b70d": "Loading members…",

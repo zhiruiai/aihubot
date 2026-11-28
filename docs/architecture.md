@@ -51,6 +51,8 @@ Domains include agents, primary Bots, sharing, templates, memories, skills, sche
 
 Rust selects a workspace-owned model profile and asks `server/workers/pi-worker` to run the real Pi SDK session. Pi returns streaming events and tool requests; Rust authorizes business tools. The run registry owns roots, children, queues, generations and cancellation. Trusted Bot identity and actual requester metadata are distinct from message contents.
 
+The run registry reports a small set of current tool activities, such as research, file work or collaboration. Live updates carry a run identifier, revision and category on the existing workspace stream, without forcing another workspace snapshot. A snapshot restores the current activity after reconnect, and the service clears it when the call ends. Tool arguments and output never enter this status field. Approvals, execution receipts and delivered artifacts keep their own records.
+
 A personal primary Bot may delegate to eligible colleagues in their existing private conversations; workgroups keep their own members. Child sessions inherit root authority and cancellation without importing unrelated histories. Memory and skill proposals persist in Rust; proposed skills require review before activation.
 
 [Cross-owner Bot collaboration](bot-federation.md) is a future extension design, not a shipped federation feature. It preserves Rust authority and uses a reviewed Cordis transport adapter for optional cross-server task exchange.

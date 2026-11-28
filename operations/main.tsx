@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import OperationsRoot from './src/OperationsRoot';
 import { initializeAppearance } from '../web/src/appearance';
 import { initializeLanguage } from '../web/src/i18n/runtime';
+import '../desktop/ui/fonts/interface.css';
 import '../web/src/base.css';
 import '../web/src/theme.css';
 

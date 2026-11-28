@@ -13,8 +13,14 @@ use axum::{
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use sqlx::SqliteConnection;
+use std::sync::LazyLock;
 
-const BINDING: &str = "builtin-recruiter";
+const LEGACY_RECRUITER_BINDING: &str = "builtin-recruiter";
+const RECRUITER: &str = "recruiter";
+static CATALOG: LazyLock<Value> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../../../../shared/system-bots.json"))
+        .expect("The checked-in system Bot catalog is valid JSON")
+});
 const PROFILE_FIELDS: [&str; 6] = [
     "name",
     "role",
@@ -44,8 +50,57 @@ const LEGACY_PROFILES: [(&str, &str); 4] = [
         "e27ebe725d8f8c4bf1024ec750e4443b3cda6fba3067a714cd7397fe19413131",
     ),
 ];
-fn profile(locale: &str) -> Value {
-    starter_bots::profile("recruitment", locale).expect("The built-in recruiter translation exists")
+struct SystemBot<'a> {
+    id: &'a str,
+    template: &'static Value,
+}
+
+impl<'a> SystemBot<'a> {
+    fn get(id: &'a str) -> Result<Self> {
+        let template = CATALOG
+            .get(id)
+            .filter(|entry| entry.is_object())
+            .ok_or_else(|| {
+                ApiError::new(404, "系统 Bot 不存在。").with_code("SYSTEM_BOT_NOT_FOUND")
+            })?;
+        Ok(Self { id, template })
+    }
+
+    fn binding(&self) -> String {
+        if self.id == RECRUITER {
+            LEGACY_RECRUITER_BINDING.into()
+        } else {
+            format!("builtin-system-bot:{}", self.id)
+        }
+    }
+
+    fn profile(&self, locale: &str) -> Result<Value> {
+        if let Some(text) = self.template["locales"].get(locale) {
+            return Ok(json!({
+                "name":text["name"],"role":text["role"],"description":text["description"],
+                "instructions":text["instructions"],"avatar":self.template["avatar"],"color":self.template["color"]
+            }));
+        }
+        self.template["starterId"]
+            .as_str()
+            .and_then(|id| starter_bots::profile(id, locale))
+            .ok_or_else(|| ApiError::new(500, "系统 Bot 模板暂不可用。"))
+    }
+
+    async fn create(
+        &self,
+        store: &WorkspaceStore,
+        conn: &mut SqliteConnection,
+        locale: &str,
+    ) -> Result<(Value, Value, bool)> {
+        let profile = self.profile(locale)?;
+        let packs = starter_skills::selected(&self.template["skills"], locale)?;
+        let (mut agent, conversation) = mutations::create_bot(store, conn, &profile).await?;
+        agent["systemBot"] = json!(self.id);
+        WorkspaceStore::put_in(conn, Table::Agents, &agent).await?;
+        starter_skills::install(conn, &packs, &agent["id"]).await?;
+        Ok((agent, conversation, true))
+    }
 }
 
 fn direct(chat: &Value, agent: &Value) -> bool {
@@ -58,7 +113,10 @@ enum TemplateMatch {
 }
 
 fn prior_template(agent: &Value, profiles: &[Value; 2]) -> Option<TemplateMatch> {
-    if agent.get("sharedBot").is_some() || !agent["avatarImageId"].is_null() {
+    if agent.get("sharedBot").is_some()
+        || !agent["avatarImageId"].is_null()
+        || (!agent["systemBot"].is_null() && agent["systemBot"] != RECRUITER)
+    {
         return None;
     }
     let fields = PROFILE_FIELDS.map(|k| &agent[k]);
@@ -79,32 +137,26 @@ fn prior_template(agent: &Value, profiles: &[Value; 2]) -> Option<TemplateMatch>
 async fn find_or_create(
     store: &WorkspaceStore,
     conn: &mut SqliteConnection,
+    role: &SystemBot<'_>,
     binding: &Value,
     locale: &str,
 ) -> Result<(Value, Value, bool)> {
     let agent = match binding["agentId"].as_str() {
         Some(id) => WorkspaceStore::get_in(conn, Table::Agents, id)
             .await?
-            .filter(|agent| mutations::local(agent).is_ok()),
+            .filter(|agent| {
+                mutations::local(agent).is_ok()
+                    && (agent["systemBot"].is_null() || agent["systemBot"] == role.id)
+            }),
         None => None,
     };
-    let profiles = [profile("zh-CN"), profile("en")];
-    let (mut agent, matched) = if let Some(agent) = agent {
-        let matched = prior_template(&agent, &profiles);
-        (agent, matched)
+    let (agent, previous_locale) = if role.id == RECRUITER {
+        match_recruiter(conn, role, agent).await?
     } else {
-        let agents = WorkspaceStore::list_in(conn, Table::Agents).await?;
-        let candidate = agents.into_iter().find_map(|agent| {
-            let matched = prior_template(&agent, &profiles)?;
-            Some((agent, Some(matched)))
-        });
-        let Some(candidate) = candidate else {
-            let (agent, chat) = mutations::create_bot(store, conn, &profile(locale)).await?;
-            let packs = starter_skills::bot("recruitment", locale)?;
-            starter_skills::install(conn, &packs, &agent["id"]).await?;
-            return Ok((agent, chat, true));
-        };
-        candidate
+        (agent, None)
+    };
+    let Some(mut agent) = agent else {
+        return role.create(store, conn, locale).await;
     };
 
     let remembered = match binding["conversationId"].as_str() {
@@ -122,12 +174,16 @@ async fn find_or_create(
     };
     let mut changed = false;
     let old_name = agent["name"].clone();
-    if let Some(TemplateMatch::Previous(locale)) = matched {
-        let updated = profile(locale);
+    if let Some(locale) = previous_locale {
+        let updated = role.profile(locale)?;
         for key in PROFILE_FIELDS {
             agent[key] = updated[key].clone();
         }
         agent["configRevision"] = json!(uuid::Uuid::new_v4().to_string());
+        changed = true;
+    }
+    if changed || agent["systemBot"] != role.id {
+        agent["systemBot"] = json!(role.id);
         WorkspaceStore::put_in(conn, Table::Agents, &agent).await?;
         changed = true;
     }
@@ -147,6 +203,28 @@ async fn find_or_create(
     Ok((agent, chat, changed))
 }
 
+async fn match_recruiter(
+    conn: &mut SqliteConnection,
+    role: &SystemBot<'_>,
+    bound: Option<Value>,
+) -> Result<(Option<Value>, Option<&'static str>)> {
+    let profiles = [role.profile("zh-CN")?, role.profile("en")?];
+    let previous = |matched| match matched {
+        TemplateMatch::Current => None,
+        TemplateMatch::Previous(locale) => Some(locale),
+    };
+    if let Some(agent) = bound {
+        let locale = prior_template(&agent, &profiles).and_then(previous);
+        return Ok((Some(agent), locale));
+    }
+    for agent in WorkspaceStore::list_in(conn, Table::Agents).await? {
+        if let Some(matched) = prior_template(&agent, &profiles) {
+            return Ok((Some(agent), previous(matched)));
+        }
+    }
+    Ok((None, None))
+}
+
 fn public_fields(value: Value, fields: &[&str]) -> Value {
     let Value::Object(mut data) = value else {
         return Value::Null;
@@ -157,26 +235,54 @@ fn public_fields(value: Value, fields: &[&str]) -> Value {
 
 pub async fn post(
     Extract(state): Extract<State>,
+    Path((wid, id)): Path<(String, String)>,
+    headers: HeaderMap,
+    Body(body): Body,
+) -> Result<Json<Value>> {
+    open(&state, &wid, &id, &headers, &body, false).await
+}
+
+pub async fn recruiter(
+    Extract(state): Extract<State>,
     Path(wid): Path<String>,
     headers: HeaderMap,
     Body(body): Body,
 ) -> Result<Json<Value>> {
-    let grant = access::require(&state, &headers, &wid, true, true).await?;
-    only_fields(&body, &["locale"])?;
+    open(&state, &wid, RECRUITER, &headers, &body, true).await
+}
+
+async fn open(
+    state: &State,
+    wid: &str,
+    id: &str,
+    headers: &HeaderMap,
+    body: &Value,
+    legacy: bool,
+) -> Result<Json<Value>> {
+    let grant = access::require(state, headers, wid, true, true).await?;
+    let role = SystemBot::get(id)?;
+    only_fields(body, &["locale"])?;
     let locale = body["locale"]
         .as_str()
         .filter(|locale| matches!(*locale, "zh-CN" | "en"))
-        .ok_or_else(|| ApiError::bad("招聘助理语言无效。").with_code("INVALID_RECRUITER_LOCALE"))?;
-    let store = grant.store(&state).await?;
+        .ok_or_else(|| {
+            if legacy {
+                ApiError::bad("招聘助理语言无效。").with_code("INVALID_RECRUITER_LOCALE")
+            } else {
+                ApiError::bad("系统 Bot 语言无效。").with_code("INVALID_SYSTEM_BOT_LOCALE")
+            }
+        })?;
+    let store = grant.store(state).await?;
     let _credentials = store.credential_lock.lock().await;
     let mut tx = store.begin().await?;
-    let prior = WorkspaceStore::get_in(&mut tx, Table::Settings, BINDING)
+    let binding_id = role.binding();
+    let prior = WorkspaceStore::get_in(&mut tx, Table::Settings, &binding_id)
         .await?
         .unwrap_or_default();
     let (mut agent, mut conversation, changed) =
-        find_or_create(&store, &mut tx, &prior, locale).await?;
+        find_or_create(&store, &mut tx, &role, &prior, locale).await?;
     let binding = json!({
-        "id":BINDING,"agentId":agent["id"],"conversationId":conversation["id"]
+        "id":binding_id,"agentId":agent["id"],"conversationId":conversation["id"]
     });
     if binding != prior {
         WorkspaceStore::put_in(&mut tx, Table::Settings, &binding).await?;
@@ -192,12 +298,12 @@ pub async fn post(
         std::slice::from_mut(&mut conversation),
     )
     .await?;
-    grant.authorize(&state).await?;
+    grant.authorize(state).await?;
     tx.commit().await?;
     if changed {
         store.emit("update", json!({}));
     }
-    grant.authorize(&state).await?;
+    grant.authorize(state).await?;
     let agent = public_fields(
         agent,
         &[
@@ -213,6 +319,7 @@ pub async fn post(
             "modelConfigured",
             "status",
             "configRevision",
+            "systemBot",
         ],
     );
     let conversation = public_fields(
@@ -229,6 +336,6 @@ pub async fn post(
         ],
     );
     Ok(Json(json!({
-        "agentId":agent["id"],"conversationId":conversation["id"],"agent":agent,"conversation":conversation
+        "systemBot":role.id,"agentId":agent["id"],"conversationId":conversation["id"],"agent":agent,"conversation":conversation
     })))
 }

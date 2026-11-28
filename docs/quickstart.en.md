@@ -12,6 +12,8 @@ npm run dev -- --init-operator
 
 Open `http://127.0.0.1:5173/login`, register a personal or team account and configure a model in workspace settings. New accounts do not inherit another user's keys, connections or computer credentials.
 
+Under **Settings → Models**, choose **Free trial · Kilo** to send test prompts without an API key. Save and use it for first-time setup, or save it as a separate profile and choose **Set as default** if you already have a model. The preset sends text to Kilo's official `kilo-auto/free` route. Kilo limits anonymous requests by IP, and providers may retain prompts and replies. Use sample data for the trial. [Kilo model and data policy](https://kilo.ai/docs/gateway/models-and-providers#kilo-autofree)
+
 Ask a workspace Bot to look up current information or read a public article link in a direct chat or group. Pi calls aihubot's public search and reading tools. Exa receives the public keywords or URL and returns source text. These tools work without an assigned browser, interactive approval, or a separate search key. Keep private or one-time links out of public research.
 
 The independent operations site is at `http://127.0.0.1:5174/admin/setup`. The operator uses the one-time code stored locally at `data/platform/operator-setup-code` to create the first operator account. Later starts omit `--init-operator` and use `/admin/login`. Team ownership is not platform operator permission.

@@ -1,14 +1,21 @@
-import { Pause, Play } from 'lucide-react';
+import { AudioLines, Pause, Play } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FilePreviewIdentity } from '../filePreview';
 import { uiText } from '../i18n';
-import { loadVoiceMemo, type messageVoiceMemo, voiceMemoTime } from '../voiceMemo';
+import {
+  loadVoiceMemo,
+  type messageVoiceMemo,
+  type messageVoiceRecording,
+  voiceMemoTime,
+} from '../voiceMemo';
 import './VoiceMemo.css';
 
 type Memo = NonNullable<ReturnType<typeof messageVoiceMemo>>;
-type Audio = NonNullable<Memo['audio']>;
 type PlaybackPhase = 'idle' | 'loading' | 'playing' | 'paused' | 'ready' | 'error';
 const activeMemos = new Map<string, () => void>();
+export function stopVoicePlayback(scope: string) {
+  activeMemos.get(scope)?.();
+}
 
 export function VoiceMemoCard({
   memo,
@@ -19,7 +26,7 @@ export function VoiceMemoCard({
   speakingId,
   stopReading,
 }: {
-  memo: Memo;
+  memo: Memo | NonNullable<ReturnType<typeof messageVoiceRecording>>;
   scope: string;
   identity: FilePreviewIdentity;
   current: () => boolean;
@@ -27,50 +34,65 @@ export function VoiceMemoCard({
   speakingId?: string;
   stopReading: () => void;
 }) {
+  const { audio, durationMs } = memo;
+  const transcript = 'transcript' in memo ? memo.transcript : undefined;
+  const recording = transcript === undefined;
+  const title = uiText(recording ? 'workspace:voiceRecordingTitle' : 'workspace:voiceMemoTitle');
   return (
-    <section className="voice-memo-card" aria-label={uiText('workspace:voiceMemoTitle')}>
-      <strong>{uiText('workspace:voiceMemoTitle')}</strong>
-      {memo.audio && identity.userId && identity.workspaceId ? (
-        <MemoPlayer
-          key={JSON.stringify([scope, identity.pathname, memo.audio.id, memo.audio.sha256])}
-          audio={memo.audio}
-          durationMs={memo.durationMs}
+    <section
+      className={`voice-memo-card${recording ? ' voice-recording-card' : ''}`}
+      aria-label={title}
+    >
+      <strong>
+        {recording && <AudioLines size={15} aria-hidden="true" />}
+        {title}
+      </strong>
+      {audio && identity.userId && identity.workspaceId ? (
+        <VoicePlayback
+          key={JSON.stringify([scope, identity.pathname, audio.id, audio.sha256])}
+          durationMs={durationMs}
           scope={scope}
-          identity={identity}
+          pathname={identity.pathname}
           current={current}
           blocked={blocked}
           speakingId={speakingId}
           stopReading={stopReading}
+          recording={recording}
+          loadAudio={(signal, valid) => loadVoiceMemo(audio, durationMs, identity, signal, valid)}
         />
       ) : (
         <p className="voice-memo-hint">{uiText('workspace:voiceMemoAudioUnavailable')}</p>
       )}
-      <details className="voice-memo-transcript">
-        <summary>{uiText('workspace:voiceCallTranscript')}</summary>
-        <p>{memo.transcript}</p>
-      </details>
+      {transcript !== undefined && (
+        <details className="voice-memo-transcript">
+          <summary>{uiText('workspace:voiceCallTranscript')}</summary>
+          <p>{transcript}</p>
+        </details>
+      )}
     </section>
   );
 }
 
-function MemoPlayer({
-  audio,
+export function VoicePlayback({
+  loadAudio,
   durationMs,
   scope,
-  identity,
+  pathname,
   current,
   blocked,
   speakingId,
   stopReading,
+  recording,
 }: {
-  audio: Audio;
+  loadAudio: (signal: AbortSignal, valid: () => boolean) => Promise<Blob>;
   durationMs: number;
   scope: string;
-  identity: FilePreviewIdentity;
+  pathname: string;
   current: () => boolean;
   blocked: boolean;
   speakingId?: string;
   stopReading: () => void;
+  recording?: boolean;
 }) {
   const elementRef = useRef<HTMLAudioElement>(null);
   const request = useRef<AbortController | undefined>(undefined);
@@ -130,7 +152,7 @@ function MemoPlayer({
     latest.current.current() &&
     !latest.current.blocked &&
     !document.hidden &&
-    window.location.pathname === identity.pathname;
+    window.location.pathname === pathname;
 
   async function toggle() {
     const element = elementRef.current;
@@ -150,7 +172,7 @@ function MemoPlayer({
     const valid = () => request.current === controller && allowed();
     try {
       if (!objectUrl.current) {
-        const blob = await loadVoiceMemo(audio, durationMs, identity, controller.signal, valid);
+        const blob = await loadAudio(controller.signal, valid);
         if (!valid()) return;
         objectUrl.current = URL.createObjectURL(blob);
         element.src = objectUrl.current;
@@ -175,7 +197,13 @@ function MemoPlayer({
 
   const duration = durationMs / 1000;
   const label = uiText(
-    phase === 'playing' ? 'workspace:voiceMemoPause' : 'workspace:voiceMemoPlay',
+    recording
+      ? phase === 'playing'
+        ? 'workspace:voiceRecordingPause'
+        : 'workspace:voiceRecordingPlay'
+      : phase === 'playing'
+        ? 'workspace:voiceMemoPause'
+        : 'workspace:voiceMemoPlay',
   );
   const hint =
     phase === 'loading'
@@ -204,7 +232,9 @@ function MemoPlayer({
         </button>
         <input
           type="range"
-          aria-label={uiText('workspace:voiceMemoSeek')}
+          aria-label={uiText(
+            recording ? 'workspace:voiceRecordingSeek' : 'workspace:voiceMemoSeek',
+          )}
           aria-valuetext={voiceMemoTime(position)}
           min={0}
           max={duration}

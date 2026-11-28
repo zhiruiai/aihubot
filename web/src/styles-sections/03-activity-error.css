@@ -7,6 +7,13 @@
   color: light-dark(#999, var(--text-muted));
   font-size: 12px;
 }
+.working-line[data-tool-active] {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.working-line[data-tool-active] .typing-dots i {
+  background: var(--accent);
+}
 .typing-dots {
   display: flex;
   gap: 3px;
@@ -65,25 +72,24 @@
 .composer {
   --composer-control-size: 34px;
   position: relative;
-  border: 1px solid light-dark(#dbdbe0, var(--border));
-  background: light-dark(#fff, var(--surface));
-  border-radius: 20px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  border-radius: 12px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: 'attach prompt actions';
   align-items: end;
   gap: 8px;
   padding: 7px;
-  box-shadow: 0 2px 8px light-dark(#1818220a, var(--shadow-soft));
 }
 .composer:focus-within {
-  border-color: light-dark(#a991c0, var(--accent-border));
+  border-color: var(--accent);
 }
 .composer-attach {
   grid-area: attach;
-  background: light-dark(#f4f3f5, var(--surface-subtle));
+  background: var(--surface-subtle);
   border-radius: 11px;
-  color: light-dark(#625e69, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .composer .composer-attach,
 .composer .composer-actions > button,
@@ -112,11 +118,11 @@
   min-width: 0;
 }
 .composer-actions .dictation-button:not(.is-recording) {
-  color: light-dark(#625e69, var(--text-secondary));
+  color: var(--text-secondary);
   background: transparent;
 }
 .composer-actions .dictation-button:hover:not(:disabled):not(.is-recording) {
-  background: light-dark(#f2f1f4, var(--surface-hover));
+  background: var(--surface-hover);
 }
 @container (max-width: 490px) {
   .composer {
@@ -133,11 +139,11 @@
   }
 }
 .send-button {
-  background: light-dark(#1d1d1f, var(--solid));
-  color: light-dark(#fff, var(--solid-ink));
+  background: var(--accent);
+  color: var(--on-accent);
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 8px;
   border: 0;
   flex-shrink: 0;
 }
@@ -147,7 +153,7 @@
   opacity: 1;
 }
 .send-button:hover:not(:disabled) {
-  background: light-dark(#4a414f, var(--solid-hover));
+  background: color-mix(in srgb, var(--accent) 89%, var(--text));
 }
 .composer-footnote {
   text-align: end;
@@ -220,7 +226,7 @@
   font-weight: 600;
 }
 .details-panel {
-  border-left: 1px solid light-dark(#ececed, var(--border));
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -231,31 +237,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
-  color: light-dark(#b2b2b5, var(--text-muted));
-  font-size: 12px;
-}
-.details-toolbar > .icon-button {
-  opacity: 0.55;
+  padding: 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .detail-identity {
-  text-align: center;
-  padding: 13px 17px 18px;
+  padding: 9px 16px 18px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 10px;
+  align-items: flex-start;
+}
+.detail-identity-copy {
+  min-width: 0;
 }
 .detail-identity h2 {
-  font-size: 14px;
-  font-weight: 550;
-  margin-top: 13px;
-  line-height: 1.5;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .detail-identity p {
   font-size: 12px;
-  color: light-dark(#a3a3a6, var(--text-muted));
+  color: var(--text-secondary);
   line-height: 1.5;
-  margin-top: 5px;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
 }
 .detail-tabs {
   display: flex;
@@ -273,8 +279,8 @@
   background: light-dark(#f4f4f6, var(--surface-hover));
 }
 .detail-tabs button.active {
-  background: light-dark(#efeff0, var(--accent-soft));
-  color: light-dark(#525257, var(--text-secondary));
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .detail-content {
   overflow: auto;

@@ -91,6 +91,15 @@
       '整机操作组件未能启动。请重试，或取消勾选后打开本机工作空间。',
       'Computer control could not start. Retry, or turn off computer control and open the local workspace.',
     ],
+    useEgoBrowser: ['使用 Ego Lite 工作浏览器', 'Use Ego Lite as the work browser'],
+    egoBrowserHelp: [
+      '为 Bot 打开独立的 Ego 窗口。接管期间在该窗口操作，完成后回到 aihubot 交还。关闭本机空间时结束此次浏览器会话。',
+      'Open a separate Ego window for your Bot. Take over in that window and return to aihubot to resume. The browser session ends when this workspace closes.',
+    ],
+    localEgoUnavailable: [
+      'Ego Lite 当前不可用。请检查本机的官方安装，或切换回默认工作浏览器。',
+      'Ego Lite is unavailable. Check the official installation or use the default work browser.',
+    ],
     cancelLocal: ['取消启动', 'Cancel startup'],
     mascot: ['aihubot 吉祥物', 'aihubot mascot'],
     address: ['工作空间地址', 'Workspace address'],
@@ -192,10 +201,7 @@
     saveFile: ['保存 aihubot 文件', 'Save aihubot File'],
     saveShared: ['保存共享资料', 'Save Shared File'],
     save: ['保存', 'Save'],
-    notificationsAllow: [
-      '允许 aihubot 显示工作通知？',
-      'Allow aihubot work notifications?',
-    ],
+    notificationsAllow: ['允许 aihubot 显示工作通知？', 'Allow aihubot work notifications?'],
     notificationsHelp: [
       '只显示任务完成或需要确认的提醒，不显示对话内容。退出账户或更换空间后需重新允许。',
       'Show task completion and approval reminders without conversation content. Allow again after signing out or changing workspace.',
@@ -275,10 +281,7 @@
       '此操作只允许从 aihubot 连接页面发起。',
       'This action is available only from the aihubot connection page.',
     ],
-    serviceAddress: [
-      '请输入完整的 aihubot 服务地址。',
-      'Enter the full aihubot service address.',
-    ],
+    serviceAddress: ['请输入完整的 aihubot 服务地址。', 'Enter the full aihubot service address.'],
     originOnly: [
       '只填写服务地址，不包含路径、查询参数或片段。',
       'Enter only the service address, without a path, query, or fragment.',
@@ -310,7 +313,10 @@
       '请在当前页面点击共享资料的下载按钮。',
       'Click the shared file download button on the current page.',
     ],
-    websiteDownloadClick: ['请在当前页面点击网站文件的下载按钮。', 'Click the website download button on the current page.'],
+    websiteDownloadClick: [
+      '请在当前页面点击网站文件的下载按钮。',
+      'Click the website download button on the current page.',
+    ],
     websiteVersionInvalid: ['网站交付版本校验失败。', 'The website version could not be verified.'],
     websiteAssetInvalid: ['网站交付文件校验失败。', 'The website file could not be verified.'],
     websiteArchiveInvalid: [

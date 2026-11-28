@@ -1,0 +1,127 @@
+.modal.bot-gallery-frame {
+  width: min(1040px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+}
+.bot-gallery-frame > .modal-header {
+  margin-bottom: 16px;
+}
+.bot-gallery-frame > .segmented,
+.bot-gallery-frame > .modal-body > .segmented {
+  display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.bot-gallery-frame.bot-gallery-dialog > .segmented {
+  margin-bottom: 0;
+}
+.bot-gallery-frame :is(.segmented) > button {
+  min-height: 38px;
+  flex: 0 0 auto;
+}
+.system-directory {
+  display: grid;
+  gap: 17px;
+  font-size: 14px;
+}
+.system-directory-header {
+  padding: 13px 0 2px;
+}
+.system-directory-header h3 {
+  margin: 0 0 5px;
+  font-size: 24px;
+  font-weight: 650;
+}
+.system-directory-header p,
+.system-directory-error {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.system-directory-error {
+  color: var(--danger, var(--text));
+}
+.system-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.system-directory-card {
+  --system-tint: #9470d8;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--system-tint) 9%, var(--surface)),
+    var(--surface) 68%
+  );
+}
+.system-directory-card[data-role='skill-finder'] {
+  --system-tint: #5f6cc9;
+}
+.system-directory-card[data-role='skill-creator'] {
+  --system-tint: #269378;
+}
+.system-directory-card[data-role='connector-builder'] {
+  --system-tint: #307ab6;
+}
+.system-directory-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+}
+.system-directory-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--system-tint) 13%, var(--surface));
+}
+.system-directory-identity h4,
+.system-directory-identity p,
+.system-directory-description {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.system-directory-identity h4 {
+  margin-bottom: 3px;
+  font-size: 16px;
+  font-weight: 640;
+}
+.system-directory-identity p,
+.system-directory-description {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.system-directory-open {
+  justify-self: start;
+  min-height: 36px;
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .modal.bot-gallery-frame {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+  .bot-gallery-frame :is(.segmented) > button {
+    flex: 1 1 auto;
+  }
+  .system-directory-header {
+    padding-top: 3px;
+  }
+  .system-directory-header h3 {
+    font-size: 20px;
+  }
+  .system-directory-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

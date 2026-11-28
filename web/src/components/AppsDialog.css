@@ -57,11 +57,11 @@
   gap: 9px;
   margin: 0 0 10px;
   padding: 7px 9px;
-  border: 1px solid light-dark(#eee7f5, var(--border));
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: light-dark(#f8f5fc, var(--surface-subtle));
-  color: light-dark(#786c83, var(--text-secondary));
-  font-size: 12px;
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
   line-height: 1.65;
 }
 .apps-sharing > svg {
@@ -94,21 +94,16 @@
   margin: 0;
 }
 .apps-dialog .integration {
-  background: light-dark(#fff, var(--surface));
+  border-color: var(--border);
+  background: var(--surface);
+}
+.apps-dialog .integration:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
 }
 .apps-dialog .integration-status {
   text-align: right;
   flex-shrink: 0;
-}
-.app-status-connected {
-  color: light-dark(#53765c, var(--success));
-}
-.app-status-needs_auth,
-.app-status-error {
-  color: light-dark(#956b4c, var(--danger));
-}
-.app-status-disconnected {
-  color: light-dark(#85818a, var(--text-secondary));
 }
 .apps-dialog .dialog-form {
   margin-top: 10px;
@@ -129,23 +124,32 @@
   accent-color: light-dark(#8d72ac, var(--accent));
 }
 .apps-connection-summary {
-  border: 1px solid light-dark(#e8e1f1, var(--border));
-  border-radius: 10px;
-  padding: 14px;
-  background: light-dark(#fcfaff, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--surface);
 }
-.apps-status {
-  font-size: 12px;
+.apps-connection-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.apps-connection-identity > div {
+  min-width: 0;
 }
 .apps-connection-summary p {
-  font-size: 12px;
+  font-size: 13px;
   overflow-wrap: anywhere;
   line-height: 1.6;
   margin: 8px 0;
 }
+.apps-connection-identity p {
+  margin: 6px 0 1px;
+  color: var(--text);
+}
 .apps-connection-summary small {
   font-size: 12px;
-  color: light-dark(#817787, var(--text-secondary));
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 .apps-tools {

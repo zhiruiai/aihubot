@@ -1,3 +1,6 @@
+.modal.model-preferences-dialog {
+  width: min(736px, calc(100vw - 48px));
+}
 .model-settings {
   min-width: 0;
 }
@@ -9,30 +12,29 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  border: 1px solid light-dark(#e8e1f1, var(--border));
-  border-radius: 11px;
-  padding: 13px 15px;
-  background: light-dark(#f8f6fb, var(--surface-subtle));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface-subtle);
   overflow-wrap: anywhere;
 }
 .model-current-label {
-  color: light-dark(#756187, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .model-current strong {
-  color: light-dark(#333038, var(--text));
-  font-size: 14px;
-  font-weight: 550;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
 }
 .model-current > span:last-child {
-  color: light-dark(#74747b, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
 }
 .model-profile-heading,
 .model-profile-heading > div,
 .model-editor-heading,
-.model-save-row,
-.model-save-row > div,
 .model-default-row {
   display: flex;
   align-items: center;
@@ -45,9 +47,9 @@
 }
 .model-profile-heading h3 {
   margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: light-dark(#55545d, var(--text-secondary));
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
 }
 .model-profile-heading .icon-button {
   width: 34px;
@@ -68,13 +70,14 @@
   border: 0;
 }
 .model-profile-form {
-  margin-top: 19px;
-  padding-top: 16px;
-  border-top: 1px solid light-dark(#eeebf2, var(--border));
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  gap: 14px;
 }
 .model-editor-heading {
-  color: light-dark(#74747b, var(--text-secondary));
-  font-size: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .model-unsaved {
   padding: 3px 6px;
@@ -82,9 +85,11 @@
   background: light-dark(#faf3e4, var(--warning-soft));
   color: light-dark(#856a31, var(--warning));
 }
-.model-save-row {
+.model-draft-actions {
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  margin-top: 2px;
+  gap: 8px;
 }
 .model-reset {
   font-size: 12px;
@@ -92,10 +97,9 @@
   padding: 8px 4px;
 }
 .model-default-row {
-  padding-top: 13px;
-  border-top: 1px solid light-dark(#eeebf2, var(--border));
-  color: light-dark(#74747b, var(--text-secondary));
-  font-size: 12px;
+  padding-top: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .model-default-badge {
   display: inline-flex;
@@ -116,10 +120,10 @@
   color: light-dark(#53765c, var(--success));
 }
 .model-settings-note {
-  margin: 16px 0 0;
-  color: light-dark(#74747b, var(--text-secondary));
-  font-size: 12px;
-  line-height: 1.7;
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
 }
 .model-loading {
   display: flex;
@@ -129,7 +133,24 @@
   color: light-dark(#74747b, var(--text-secondary));
   font-size: 12px;
 }
+@media (min-width: 761px) {
+  .model-profile-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .model-profile-form
+    > :is(.model-editor-heading, .vision-setting, .model-credential-field, .model-draft-actions) {
+    grid-column: 1 / -1;
+  }
+  .model-profile-form > label {
+    min-width: 0;
+    align-self: start;
+  }
+}
 @media (max-width: 760px) {
+  .modal.model-preferences-dialog {
+    width: calc(100vw - 24px);
+  }
   .model-settings .secondary-button,
   .model-settings .primary-button,
   .model-settings .model-reset,
@@ -142,8 +163,5 @@
   .model-profile-form select,
   .model-profile-choice select {
     min-height: 44px;
-  }
-  .model-save-row > .primary-button {
-    margin-left: auto;
   }
 }

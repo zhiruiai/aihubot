@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { LocalizedRoot } from './i18n/LocalizedRoot';
 import { initializeLanguage } from './i18n/runtime';
 import { initializeAppearance } from './appearance';
+import '../../desktop/ui/fonts/interface.css';
 import './base.css';
 import './theme.css';
 

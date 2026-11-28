@@ -1,3 +1,17 @@
+.website-diff-overview {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+}
+.website-diff-direction {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
 .website-version-changes .website-diff-files {
   display: grid;
   gap: 6px;
@@ -7,8 +21,7 @@
 .website-diff-file {
   min-width: 0;
   border: 1px solid var(--border);
-  border-radius: 9px;
-  overflow: hidden;
+  border-radius: 10px;
 }
 .website-diff-file-toggle {
   display: flex;
@@ -17,11 +30,15 @@
   gap: 8px;
   min-height: 38px;
   padding: 8px 10px;
+  border-radius: 9px;
   text-align: start;
 }
 .website-diff-file-toggle:hover,
 .website-diff-file-toggle[aria-expanded='true'] {
   background: var(--surface-hover);
+}
+.website-diff-file-toggle[aria-expanded='true'] {
+  border-radius: 9px 9px 0 0;
 }
 .website-diff-file-toggle code {
   overflow-wrap: anywhere;
@@ -42,11 +59,6 @@
 .website-file-diff-summary {
   color: var(--text-secondary);
 }
-.website-file-diff-scroll {
-  overflow: auto;
-  max-height: 420px;
-  border-radius: 5px;
-}
 .website-file-diff table {
   width: 100%;
   table-layout: fixed;
@@ -55,12 +67,16 @@
   line-height: 1.6;
 }
 .website-file-diff th {
+  padding: 4px 0;
+  border-block-end: 1px solid var(--border);
   text-align: start;
   color: var(--text-secondary);
   font-weight: 500;
+  white-space: nowrap;
 }
 .website-file-diff th:nth-child(-n + 2) {
-  width: 38px;
+  width: 44px;
+  text-align: center;
 }
 .website-file-diff td {
   vertical-align: top;
@@ -68,7 +84,7 @@
   border: 0;
 }
 .website-diff-number {
-  width: 38px;
+  width: 44px;
   text-align: end;
   color: var(--text-secondary);
   user-select: none;
@@ -111,8 +127,7 @@
   .website-file-diff-status {
     padding-inline: 6px;
   }
-  .website-file-diff th:nth-child(-n + 2),
-  .website-diff-number {
-    width: 30px;
+  .website-diff-sign {
+    width: 14px;
   }
 }

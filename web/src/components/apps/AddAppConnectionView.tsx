@@ -16,9 +16,10 @@ export function AddAppConnectionView({
   const {
     props,
     busy,
-    navigate,
     uncertain,
     draft,
+    draftDirty,
+    cancelDraft,
     customReview,
     setError,
     mutate,
@@ -60,15 +61,7 @@ export function AddAppConnectionView({
             key={`${props.userId}:${props.workspaceId}`}
             disabled={busy || uncertain}
             draftVersion={draft}
-            hasDraft={
-              !!(
-                draft.name ||
-                draft.url ||
-                draft.token ||
-                draft.shared ||
-                draft.authType !== 'none'
-              )
-            }
+            hasDraft={draftDirty}
             onInspect={async (projection) => {
               const ticket = scope.ticket();
               if (busy || uncertain || !props.canManage || !scope.current(ticket))
@@ -186,12 +179,7 @@ export function AddAppConnectionView({
         </label>
       </div>
       <div className="dialog-actions">
-        <button
-          type="button"
-          className="secondary-button"
-          disabled={busy}
-          onClick={() => navigate('list')}
-        >
+        <button type="button" className="secondary-button" disabled={busy} onClick={cancelDraft}>
           {uiText('apps:text_2cd0f3be8738')}
         </button>
         <button

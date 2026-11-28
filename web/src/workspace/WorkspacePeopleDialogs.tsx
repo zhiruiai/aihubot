@@ -4,7 +4,6 @@ import { emptyComposer, makeSendAttempt } from '../chatDrafts';
 import { RosterManagementDialog } from '../components/SidebarRoster';
 import { currentWorkspaceId } from '../workspace-scope';
 import type { WorkspaceModel } from './types';
-import type { RecruiterShortcut } from './useRecruiterShortcut';
 
 const CreateDialog = lazy(() =>
   import('../components/CreateDialog').then(({ CreateDialog }) => ({ default: CreateDialog })),
@@ -49,7 +48,7 @@ export function WorkspacePeopleDialogs({
   submitAttempt,
   personalSpace,
   primaryMode,
-  recruiterShortcut,
+  openTemplates,
 }: Pick<
   WorkspaceModel,
   | 'modal'
@@ -80,7 +79,8 @@ export function WorkspacePeopleDialogs({
   | 'submitAttempt'
   | 'personalSpace'
   | 'primaryMode'
-> & { recruiterShortcut?: RecruiterShortcut }) {
+  | 'openTemplates'
+>) {
   return (
     <>
       {modal === 'roster' && (
@@ -137,7 +137,7 @@ export function WorkspacePeopleDialogs({
           initialPlanId={teamPlanToOpen}
           initialMode={createMode}
           initialProfile={createProfile}
-          recruiterShortcut={recruiterShortcut}
+          onBrowseSystemBots={() => openTemplates({ kind: 'library' })}
           modelConfigured={data.settings.configured}
           modelLabel={data.settings.profileName || data.settings.model}
           settings={data.settings}

@@ -1,8 +1,18 @@
-import type { Message } from '../../shared/types';
+import type { Bootstrap, Message } from '../../shared/types';
 import { parseWebResearchMessage } from '../../shared/web-research';
 import { dateKey, validDate } from './dates';
 
 const clusterWindowMs = 5 * 60 * 1000;
+
+export function currentThreadRun(
+  runs: Bootstrap['runningRequests'],
+  conversationId?: string,
+  threadRootId?: string,
+) {
+  return runs?.find(
+    (run) => run.conversationId === conversationId && run.threadRootId === threadRootId,
+  );
+}
 
 function isAssistantText(message: Message) {
   return message.role === 'assistant' && (!message.kind || message.kind === 'text');

@@ -24,7 +24,6 @@ pub(crate) mod primary;
 mod private_skills;
 pub(crate) mod profiles;
 mod recovery;
-mod recruiter;
 mod registry;
 mod roster;
 mod seed;
@@ -35,6 +34,7 @@ mod snapshot;
 mod starter_bots;
 pub(crate) mod starter_skills;
 mod store;
+mod system_bots;
 mod team_skill_catalog;
 mod team_skill_policy;
 mod team_skill_publication;
@@ -109,7 +109,14 @@ pub fn router() -> axum::Router<crate::db::State> {
             get(avatars::source).delete(avatars::drop_source),
         )
         .route("/api/workspaces/{wid}/agents", post(mutations::add_agent))
-        .route("/api/workspaces/{wid}/recruiter", post(recruiter::post))
+        .route(
+            "/api/workspaces/{wid}/recruiter",
+            post(system_bots::recruiter),
+        )
+        .route(
+            "/api/workspaces/{wid}/system-bots/{id}",
+            post(system_bots::post),
+        )
         .route(
             "/api/workspaces/{wid}/starter-bots",
             post(starter_bots::post),
@@ -180,6 +187,10 @@ pub fn router() -> axum::Router<crate::db::State> {
         .route(
             "/api/workspaces/{wid}/skills/{id}/package",
             get(skill_packages::download),
+        )
+        .route(
+            "/api/workspaces/{wid}/skills/{id}/review-package",
+            get(skill_install::review_package),
         )
         .route(
             "/api/workspaces/{wid}/skills/{id}",

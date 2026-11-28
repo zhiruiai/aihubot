@@ -1,21 +1,20 @@
 .platform-auth {
   min-height: 100dvh;
-  padding: 26px;
+  padding: 24px clamp(20px, 4vw, 56px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  background:
-    radial-gradient(ellipse at 50% 0, light-dark(#f1ebf8, var(--surface-subtle)), transparent 60%),
-    light-dark(#faf9fb, var(--surface));
-  color: light-dark(#3d3545, var(--text));
+  gap: 22px;
+  background: var(--bg-canvas);
+  color: var(--text);
 }
 .platform-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-size: 17px;
-  font-weight: 550;
-  color: light-dark(#4f405a, var(--text));
+  font-weight: 600;
+  color: var(--text);
   text-decoration: none;
 }
 .platform-brand:hover {
@@ -26,110 +25,115 @@
   margin-top: 2px;
   font-size: 12px;
   font-weight: 400;
-  color: light-dark(#77707e, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .platform-auth > .platform-brand {
   align-self: flex-start;
 }
 .platform-auth-card {
   width: 100%;
-  max-width: 445px;
+  max-width: 440px;
   margin: auto;
-  padding: 31px;
-  border: 1px solid light-dark(#e7e0ed, var(--border));
-  border-radius: 18px;
-  background: light-dark(#fff, var(--surface));
-  box-shadow: 0 12px 65px light-dark(#4b2e6b08, var(--shadow-soft));
-}
-.platform-auth-card > .app-brand-mark {
-  display: block;
-  margin: 0 auto 17px;
+  padding: 30px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px var(--shadow-soft);
 }
 .platform-auth-card h1 {
-  color: light-dark(#3d3545, var(--text));
-  font-size: 22px;
-  font-weight: 550;
-  text-align: center;
-  line-height: 1.45;
-  letter-spacing: -0.5px;
+  color: var(--text);
+  font-size: 26px;
+  font-weight: 650;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 .platform-auth-subtitle {
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.8;
-  color: light-dark(#74747b, var(--text-secondary));
-  margin: 12px 0 25px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 8px 0 23px;
 }
 .platform-auth > footer {
-  padding-top: 25px;
-  color: light-dark(#807987, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
-  line-height: 1.7;
   text-align: center;
 }
 .platform-form {
-  gap: 15px;
+  gap: 14px;
+}
+.platform-form .field,
+.platform-form .field-label {
+  color: var(--text);
+  font-size: 13px;
 }
 .platform-form input {
-  min-height: 43px;
+  min-height: 44px;
+  border-color: var(--border-strong);
   font-size: 14px;
 }
 .platform-full-button {
   display: flex;
   width: 100%;
-  min-height: 43px;
-  margin-top: 12px;
+  min-height: 44px;
+  margin-top: 8px;
   text-decoration: none;
+}
+.platform-auth .primary-button {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.platform-auth .primary-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 89%, var(--text));
 }
 .platform-full-button:hover {
   text-decoration: none;
 }
 .platform-auth-switch {
-  margin: 20px 0 0;
-  color: light-dark(#74747b, var(--text-secondary));
+  margin: 18px 0 0;
+  color: var(--text-secondary);
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 .platform-auth-switch a {
-  margin-left: 6px;
-  color: light-dark(#76548a, var(--text-secondary));
+  margin-inline-start: 6px;
+  color: var(--accent);
 }
 .platform-operator-link {
   display: block;
   width: fit-content;
-  margin: 19px auto 0;
-  color: light-dark(#7a7181, var(--text-secondary));
-  font-size: 12px;
+  margin: 18px auto 0;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .platform-kind-picker {
   display: flex;
-  gap: 5px;
-  padding: 4px;
-  background: light-dark(#f6f2f8, var(--surface-subtle));
-  border: 1px solid light-dark(#ebe3f0, var(--border));
-  border-radius: 9px;
+  gap: 4px;
+  padding: 3px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 .platform-kind-picker button {
   flex: 1;
   border-radius: 6px;
-  min-height: 38px;
-  color: light-dark(#7a6b86, var(--text-secondary));
-  font-size: 12px;
+  min-height: 37px;
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 .platform-kind-picker button[aria-pressed='true'] {
-  background: light-dark(white, var(--accent-soft));
-  color: light-dark(#705182, var(--text-secondary));
-  box-shadow: 0 1px 5px light-dark(#35214110, var(--shadow-soft));
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--accent-border);
 }
 .platform-error {
   display: block;
   padding: 11px 13px;
   margin: 13px 0;
-  border: 1px solid light-dark(#eedde2, var(--danger-border));
+  border: 1px solid var(--danger-border);
   border-radius: 8px;
-  background: light-dark(#fff7f8, var(--danger-soft));
-  color: light-dark(#a14f5f, var(--danger));
+  background: var(--danger-soft);
+  color: var(--danger);
   font-size: 12px;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -137,15 +141,15 @@
 .platform-notice {
   padding: 12px 15px;
   margin: 14px 0;
-  background: light-dark(#f5f1f8, var(--surface-subtle));
-  color: light-dark(#776182, var(--text-secondary));
-  border: 1px solid light-dark(#e9e0f0, var(--border));
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
   border-radius: 9px;
   font-size: 12px;
   line-height: 1.75;
 }
 .platform-help {
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.85;
   margin: 14px 0;
@@ -157,7 +161,7 @@
   gap: 6px;
   min-height: 36px;
   padding: 7px 4px;
-  color: light-dark(#7a6188, var(--accent));
+  color: var(--accent);
   font-size: 12px;
 }
 .platform-text-button:hover {
@@ -205,7 +209,7 @@
 }
 .platform-invitation p,
 .platform-invitation small {
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.7;
 }
@@ -239,13 +243,13 @@
 }
 .account-person small {
   display: block;
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
   margin-top: 4px;
   overflow-wrap: anywhere;
 }
 .account-space-list {
-  border: 1px solid light-dark(#e9e4ed, var(--border));
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -279,7 +283,7 @@
 .account-space-row small {
   display: block;
   margin-top: 5px;
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
 }
 .account-space-row.is-disabled {
@@ -327,7 +331,7 @@
   display: block;
   margin-top: 3px;
   font-size: 12px;
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .account-menu-panel {
   position: fixed;
@@ -356,7 +360,7 @@
 }
 .account-menu-heading small {
   display: block;
-  color: light-dark(#74747b, var(--text-secondary));
+  color: var(--text-secondary);
   font-size: 12px;
   margin-top: 5px;
   overflow-wrap: anywhere;

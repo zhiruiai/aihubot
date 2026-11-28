@@ -27,6 +27,7 @@ mod delegation_receipts;
 mod interactive_apps;
 mod model_routing;
 mod private_delegation;
+mod run_activity;
 mod run_context;
 mod run_deadline;
 mod run_knowledge;

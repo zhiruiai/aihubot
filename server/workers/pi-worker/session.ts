@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { StartRun, WorkerCommand } from './protocol.js';
 import { MAX_RUN_TIMEOUT_MS } from './protocol.js';
 import { createPluginHost, type WorkerPluginHost } from '../plugin-runtime/host.js';
-import { ModelOutputLimitError, type EngineSession } from '../plugin-runtime/engines.js';
+import { ModelTurnError, type EngineSession } from '../plugin-runtime/engines.js';
 import type { TrustedBundledPlugin } from '../plugin-runtime/bundled.js';
 
 type PendingTool = {
@@ -80,7 +80,7 @@ export class WorkerSession {
       status = this.controller.signal.aborted && !this.timedOut ? 'cancelled' : 'error';
       if (this.timedOut) code = 'RUN_DEADLINE_EXCEEDED';
       else if (status === 'cancelled') code = 'RUN_CANCELLED';
-      else code = error instanceof ModelOutputLimitError ? 'MODEL_OUTPUT_LIMIT' : 'RUN_FAILED';
+      else code = error instanceof ModelTurnError ? error.code : 'RUN_FAILED';
       this.emit({ type: 'error', code });
     } finally {
       clearTimeout(deadline);

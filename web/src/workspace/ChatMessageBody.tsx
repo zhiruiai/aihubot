@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { ChatQuestionCard } from '../components/chatQuestions/ChatQuestionCard';
 import { normalizeChatQuestionSelection, parseChatQuestion } from '../../../shared/chat-questions';
 import { fixedWorkspaceApi } from '../fixedWorkspaceApi';
@@ -20,8 +21,10 @@ import type { BotAgent, Message } from '../../../shared/types';
 import { currentLanguage, uiText } from '../i18n';
 import { chatMessageText } from '../i18n/serviceText';
 import type { OpenWebsiteProject } from '../websiteProjects';
-import { messageVoiceMemo } from '../voiceMemo';
+import { messageVoiceMemo, messageVoiceRecording } from '../voiceMemo';
 import type { WorkspaceModel } from './types';
+
+const SystemSkillCard = lazy(() => import('../components/SystemSkillCard'));
 
 type MessageBodyActions = Pick<
   WorkspaceModel,
@@ -120,7 +123,7 @@ export function ChatMessageBody({
     sync,
     refresh,
   } = actions;
-  const memo = messageVoiceMemo(m, data.files);
+  const memo = messageVoiceMemo(m, data.files) ?? messageVoiceRecording(m, data.files);
   const submittedOptions = submittedQuestionOptions(m, data.messages);
   const question =
     m.kind === 'question' && m.role === 'assistant' && m.status === 'done' && m.agentId
@@ -161,6 +164,23 @@ export function ChatMessageBody({
           current={current}
           onProfile={(profile) => openCreate(undefined, 'bot', profile)}
         />
+      ) : m.kind === 'skill_proposal' || m.kind === 'skill_results' ? (
+        <Suspense fallback={<p className="message-bubble">{m.content}</p>}>
+          <SystemSkillCard
+            key={`${navigationScope}:${m.id}`}
+            message={m}
+            role={liveAgent?.systemBot}
+            bots={data.agents}
+            skills={data.skills}
+            owner={canManage}
+            current={current}
+            request={fixedWorkspaceApi(sendScope)}
+            onChanged={() => {
+              sync.written();
+              void refresh();
+            }}
+          />
+        </Suspense>
       ) : parseAppConnectionProposal(m) ? (
         <AppConnectionProposalCard
           message={m}

@@ -91,6 +91,7 @@ async fn agent_app_launch_uses_audited_shell_without_ax_and_preserves_approval_a
         host_control: true,
         desktop_driver: None,
         accessibility_helper: None,
+        ego_browser: None,
     });
     let state = State::open(config).await.unwrap();
     let app = product_router(state.clone());

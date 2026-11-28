@@ -1,4 +1,6 @@
 {
+  "egoTakeoverTitle": "Continue in the Ego Lite window",
+  "egoTakeoverHelp": "Bot access to the page is paused. When you finish, return here and end takeover.",
   "privateTakeoverMasked": "The screen is private during manual takeover.",
   "privateTakeoverUnsupported": "Upgrade this computer to enable private takeover.",
   "privateTakeoverVisible": "The private screen is visible in this window and clears when takeover ends.",

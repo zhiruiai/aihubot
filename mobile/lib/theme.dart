@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 const openBotWebCjkFontFamily = 'OpenBot Sans SC';
+const openBotInterfaceFontFamily = 'Alimama FangYuanTi VF';
 
 ThemeData openBotTheme(Brightness brightness) {
   final dark = brightness == Brightness.dark;
@@ -19,6 +20,7 @@ ThemeData openBotTheme(Brightness brightness) {
     useMaterial3: true,
     colorScheme: colors,
     brightness: brightness,
+    fontFamily: openBotInterfaceFontFamily,
     fontFamilyFallback: kIsWeb ? const [openBotWebCjkFontFamily] : null,
   );
   return base.copyWith(

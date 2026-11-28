@@ -35,6 +35,7 @@ fn local_worker_preserves_browser_options_without_inheriting_other_environment()
             host_control,
             desktop_driver: None,
             accessibility_helper: None,
+            ego_browser: None,
         });
         let command =
             worker_command(&config, |name| supplied.get(name).map(OsString::from)).unwrap();

@@ -2,10 +2,13 @@ import { createInterface } from 'node:readline';
 import { randomBytes } from 'node:crypto';
 import { constants } from 'node:fs';
 import { access } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
+import { createSharedBrowserEngine } from '../computer-runtime/browser-engine.js';
+import { createEgoBrowserSession } from '../computer-runtime/ego-browser.js';
 import { createComputerWorker } from '../computer-runtime/http/worker.js';
 import { createDesktopAdapter, type DesktopAdapter } from '../computer-runtime/desktop.js';
 import { createCuaDesktopAdapter } from '../computer-runtime/cua-desktop.js';
+import { createBrowserNetworkProxy } from './network.js';
 
 const lines = createInterface({ input: process.stdin, crlfDelay: Infinity });
 const raw = await new Promise<string>((resolve, reject) => {
@@ -23,6 +26,7 @@ const config = JSON.parse(raw) as {
   hostControl?: boolean;
   desktopDriver?: { kind: 'cua'; executablePath: string; socketPath: string };
   accessibilityHelper?: string | null;
+  egoBrowser?: { executablePath: string };
 };
 if (!isAbsolute(config.workspace) || !/^[a-f0-9-]{36}$/.test(config.workspaceId))
   throw new Error('Invalid local execution configuration.');
@@ -38,6 +42,16 @@ if (
   throw new Error('Invalid local desktop configuration.');
 if (config.hostControl && config.publicOrigin)
   throw new Error('Host control requires personal mode.');
+if (
+  config.egoBrowser !== undefined &&
+  (config.publicOrigin ||
+    process.platform !== 'darwin' ||
+    typeof config.egoBrowser?.executablePath !== 'string' ||
+    !isAbsolute(config.egoBrowser.executablePath))
+)
+  throw new Error(
+    'Ego Lite requires personal mode on macOS and an absolute application executable.',
+  );
 const helperPath = config.accessibilityHelper;
 if (
   helperPath != null &&
@@ -82,10 +96,21 @@ const disabledDesktop: DesktopAdapter = {
   },
   async close() {},
 };
+const egoBrowser = config.egoBrowser && createEgoBrowserSession(config.egoBrowser.executablePath);
+const browserEngine = egoBrowser
+  ? undefined
+  : createSharedBrowserEngine({
+      profileDir: resolve(config.workspace, '../browser-profile'),
+      createProxy: () => createBrowserNetworkProxy(),
+      exclusiveScreen: true,
+      keepStartupPageUntilOwned: true,
+    });
 const worker = createComputerWorker({
   token,
   workspaceDir: config.workspace,
   workspaceScopeId: config.workspaceId,
+  browserSession: browserEngine?.screen(config.workspaceId),
+  egoBrowser,
   desktopAdapter:
     config.hostControl && config.desktopDriver
       ? createCuaDesktopAdapter(config.desktopDriver)
@@ -109,9 +134,15 @@ async function close() {
   if (closing) return;
   closing = true;
   server.close();
-  await worker.close();
-  server.closeAllConnections();
-  process.exit(0);
+  let exitCode = 0;
+  try {
+    await worker.close().finally(() => Promise.all([browserEngine?.close(), egoBrowser?.close()]));
+  } catch {
+    exitCode = 1;
+  } finally {
+    server.closeAllConnections();
+  }
+  process.exit(exitCode);
 }
 process.once('SIGTERM', () => void close());
 process.once('SIGINT', () => void close());

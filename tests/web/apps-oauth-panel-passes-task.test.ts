@@ -81,7 +81,7 @@ test('actual browser handoff displays sharing and scopes, requires consent and r
     await ui.flush();
     assert.match(ui.copy, /产品团队/);
     assert.match(ui.copy, /documents.read/);
-    assert.match(ui.copy, /所有 Bot/);
+    assert.match(ui.copy, /共享给此工作空间的 Bot.*工具调用遵循工作空间的审批规则/);
     assert.equal(writes.length, 0);
     ui.button('前往服务商授权').props.onClick();
     await ui.flush();

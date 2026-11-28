@@ -82,7 +82,8 @@ export function Dialog({
           (node) =>
             node.tabIndex >= 0 &&
             !node.matches(':disabled') &&
-            !node.closest('[inert]') &&
+            // Chromium can report client rects for descendants hidden by a closed disclosure.
+            !node.closest('[inert], details:not([open]) > :not(summary:first-of-type)') &&
             node.getClientRects().length > 0 &&
             getComputedStyle(node).visibility !== 'hidden',
         );

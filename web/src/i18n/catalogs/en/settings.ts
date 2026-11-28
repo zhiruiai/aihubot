@@ -11,6 +11,17 @@ export default {
     'Choose a model for this Bot. The workspace default follows future changes to the default model. Changes apply to new tasks.',
   botModelEmpty: 'Configure a model in Settings → Models, then refresh this list.',
   botModelRefresh: 'Refresh models',
+  modelSetupTitle: 'Connect a model to start chatting',
+  modelSetupHelp: 'Choose Free trial to start without a key, or connect your own model.',
+  modelFreeProvider: 'Free trial · Kilo',
+  modelFreeNoKey: 'No API key required',
+  modelFreeHelp:
+    'Kilo only uses free models and limits requests by IP. Providers may retain prompts and replies. Use sample data for this trial.',
+  modelFreeTerms: 'Kilo usage and data policy',
+  modelSetupSaveAndUse: 'Save and use in chats',
+  modelSetupReady: 'Set as the default model. Return to a chat to try it.',
+  modelSetupSavedIncomplete:
+    'Profile saved. Add a working API key or service URL to start chatting.',
   botSkillsLabel: 'Skills for this Bot',
   botSkillsEnabled: '{{count}} enabled',
   botSkillsEmpty:

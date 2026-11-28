@@ -88,21 +88,23 @@ export function WebsiteVersionChanges({
   ] as const;
   return (
     <div className="website-version-changes" tabIndex={0}>
-      <p className="website-diff-direction">
-        {uiText('workspace:websiteDiffDirection', {
-          from: uiText('workspace:websiteVersionNumber', { number: previous.number }),
-          to:
-            currentVersion === undefined
-              ? project.title
-              : uiText('workspace:websiteVersionNumber', { number: currentVersion }),
-        })}
-      </p>
-      <p>
-        {uiText('workspace:websiteComparedWith', {
-          title: baseline.title,
-          date: websiteDeliveryTime(previous.message.createdAt),
-        })}
-      </p>
+      <div className="website-diff-overview">
+        <p className="website-diff-direction">
+          {uiText('workspace:websiteDiffDirection', {
+            from: uiText('workspace:websiteVersionNumber', { number: previous.number }),
+            to:
+              currentVersion === undefined
+                ? project.title
+                : uiText('workspace:websiteVersionNumber', { number: currentVersion }),
+          })}
+        </p>
+        <p>
+          {uiText('workspace:websiteComparedWith', {
+            title: baseline.title,
+            date: websiteDeliveryTime(previous.message.createdAt),
+          })}
+        </p>
+      </div>
       {baseline.title !== project.title && (
         <p>
           {uiText('workspace:websiteTitleChanged', { from: baseline.title, to: project.title })}

@@ -4,7 +4,6 @@ import type { ConfirmedTeamConversation } from '../../botTeamDraft';
 import '../BotProfiles.css';
 import type { BotProfileDraft } from '../../botProfiles';
 import type { CreationStarter } from '../../../../shared/creation-requests';
-import type { RecruiterShortcut } from '../../workspace/useRecruiterShortcut';
 export type Props = {
   agents: BotAgent[];
   canCreateBot: boolean;
@@ -19,7 +18,7 @@ export type Props = {
   initialStarter?: CreationStarter;
   botOnly?: boolean;
   initialMode?: 'bot' | 'group' | 'team';
-  recruiterShortcut?: RecruiterShortcut;
+  onBrowseSystemBots?: () => void;
   onClose: () => void;
   onBrowseShared?: () => void;
   onCreated: (conversation: Conversation, agents?: BotAgent[]) => void | Promise<void>;

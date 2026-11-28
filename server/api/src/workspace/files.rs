@@ -1,7 +1,9 @@
 use super::{Table, WorkspaceAccess, WorkspaceStore, access, file_storage::Directory};
 use crate::{
+    agent::threads,
     db::{State, iso, now},
     error::{ApiError, Result, only_fields},
+    speech::wav,
 };
 use axum::{
     Json,
@@ -12,6 +14,7 @@ use axum::{
 };
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{path::Path as FilePath, time::Duration};
 
 async fn body(
@@ -68,7 +71,17 @@ pub async fn upload(
     let bytes = body(request, &state, &grant, 15 * 1024 * 1024).await?;
     let input: Value =
         serde_json::from_slice(&bytes).map_err(|_| ApiError::bad("文件上传内容无效。"))?;
-    only_fields(&input, &["name", "content", "type", "conversationId"])?;
+    only_fields(
+        &input,
+        &[
+            "name",
+            "content",
+            "type",
+            "conversationId",
+            "voiceRecordingId",
+            "threadRootId",
+        ],
+    )?;
     let name = input["name"]
         .as_str()
         .filter(|v| {
@@ -96,13 +109,71 @@ pub async fn upload(
                 .ok_or_else(|| ApiError::bad("会话标识无效。"))
         })
         .transpose()?;
-    let id = uuid::Uuid::new_v4().to_string();
+    let thread = threads::request(input.get("threadRootId"))?;
+    let recording_id = input
+        .get("voiceRecordingId")
+        .map(|value| {
+            value
+                .as_str()
+                .filter(|id| {
+                    uuid::Uuid::parse_str(id)
+                        .is_ok_and(|uuid| uuid.get_version_num() == 4 && uuid.to_string() == *id)
+                })
+                .ok_or_else(|| ApiError::bad("语音消息标识无效。"))
+        })
+        .transpose()?;
+    if thread.is_some() && recording_id.is_none() {
+        return Err(ApiError::bad("请在会话中发送语音消息。"));
+    }
+    let (bytes, recording) = if let Some(id) = recording_id {
+        if conversation.is_none()
+            || file_type != "audio/wav"
+            || name != format!("recording-{id}.wav")
+        {
+            return Err(ApiError::bad("请在会话中发送有效的WAV录音。"));
+        }
+        let (audio, duration_ms) = wav::parse(&bytes)?;
+        if duration_ms < 250 {
+            return Err(
+                ApiError::new(422, "请至少录制四分之一秒。").with_code("VOICE_RECORDING_SHORT")
+            );
+        }
+        let sha256 = hex::encode(Sha256::digest(&audio));
+        (audio, Some((duration_ms, sha256)))
+    } else {
+        (bytes, None)
+    };
+    let id = recording_id
+        .map(str::to_owned)
+        .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
     let mut tx = store.begin().await?;
     grant.authorize(&state).await?;
     if let Some(cid) = conversation {
         WorkspaceStore::get_in(&mut tx, Table::Conversations, cid)
             .await?
             .ok_or_else(|| ApiError::new(404, "会话不存在。"))?;
+        if let Some(thread_id) = thread {
+            threads::root(&mut tx, cid, thread_id).await?;
+        }
+    }
+    if let Some((_, sha256)) = &recording {
+        let previous_file = WorkspaceStore::get_in(&mut tx, Table::Files, &id).await?;
+        let previous_message = WorkspaceStore::get_in(&mut tx, Table::Messages, &id).await?;
+        if previous_file.is_some() || previous_message.is_some() {
+            if let (Some(file), Some(message)) = (previous_file, previous_message) {
+                if file["sha256"] == sha256.as_str()
+                    && message["metadata"]["voiceRecording"].is_object()
+                    && message["metadata"]["fileId"] == id.as_str()
+                    && message["userId"] == grant.user_id
+                    && message["conversationId"].as_str() == conversation
+                    && message["threadRootId"].as_str() == thread
+                {
+                    grant.authorize(&state).await?;
+                    return Ok((StatusCode::CREATED, Json(file)));
+                }
+            }
+            return Err(ApiError::new(409, "语音消息与已提交的内容不一致。"));
+        }
     }
     let directory = Directory::open(&store.directory, true)?;
     let display_name = name;
@@ -112,9 +183,23 @@ pub async fn upload(
     if let Some(cid) = conversation {
         file["conversationId"] = json!(cid);
     }
+    if let Some((_, sha256)) = &recording {
+        file["sha256"] = json!(sha256);
+    }
     WorkspaceStore::put_in(&mut tx, Table::Files, &file).await?;
     let message = if let Some(cid) = conversation {
-        let message = json!({"id":uuid::Uuid::new_v4().to_string(),"conversationId":cid,"role":"user","kind":"file","userId":grant.user_id,"content":display_name,"createdAt":file["createdAt"],"metadata":{"fileId":id,"name":display_name,"size":bytes.len(),"author":{"id":grant.user_id,"name":grant.user_name,"kind":"user"}}});
+        let message_id = if recording.is_some() {
+            id.clone()
+        } else {
+            uuid::Uuid::new_v4().to_string()
+        };
+        let mut message = json!({"id":message_id,"conversationId":cid,"role":"user","kind":"file","userId":grant.user_id,"content":display_name,"createdAt":file["createdAt"],"metadata":{"fileId":id,"name":display_name,"size":bytes.len(),"author":{"id":grant.user_id,"name":grant.user_name,"kind":"user"}}});
+        if let Some((duration_ms, sha256)) = &recording {
+            message["metadata"]["name"] = file["name"].clone();
+            message["metadata"]["sha256"] = json!(sha256);
+            message["metadata"]["voiceRecording"] = json!({"durationMs":duration_ms});
+            threads::stamp(&mut message, thread);
+        }
         WorkspaceStore::put_in(&mut tx, Table::Messages, &message).await?;
         Some(message)
     } else {
@@ -153,8 +238,21 @@ pub async fn download(
         .ok_or_else(|| ApiError::new(409, "文件记录无效。"))?;
     let file_reader = Directory::open(&store.directory, false)?.reader(name)?;
     let length = file_reader.len();
+    let mut delivered_name = file["downloadName"].as_str().map(str::to_owned);
+    if delivered_name.is_none() && file["source"]["kind"] == "workspace_delivery" {
+        // Older deliveries retained the original name in their receipt only.
+        delivered_name = sqlx::query_scalar::<_, Option<String>>(
+            "SELECT json_extract(data, '$.metadata.name') FROM messages
+             WHERE id GLOB 'delivery-*'
+               AND json_extract(data, '$.metadata.fileId') = ? LIMIT 1",
+        )
+        .bind(&id)
+        .fetch_optional(&store.pool)
+        .await?
+        .flatten();
+    }
     grant.authorize(&state).await?;
-    let public_name = FilePath::new(name)
+    let public_name = FilePath::new(delivered_name.as_deref().unwrap_or(name))
         .file_name()
         .and_then(|v| v.to_str())
         .unwrap_or("download");

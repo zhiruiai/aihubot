@@ -102,8 +102,8 @@ export async function fixture(
     tools: [],
   };
   const send = (value: unknown) => child.stdin.write(JSON.stringify(value) + '\n');
-  async function until(check: () => boolean, label: string) {
-    const end = Date.now() + 15000;
+  async function until(check: () => boolean, label: string, timeoutMs = 15_000) {
+    const end = Date.now() + timeoutMs;
     while (!check() && Date.now() < end) {
       if (exitCode !== null) break;
       await new Promise((done) => setTimeout(done, 10));

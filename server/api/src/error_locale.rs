@@ -72,6 +72,26 @@ pub async fn translate(response: Response) -> Response {
 }
 fn message_en(message: &str, code: &str) -> &'static str {
     match message {
+        "请在会话中发送语音消息。" => "Send the voice message from a conversation.",
+        "语音消息标识无效。" => "Invalid voice message identifier.",
+        "请在会话中发送有效的WAV录音。" => {
+            "Send a valid WAV recording from a conversation."
+        }
+        "请至少录制四分之一秒。" => "Record at least a quarter of a second.",
+        "语音消息与已提交的内容不一致。" => {
+            "This recording differs from the previously submitted voice message."
+        }
+        "录音格式无效，请重新录制。" => {
+            "The recording has an invalid format. Please record it again."
+        }
+        "每次录音最多60秒。" => "Recordings can be up to 60 seconds long.",
+        "录音文件不能超过2MiB。" => "The recording is larger than 2 MiB.",
+        "没有录到声音，请检查麦克风。" => {
+            "No sound was recorded. Check your microphone."
+        }
+        "Kilo 免费试用只能使用官方免密钥文本模型。" => {
+            "The Kilo free trial uses the official anonymous text model only."
+        }
         "请重新查看当前技能版本后安装。" => {
             "Review the current skill version before installing."
         }
@@ -278,6 +298,12 @@ fn message_en(message: &str, code: &str) -> &'static str {
             "CONFLICT" => "The item has changed. Refresh and try again.",
             "PAYLOAD_TOO_LARGE" => "The request is too large.",
             "RATE_LIMITED" => "Too many requests. Please try again later.",
+            "MODEL_RATE_LIMITED" => {
+                "The model provider has limited requests. Try again later or select another model."
+            }
+            "MODEL_TIMEOUT" => {
+                "The model provider timed out. Try again later or select another model."
+            }
             "GONE" => "This request is no longer available.",
             _ => "The service is temporarily unavailable. Please try again later.",
         },

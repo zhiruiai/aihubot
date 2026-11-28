@@ -13,6 +13,7 @@ export type Props = {
   team: boolean;
   onClose: () => void;
   onCreated: (value: ConfirmedBotInstall) => void;
+  onSystemBotOpen?: (value: ConfirmedBotInstall) => void;
   onChanged: () => void;
   onOpenPublic: (path: string) => void;
   teamTemplates?: Pick<SmartTeamProps, 'agents' | 'modelConfigured' | 'modelLabel' | 'onCreated'>;

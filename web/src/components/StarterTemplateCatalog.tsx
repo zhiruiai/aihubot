@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, UsersRound } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import type { BotProfileDraft } from '../botProfiles';
 import type { CreationStarter } from '../../../shared/creation-requests';
 import { currentLanguage, uiText } from '../i18n';
@@ -20,6 +20,7 @@ export function StarterTemplateCatalog(props: {
   onChoose: (profile: BotProfileDraft, starter: CreationStarter) => void;
   onInstall?: (id: StarterTemplateId, language: Language) => void;
   installError?: string;
+  excludedIds?: readonly StarterTemplateId[];
 }) {
   const [query, setQuery] = useState(''),
     [category, setCategory] = useState(''),
@@ -30,7 +31,7 @@ export function StarterTemplateCatalog(props: {
     const panel = preview.current;
     if (!panel) return;
     panel.focus({ preventScroll: true });
-    if (window.matchMedia('(max-width: 760px)').matches) panel.scrollIntoView({ block: 'nearest' });
+    if (window.matchMedia('(max-width: 760px)').matches) panel.scrollIntoView({ block: 'start' });
   }, [selected]);
   const mounted = useRef(true);
   useEffect(() => {
@@ -41,7 +42,9 @@ export function StarterTemplateCatalog(props: {
   }, []);
   const latest = useRef(props);
   latest.current = props;
-  const templates = starterTemplates();
+  const templates = starterTemplates().filter(
+    (template) => !props.excludedIds?.includes(template.id),
+  );
   const categories = [...new Set(templates.map((template) => template.category))];
   const activeCategory = categories.includes(category) ? category : '';
   const visible = filterStarterTemplates(templates, query, activeCategory);
@@ -57,19 +60,22 @@ export function StarterTemplateCatalog(props: {
     <section className="starter-catalog" aria-label={uiText('workspace:starterTitle')}>
       {!props.onInstall && <p>{uiText('workspace:starterIntro')}</p>}
       <div className="starter-filters">
-        <input
-          type="search"
-          value={query}
-          disabled={props.disabled}
-          aria-label={uiText('workspace:starterSearch')}
-          placeholder={uiText('workspace:starterSearchHint')}
-          onChange={(event) => {
-            if (live()) {
-              setQuery(event.target.value);
-              setPage(0);
-            }
-          }}
-        />
+        <div className="starter-search">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            disabled={props.disabled}
+            aria-label={uiText('workspace:starterSearch')}
+            placeholder={uiText('workspace:starterSearchHint')}
+            onChange={(event) => {
+              if (live()) {
+                setQuery(event.target.value);
+                setPage(0);
+              }
+            }}
+          />
+        </div>
         <label>
           {uiText('workspace:starterCategory')}
           <select
@@ -92,7 +98,7 @@ export function StarterTemplateCatalog(props: {
           </select>
         </label>
       </div>
-      <div className="starter-browser">
+      <div className={`starter-browser${item ? ' has-selection' : ''}`}>
         <div className="starter-results">
           <div className="starter-grid">
             {shown.map((template) => (
@@ -100,25 +106,27 @@ export function StarterTemplateCatalog(props: {
                 type="button"
                 key={template.id}
                 className={`starter-card${selected === template.id ? ' selected' : ''}`}
+                style={{ '--starter-color': template.profile.color } as CSSProperties}
                 aria-pressed={selected === template.id}
                 disabled={props.disabled}
                 onClick={() => {
                   if (live()) setSelected(template.id);
                 }}
               >
-                <Avatar agent={template.profile} size={44} />
-                <span>
+                <Avatar agent={template.profile} size={props.onInstall && !item ? 54 : 44} />
+                <span className="starter-copy">
                   <strong>{template.profile.name}</strong>
-                  <small>{template.category}</small>
-                  <p>{template.profile.description}</p>
-                  {props.onInstall && (
-                    <small>
-                      {uiText('workspace:starterSkillCount', {
-                        count: starterBotPacks(template.id, language).length,
-                      })}
-                    </small>
-                  )}
-                  <span className="starter-review-label">{uiText('workspace:starterReview')}</span>
+                  <span className="starter-outcome">{template.profile.description}</span>
+                  <span className="starter-meta">
+                    <small>{template.category}</small>
+                    {props.onInstall && (
+                      <small>
+                        {uiText('workspace:starterSkillCount', {
+                          count: starterBotPacks(template.id, language).length,
+                        })}
+                      </small>
+                    )}
+                  </span>
                 </span>
               </button>
             ))}
@@ -154,7 +162,7 @@ export function StarterTemplateCatalog(props: {
             </nav>
           )}
         </div>
-        {item ? (
+        {item && (
           <section
             ref={preview}
             tabIndex={-1}
@@ -227,12 +235,6 @@ export function StarterTemplateCatalog(props: {
               )}
             </div>
           </section>
-        ) : (
-          <div className="starter-placeholder">
-            <UsersRound size={36} aria-hidden="true" />
-            <strong>{uiText('workspace:starterPickTitle')}</strong>
-            <p>{uiText('workspace:starterPickHint')}</p>
-          </div>
         )}
       </div>
       <p className="starter-notice">

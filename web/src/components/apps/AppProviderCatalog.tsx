@@ -1,8 +1,9 @@
-import { ArrowUpRight, Check, Plus } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Plus } from 'lucide-react';
 import type { ConnectedApp } from '../../../../shared/app-connections';
 import { appConnectionStatus } from '../../appConnections';
 import { appProviders, providerConnection } from '../../appProviders';
 import { uiText } from '../../i18n';
+import { AppProviderMark } from './AppProviderMark';
 import './AppProviderCatalog.css';
 
 const categories = ['all', 'productivity', 'code', 'noAuth'] as const;
@@ -65,24 +66,19 @@ export function AppProviderCatalog({
   return (
     <section className="provider-catalog" aria-label={uiText('workspace:providerCatalog')}>
       <h3>{uiText('workspace:providerCatalog')}</h3>
-      <p className="field-help">{uiText('workspace:providerCatalogHelp')}</p>
       {providers.length ? (
         <div className="provider-grid">
           {providers.map((provider) => {
             const app = providerConnection(provider, apps);
-            const connected = app?.status === 'connected';
-            const actionLabel = uiText(
-              connected ? 'workspace:providerConnectedLabel' : 'workspace:providerConfigureLabel',
-              { name: provider.name },
-            );
+            const action =
+              app?.status === 'connected' ? 'Connected' : app ? 'Continue' : 'Configure';
+            const actionLabel = uiText(`workspace:provider${action}Label`, { name: provider.name });
             return (
               <article key={provider.id} className="provider-card">
-                <span className="provider-mark" aria-hidden="true">
-                  {provider.mark}
-                </span>
+                <AppProviderMark provider={provider} />
                 <div className="provider-title">
                   <strong>{provider.name}</strong>
-                  <span className="provider-status">
+                  <span className="provider-status" data-status={app?.status}>
                     {app
                       ? appConnectionStatus(app.status)
                       : uiText(`workspace:providerAuth_${provider.authType}`)}
@@ -112,16 +108,12 @@ export function AppProviderCatalog({
                     title={actionLabel}
                     onClick={() => (app ? onOpen(app.id) : onSelect(provider.id))}
                   >
-                    {connected ? <Check size={14} /> : <Plus size={14} />}
-                    <span>
-                      {uiText(
-                        connected
-                          ? 'workspace:providerConnected'
-                          : app
-                            ? 'workspace:providerContinue'
-                            : 'workspace:providerConfigure',
-                      )}
-                    </span>
+                    {app ? (
+                      <ArrowRight size={14} aria-hidden="true" />
+                    ) : (
+                      <Plus size={14} aria-hidden="true" />
+                    )}
+                    {uiText(`workspace:provider${action}`)}
                   </button>
                 </div>
               </article>

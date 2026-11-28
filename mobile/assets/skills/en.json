@@ -196,5 +196,17 @@
     "name": "PEP math practice",
     "description": "Guide two original visual math activities aligned to the revised PEP curriculum. Use for Grade 1 arithmetic within ten or Grade 7 linear equations, with hints and independent transfer problems.",
     "content": "## Learn one idea at a time\n\n1. Start with a short question or the learner's attempted step. Ask one question at a time and wait for their response.\n2. Offer the matching activity. Ask for a prediction, then let the learner inspect the ten-frame or balance. On the first error, point to what to inspect and leave the next move to the learner.\n3. In Grade 1, connect the spaces, occupied cells, and ten. In Grade 7, find the first inequivalent step, distinguish distribution from an operation on both sides, and substitute the solution into the original equation.\n4. Ask for an answer and one sentence of reasoning on a changed example. Only use attempts the learner actually sends in the conversation as review evidence.\n5. Close with a review card recording the idea, the learner's actual step, correction, and next practice. A name, school, contact details, photo, external account, or publication is unnecessary."
+  },
+  {
+    "id": "excalidraw-diagram-generator",
+    "name": "Editable Excalidraw diagrams",
+    "description": "Turn a process, relationship or system into an editable Excalidraw drawing.",
+    "content": "## Workflow\n\n1. Confirm the audience and what the diagram should explain. Identify the steps, actors, and decisions from the supplied material.\n2. Choose a diagram type. Keep node labels brief, show arrow direction explicitly, and use swimlanes only when ownership changes.\n3. Build on the bundled scene template and read the schema and element types. Deliver an editable .excalidraw JSON file through the workspace file tools.\n4. Parse the JSON, check unique element IDs and valid connection references, and verify the drawing in Excalidraw when access is available. Record which checks ran.\n\n## Source\n\nAdapted from [GitHub Awesome Copilot](https://github.com/github/awesome-copilot/blob/8ecd5b17f02fe5fbebf35eccd1867265eded811f/skills/excalidraw-diagram-generator/SKILL.md), MIT."
+  },
+  {
+    "id": "agent-architecture",
+    "name": "Agent architecture review",
+    "description": "Trace an existing agent or design its boundaries, failure recovery and acceptance from concrete user scenarios.",
+    "content": "## Workflow\n\n1. Start from one representative user task and one interruption or refusal case. For reviews recover the actual path from code, permission checks and outputs.\n2. Record the actor, the boundary that grants access, and the state saved before and after each external action. Make decision and failure ownership explicit.\n3. Use the simplest design that meets the observed requirements. Relate each additional component to a requirement and its cost.\n4. Return a decision record with success, restart, and unknown-outcome checks. Record observed facts, proposals, open questions and the specific evidence still required.\n\n## Source\n\nAdapted from [GitHub Awesome Copilot](https://github.com/github/awesome-copilot/blob/8ecd5b17f02fe5fbebf35eccd1867265eded811f/skills/agent-architecture/SKILL.md), MIT."
   }
 ]

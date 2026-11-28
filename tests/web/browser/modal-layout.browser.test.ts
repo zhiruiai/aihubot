@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { build } from 'esbuild';
+import { serveAppProviderMark } from '../fixtures/browser/appProviderMarks';
 import { chromium } from 'playwright-core';
 import { appProviders } from '../../../web/src/appProviders';
 
@@ -66,6 +67,8 @@ test(
       await page.route('**/*', async (route) => {
         const request = route.request();
         const url = new URL(request.url());
+        const mark = url.origin === origin && serveAppProviderMark(route);
+        if (mark) return mark;
         if (url.origin === origin && url.pathname === `/w/${wid}`) {
           await route.fulfill({
             contentType: 'text/html',
@@ -117,6 +120,11 @@ test(
         JSON.stringify({ desktop, desktopParts }),
       );
       assert.equal(await apps.locator('.provider-card').count(), appProviders.length);
+      const brandImages = apps.locator('.provider-mark img');
+      assert.equal(await brandImages.count(), 7);
+      await brandImages.evaluateAll((images) =>
+        Promise.all(images.map((image) => (image as HTMLImageElement).decode())),
+      );
       assert.equal(await apps.evaluate((el) => el.scrollWidth <= el.clientWidth), true);
       const lastProvider = apps.locator('.provider-card').last();
       await lastProvider.scrollIntoViewIfNeeded();
@@ -190,6 +198,11 @@ test(
       await page.setViewportSize({ width: 360, height: 550 });
       await page.reload();
       await apps.locator('.integration').last().waitFor({ state: 'attached' });
+      assert.equal(await apps.locator('.integration .provider-mark img').count(), 0);
+      assert.equal(
+        await apps.locator('.integration .provider-status[data-status="connected"]').count(),
+        appCount,
+      );
       const mobileScroll = await body.evaluate((el) => ({
         height: el.clientHeight,
         scrollHeight: el.scrollHeight,
@@ -229,7 +242,7 @@ test(
       assert.equal(await page.locator('body').getAttribute('data-action'), 'files');
 
       await search.fill('Microsoft Learn');
-      await apps.getByRole('button', { name: '配置 Microsoft Learn' }).click();
+      await apps.getByRole('button', { name: '添加 Microsoft Learn' }).click();
       const add = page.locator('.apps-add-form');
       assert.equal(
         await add.locator('input[type=url]').inputValue(),

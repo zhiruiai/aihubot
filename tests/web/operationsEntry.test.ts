@@ -203,7 +203,7 @@ test('operator login and product registration render separate real forms and nav
     assert.deepEqual(calls, ['/api/platform/session']);
     assert.ok(operator.form());
     const html = render(() => operator.tree, {});
-    assert.equal((html.match(/class="app-brand-mark"/g) || []).length, 2);
+    assert.equal((html.match(/class="app-brand-mark"/g) || []).length, 1);
     assert.doesNotMatch(html, /account-brand-avatar/);
     assert.doesNotMatch(html, /href="\/(?:login|register|account|w\/)/);
     assert.match(html, locale === 'en' ? /For platform operators only/ : /仅供平台运营人员使用/);
@@ -223,7 +223,7 @@ test('operator login and product registration render separate real forms and nav
     );
     await product.flush();
     const signup = render(() => product.tree, {});
-    assert.equal((signup.match(/class="app-brand-mark"/g) || []).length, 2);
+    assert.equal((signup.match(/class="app-brand-mark"/g) || []).length, 1);
     assert.match(signup, /href="\/login"/);
     assert.doesNotMatch(signup, /href="\/admin/);
     product.dispose();

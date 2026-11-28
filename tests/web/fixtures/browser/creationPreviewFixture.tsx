@@ -88,6 +88,7 @@ function Fixture() {
   const [dialog, setDialog] = useState(scene === 'bot');
   const [draft, setDraft] = useState<BotProfileDraft>();
   const [stage, setStage] = useState(0);
+  const [toolActive, setToolActive] = useState(false);
   const [groupHeader, setGroupHeader] = useState(false);
   const [recruiterOpened, setRecruiterOpened] = useState(false);
   const [owner, setOwner] = useState(true);
@@ -136,6 +137,7 @@ function Fixture() {
       {scene === 'chat' && (
         <>
           <button onClick={() => setStage((current) => current + 1)}>Advance synthetic run</button>
+          <button onClick={() => setToolActive((value) => !value)}>Toggle tool activity</button>
           <button onClick={() => setOwner(!owner)}>
             {owner ? 'View as member' : 'View as owner'}
           </button>
@@ -196,6 +198,21 @@ function Fixture() {
                 agents: [agent],
                 conversations: [conversation],
                 messages: chatMessages,
+                runningRequests: [
+                  {
+                    conversationId: conversation.id,
+                    threadRootId: 'separate-thread',
+                    activity: 'connectedApp',
+                  },
+                  ...(running || awaitingAnswer
+                    ? [
+                        {
+                          conversationId: conversation.id,
+                          activity: toolActive ? 'research' : undefined,
+                        },
+                      ]
+                    : []),
+                ],
               } as ChatProps['data']
             }
             openPrimary={noOp}
@@ -240,19 +257,16 @@ function Fixture() {
           />
         </>
       )}
-      {recruiterOpened && <h1>Recruiting assistant chat</h1>}
+      {recruiterOpened && <h1>System Bot Gallery</h1>}
       {dialog && (
         <CreateDialog
           agents={[agent]}
           canCreateBot={owner}
           initialMode="bot"
           initialProfile={draft}
-          recruiterShortcut={{
-            pending: false,
-            open: async () => {
-              setDialog(false);
-              setRecruiterOpened(true);
-            },
+          onBrowseSystemBots={() => {
+            setDialog(false);
+            setRecruiterOpened(true);
           }}
           modelConfigured
           workspaceId={workspaceId}

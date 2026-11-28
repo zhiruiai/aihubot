@@ -127,6 +127,7 @@ pub(crate) fn delegate<'a>(
             agent_id: target.clone(),
             background: parent.background,
             kind: "delegated",
+            activity: Default::default(),
             memory_writes: AtomicUsize::new(0),
             memory_characters: AtomicUsize::new(0),
             cancelled: parent.cancelled.clone(),

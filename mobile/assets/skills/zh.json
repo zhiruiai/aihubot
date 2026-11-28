@@ -196,5 +196,17 @@
     "name": "人教版数学小练习",
     "description": "按新版人教数学学习目标，用原创建模、分层提示和变式检验孩子能否自己说清思路。适用于一年级十以内加减与七年级解一元一次方程。",
     "content": "## 一次学清楚一个知识点\n\n1. 先用一道小题或学生已经写的一步找出卡点。每轮只问一个问题，等待孩子回应。\n2. 适用时打开对应练习。先让学生猜想，再用十格图或天平观察数量关系。第一次答错时提示该看哪里，保留孩子自己完成下一步的机会。\n3. 一年级用空格、已有数量和 10 的关系核对加减。七年级找第一个不等价的步骤，区分逐项分配和等式两边同做运算，并代回原式检查。\n4. 用一道不同数字的新题检验迁移，请学生写出答案和一句自己的解释。页面里的选择只在本地活动内生效，只有学生实际发到对话的答案才作为复习证据。\n5. 根据原对话填复习卡来收尾。只记录知识点、学生的实际一步、改法和下次练习。无需姓名、学校、联系方式、照片、发布或外部账号。"
+  },
+  {
+    "id": "excalidraw-diagram-generator",
+    "name": "Excalidraw 可编辑流程图",
+    "description": "从业务流程、系统关系或团队分工生成可编辑的 Excalidraw 图。",
+    "content": "## Workflow\n\n1. 确认这张图给谁看、要讲清哪件事。从材料中找出流程步骤、参与方和关键分支。\n2. 选择图的类型，节点保持简短，用箭头明确方向。跨团队交接时再用泳道。\n3. 使用包内空白场景模板及元素和格式参考，写成 .excalidraw 文件，在工作空间交付。\n4. 解析 JSON，检查元素 ID 唯一性与连线引用。能访问 Excalidraw 时打开验证，交付时说明做过的检查。\n\n## 来源\n\n参考 [GitHub Awesome Copilot](https://github.com/github/awesome-copilot/blob/8ecd5b17f02fe5fbebf35eccd1867265eded811f/skills/excalidraw-diagram-generator/SKILL.md)，MIT 许可。"
+  },
+  {
+    "id": "agent-architecture",
+    "name": "Agent 架构评审",
+    "description": "从真实用户任务追踪 Agent 的权限边界、失败恢复和闭环验收。",
+    "content": "## Workflow\n\n1. 选一个常见用户任务和一个取消、拒绝或中断场景。评审现有系统时，从实现、权限检查和结果回执还原真实链路。\n2. 记录任务发起者、授权边界以及每次外部操作前后保存的状态，明确谁能更改决定、谁处理失败。\n3. 优先使用满足需求的最简方案。每新增一个模块，都写清它解决的具体问题和成本。\n4. 交付决策记录，覆盖成功、重启恢复和结果未知。分别记录观察、提案、未决问题和所需证据。\n\n## 来源\n\n参考 [GitHub Awesome Copilot](https://github.com/github/awesome-copilot/blob/8ecd5b17f02fe5fbebf35eccd1867265eded811f/skills/agent-architecture/SKILL.md)，MIT 许可。"
   }
 ]

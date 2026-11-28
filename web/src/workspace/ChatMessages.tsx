@@ -22,7 +22,7 @@ import { PrimaryBotIntroduction } from '../components/PrimaryBotEntry';
 import { HiddenRosterEmpty } from '../components/SidebarRoster';
 import type { OpenWebsiteProject } from '../websiteProjects';
 import { calendarLabel, messageTime as time } from '../dates';
-import { chatTimeline } from '../chatTimeline';
+import { chatTimeline, currentThreadRun } from '../chatTimeline';
 import { historicalAuthor, removedAuthor } from '../messageAuthors';
 import type { WorkspaceModel } from './types';
 import { ChatMessageBody } from './ChatMessageBody';
@@ -136,6 +136,8 @@ export function ChatMessages({
     [messages, timelineWorking],
   );
   const actor = { userId: currentUserId, isOwner: canManage };
+  const run = currentThreadRun(data.runningRequests, conversation?.id, threadRoot?.id);
+  const requester = run?.activity && messages.find((item) => item.id === run.requester?.messageId);
   const activeAvatars = activeAvatarMessageIds(messages, data.runningRequests);
   const agentsById = useMemo(
     () => new Map(data.agents.map((agent) => [agent.id, agent])),
@@ -478,11 +480,14 @@ export function ChatMessages({
             )
           )}
         </div>
-        {timeline.showWorking && (
+        {(timeline.showWorking || (timelineWorking && run?.activity)) && (
           <ChatWorkingAvatar
-            agent={currentWorker}
+            agent={
+              (requester && agentsById.get(requester.delivery?.agentId || '')) || currentWorker
+            }
             last={timeline.rows.findLast((row) => activeAvatars.has(row.message.id))?.message}
             actor={actor}
+            activity={run?.activity}
           />
         )}
         <div className="scroll-padding" />

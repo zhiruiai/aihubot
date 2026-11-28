@@ -145,7 +145,13 @@ pub async fn events(
                 _=check.tick()=>{if store.is_closed()||grant.authorize(&state).await.is_err(){break;}},
                 event=source.recv()=>{
                     if store.is_closed()||grant.authorize(&state).await.is_err(){break;}
-                    let event=match event {Ok(value)=>Event::default().event(value.event).id(format!("{}:{}",initial["epoch"].as_str().unwrap_or(""),value.revision)).data(value.data.to_string()),Err(tokio::sync::broadcast::error::RecvError::Lagged(_))=>Event::default().event("update").data("{}"),Err(_)=>break};
+                    let event=match event {
+                        Ok(value) if value.event == "run-activity" =>
+                            Event::default().event(value.event).data(value.data.to_string()),
+                        Ok(value)=>Event::default().event(value.event).id(format!("{}:{}",initial["epoch"].as_str().unwrap_or(""),value.revision)).data(value.data.to_string()),
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_))=>Event::default().event("update").data("{}"),
+                        Err(_)=>break
+                    };
                     if send.send(Ok(event)).await.is_err(){break;}
                 }
             }

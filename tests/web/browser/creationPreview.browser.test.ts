@@ -181,8 +181,8 @@ test(
       await dialog.waitFor();
       await page.setViewportSize({ width: 340, height: 720 });
       await dialog.getByRole('button', { name: 'Start from a template' }).waitFor();
-      const recruiter = dialog.getByRole('button', { name: 'Ask the recruiting assistant' });
-      await recruiter.waitFor();
+      const systemBots = dialog.getByRole('button', { name: 'System Bots', exact: true });
+      await systemBots.waitFor();
       const core = dialog.locator('.bot-create-identity');
       const options = dialog.locator('details.bot-create-options');
       await core.getByLabel('Work role', { exact: true }).waitFor();
@@ -194,7 +194,7 @@ test(
       await options.getByText('Avatar, description and model', { exact: true }).click();
       await page.setViewportSize({ width: 1100, height: 850 });
       t.diagnostic('Creation dialog rendered from the synthetic origin.');
-      await dialog.getByRole('button', { name: 'Design a Bot with AI' }).press('Enter');
+      await dialog.getByRole('button', { name: 'Generate a quick draft' }).press('Enter');
       const botBrief = dialog.getByLabel('What should this Bot do?');
       await botBrief.fill('  Build a Bot to verify evidence.  ');
       await dialog.getByRole('button', { name: 'Generate draft' }).press('Enter');
@@ -212,9 +212,9 @@ test(
       );
       await botName.fill('Edited research Bot');
       assert.equal(await botName.inputValue(), 'Edited research Bot');
-      await recruiter.click();
+      await systemBots.click();
       await dialog.getByRole('button', { name: 'Discard changes and continue' }).press('Enter');
-      await page.getByRole('heading', { name: 'Recruiting assistant chat' }).waitFor();
+      await page.getByRole('heading', { name: 'System Bot Gallery' }).waitFor();
       t.diagnostic('Bot draft reached the editable profile.');
 
       await page.goto(`${origin}${pagePath}?surface=theme`, { waitUntil: 'domcontentloaded' });
@@ -259,6 +259,14 @@ test(
       const avatarPlayState = (element: Element) => getComputedStyle(element).animationPlayState;
       await worker.waitFor();
       await worker.locator('[data-avatar-expression="thinking"]').waitFor();
+      const toolSwitch = page.getByRole('button', { name: 'Toggle tool activity', exact: true });
+      const progress = page.getByRole('status').filter({ hasText: 'Checking public sources' });
+      await toolSwitch.press('Enter');
+      await progress.getByText('Checking public sources', { exact: true }).waitFor();
+      await worker.locator('[data-avatar-expression="working"]').waitFor();
+      assert.equal(await page.getByText('Using a connected app', { exact: true }).count(), 0);
+      await toolSwitch.press('Enter');
+      await progress.waitFor({ state: 'detached' });
       await activeHeader.locator('[data-avatar-expression="thinking"]').waitFor();
       assert.equal(await worker.evaluate(avatarAnimation), 'none');
       assert.equal(await activeHeader.evaluate(avatarAnimation), 'none');
@@ -327,6 +335,9 @@ test(
       const questionAvatar = page.locator('#message-follow-up-question .avatar > svg');
       await questionAvatar.waitFor();
       await questionAvatar.locator('[data-avatar-expression="attention"]').waitFor();
+      await toolSwitch.press('Enter');
+      assert.equal(await progress.count(), 0);
+      await toolSwitch.press('Enter');
       assert.equal(await questionAvatar.evaluate(avatarAnimation), 'avatar-attention');
       assert.equal(
         await page

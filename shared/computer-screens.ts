@@ -2,6 +2,7 @@ import type { ComputerState } from './types.js';
 import type { DesktopSessionRef } from './linux-desktop.js';
 export const SCREEN_POOL_CAPABILITY = 'screen-pool-v1';
 export const SHARED_SCREEN_CAPABILITY = 'workspace-shared-screen-v1';
+export const EGO_BROWSER_CAPABILITY = 'ego-browser-v1';
 export const HOST_DESKTOP_CAPABILITY = 'workspace-host-desktop-v1';
 export const MACOS_ACCESSIBILITY_CAPABILITY = 'macos-accessibility-v1';
 export const MACOS_APP_LAUNCH_CAPABILITY = 'macos-app-launch-v1';

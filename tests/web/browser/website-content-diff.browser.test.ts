@@ -8,16 +8,18 @@ const workspaceId = '11111111-1111-4111-8111-111111111111';
 const root = `/api/workspaces/${workspaceId}/website-projects/`;
 const beforeId = 'a'.repeat(64),
   afterId = 'b'.repeat(64);
+const inventory = (value: string) =>
+  Array.from({ length: 32 }, (_, index) => `Stock line ${index + 1} · ${value}`).join('\n');
 const source: Record<string, Record<string, string>> = {
   [beforeId]: {
-    'index.html': 'one\nold heading\nfooter',
+    'index.html': `one\nold heading\n${inventory('Pending review')}\nfooter`,
     'removed.txt': 'old only',
     'logo.png': 'old image',
     'big.js': 'x'.repeat(131073),
     'unchanged.css': 'body{}',
   },
   [afterId]: {
-    'index.html': 'one\n<script>window.diffExecuted=true</script>\nfooter',
+    'index.html': `one\n<script>window.diffExecuted=true</script>\n${inventory('Ready to ship')}\nfooter`,
     'added.txt': 'new only',
     'logo.png': 'new image',
     'big.js': 'y'.repeat(131073),
@@ -168,6 +170,23 @@ test(
     await table.waitFor();
     await page.setViewportSize({ width: 320, height: 760 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    assert.ok(
+      await table.evaluate((node) => {
+        for (
+          let parent = node.parentElement;
+          parent && !parent.matches('.website-version-changes');
+          parent = parent.parentElement
+        ) {
+          if (
+            parent.scrollHeight > parent.clientHeight + 1 &&
+            /^(auto|scroll)$/.test(getComputedStyle(parent).overflowY)
+          )
+            return false;
+        }
+        return true;
+      }),
+      'a long diff stays in the comparison scroll surface',
+    );
     await open('Toggle comparison');
     assert.equal(await table.count(), 0);
     assert.deepEqual(errors, []);

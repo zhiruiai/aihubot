@@ -85,9 +85,9 @@
   display: none;
 }
 .workspace-settings-panel > h2 {
-  margin: 0 0 20px;
+  margin: 0 0 18px;
   color: var(--text);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
 }
 .workspace-settings-section {
@@ -98,9 +98,9 @@
 }
 .workspace-settings-section h3 {
   margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 550;
-  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
 }
 .workspace-settings-card {
   padding: 18px;

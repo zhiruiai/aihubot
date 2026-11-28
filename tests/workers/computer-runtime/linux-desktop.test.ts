@@ -4,13 +4,21 @@ import { randomUUID } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createLinuxDesktopAdapter } from '../../../server/workers/computer-runtime/linux-desktop.js';
+import {
+  createLinuxDesktopAdapter,
+  linuxDesktopMaintenanceState,
+} from '../../../server/workers/computer-runtime/linux-desktop.js';
 import type { DesktopAdapter } from '../../../server/workers/computer-runtime/desktop.js';
-import { parseDesktopSession, sameDesktopSession } from '../../../shared/linux-desktop.js';
+import {
+  LINUX_DESKTOP_TIMEOUT_MS,
+  parseDesktopSession,
+  sameDesktopSession,
+} from '../../../shared/linux-desktop.js';
 
 const png =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j2ioAAAAASUVORK5CYII=';
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const realSetTimeout = setTimeout;
+const delay = (ms: number) => new Promise((resolve) => realSetTimeout(resolve, ms));
 async function exists(path: string) {
   return readFile(path).then(
     () => true,
@@ -24,10 +32,7 @@ async function until(check: () => Promise<boolean>) {
     await delay(10);
   }
 }
-async function fixture(
-  mode = 'normal',
-  overrides: { timeoutMs?: number; cleanupWaitMs?: number } = {},
-) {
+async function fixture(mode = 'normal', overrides: { cleanupWaitMs?: number } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'openbot-linux-desktop-'));
   const helperPath = join(dir, 'helper.mjs');
   const manifestPath = join(dir, 'fixture.json');
@@ -59,7 +64,7 @@ process.stdin.on('end', () => {
    capturedAt:new Date().toISOString(),displayId:1,geometryToken:'fixed-geometry',session:config.session});
  if (config.mode==='safe-input-failure') return error('INPUT_FAILED');
  if (config.mode==='hold' || config.mode==='ignore-until-release' || config.mode==='cleanup-unknown' || config.mode==='cancel-stale') {
-   writeFileSync(dir+'/started',String(process.pid)); let stopping=false;
+   let stopping=false;
    process.on('SIGTERM',()=>{
      writeFileSync(dir+'/term','TERM');
      if (config.mode==='ignore-until-release') return;
@@ -67,6 +72,7 @@ process.stdin.on('end', () => {
      setTimeout(()=>{writeFileSync(dir+'/released','yes');error(config.mode==='cancel-stale'?'STALE_SESSION':'CANCELLED',config.mode!=='cleanup-unknown');},180);
    });
    setInterval(()=>{if(config.mode==='ignore-until-release'&&existsSync(dir+'/release-now')) {writeFileSync(dir+'/released','yes');error('CANCELLED');}},20);
+   writeFileSync(dir+'/started',String(process.pid));
    return;
  }
  if (request.enabled!==true || request.frame?.geometryToken!=='fixed-geometry') return error('INVALID_REQUEST');
@@ -348,30 +354,34 @@ test('Linux cancellation with unknown cleanup or a stale-session reply permanent
   }
 });
 
-test('Linux watchdog never kills an unresponsive supervisor or releases its input slot early', async () => {
-  const f = await fixture('ignore-until-release', { timeoutMs: 500, cleanupWaitMs: 80 });
+test('Linux watchdog never kills an unresponsive supervisor or releases its input slot early', async (t) => {
+  const cleanupWaitMs = 80;
+  const f = await fixture('ignore-until-release', { cleanupWaitMs });
   try {
     await f.ready();
+    t.mock.timers.enable({ apis: ['setTimeout'] });
     const operation = f.adapter.execute({ type: 'key', key: 'Enter' });
-    const rejected = assert.rejects(operation, /停用|超时|取消/);
+    const rejected = assert.rejects(operation, { code: 'TIMEOUT' });
+    await until(() => exists(join(f.dir, 'started')));
+    t.mock.timers.tick(LINUX_DESKTOP_TIMEOUT_MS);
     await until(() => exists(join(f.dir, 'term')));
     const pid = Number(await readFile(join(f.dir, 'started'), 'utf8'));
-    await delay(130);
+    t.mock.timers.tick(cleanupWaitMs);
     process.kill(pid, 0);
     assert.equal((await f.adapter.status()).available, false);
-    let ended = false;
-    void operation.then(
-      () => {
-        ended = true;
-      },
-      () => {
-        ended = true;
-      },
+    assert.deepEqual(linuxDesktopMaintenanceState(f.adapter), {
+      cleanupUnknown: true,
+      activeHelpers: 1,
+    });
+    const settled = operation.then(
+      () => true,
+      () => true,
     );
-    await delay(20);
-    assert.equal(ended, false);
+    const nextTurn = new Promise<boolean>((resolve) => setImmediate(() => resolve(false)));
+    assert.equal(await Promise.race([settled, nextTurn]), false);
     await writeFile(join(f.dir, 'release-now'), 'yes');
     await rejected;
+    assert.equal(linuxDesktopMaintenanceState(f.adapter)?.activeHelpers, 0);
     assert.throws(
       () => process.kill(pid, 0),
       (error: any) => error.code === 'ESRCH',

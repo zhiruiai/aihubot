@@ -43,6 +43,8 @@
   const cancelLocalButton = document.getElementById('cancel-local');
   const hostControlOption = document.getElementById('host-control-option');
   const hostControlInput = document.getElementById('host-control');
+  const egoOption = document.getElementById('ego-browser-option');
+  const egoInput = document.getElementById('use-ego-browser');
   const errorPanel = document.getElementById('error-panel');
   const errorMessage = document.getElementById('error-message');
   const statusMessage = document.getElementById('connection-status');
@@ -51,6 +53,8 @@
   let localStarting = false;
   let hostControlAvailable = false;
   let hostControlEdited = false;
+  let egoEdited = false;
+  let egoAvailable = false;
   let localError = '';
   let lastAttemptUrl = '';
   let edited = false;
@@ -68,6 +72,8 @@
     startLocalButton.disabled = busy || !localAvailable || !bridge?.startLocal;
     hostControlOption.hidden = !hostControlAvailable;
     hostControlInput.disabled = busy;
+    egoOption.hidden = !egoAvailable;
+    egoInput.disabled = busy;
     startLocalLabel.textContent = t(localStarting ? 'localRuntimeStarting' : 'startLocal');
     localSpinner.hidden = !localStarting;
     localDescription.textContent = t(
@@ -111,8 +117,10 @@
     localAvailable = state.localAvailable === true;
     localStarting = state.localStarting === true;
     hostControlAvailable = state.localHostControlAvailable === true;
-    if (state.status === 'connected') hostControlEdited = false;
+    egoAvailable = state.localEgoAvailable === true;
+    if (state.status === 'connected') hostControlEdited = egoEdited = false;
     if (!hostControlEdited) hostControlInput.checked = state.localHostControlSelected === true;
+    if (!egoEdited) egoInput.checked = state.localEgoSelected === true;
     localError = typeof state.localError === 'string' ? state.localError.slice(0, 1000) : '';
     const savedUrl = typeof state.url === 'string' && state.url ? state.url : DEFAULT_URL;
     if (
@@ -188,6 +196,7 @@
         method === 'startLocal'
           ? await bridge.startLocal({
               hostControl: hostControlAvailable && hostControlInput.checked === true,
+              ...(egoAvailable && egoInput.checked ? { useEgo: true } : {}),
             })
           : await bridge.cancelLocal();
       if (ticket === operation) applyState(state);
@@ -199,6 +208,9 @@
     }
   }
 
+  egoInput.addEventListener('change', () => {
+    egoEdited = true;
+  });
   hostControlInput.addEventListener('change', () => {
     hostControlEdited = true;
   });

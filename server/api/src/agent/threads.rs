@@ -9,7 +9,7 @@ pub(crate) fn unavailable() -> ApiError {
     ApiError::new(409, "原消息或回复线程已不可用。").with_code("THREAD_CONTEXT_UNAVAILABLE")
 }
 
-pub(super) fn request(value: Option<&Value>) -> Result<Option<&str>> {
+pub(crate) fn request(value: Option<&Value>) -> Result<Option<&str>> {
     value
         .map(|value| {
             value
@@ -20,7 +20,7 @@ pub(super) fn request(value: Option<&Value>) -> Result<Option<&str>> {
         .transpose()
 }
 
-pub(super) async fn root(
+pub(crate) async fn root(
     conn: &mut SqliteConnection,
     conversation_id: &str,
     id: &str,

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { appProviders, providerDraft, providerConnection } from '../../web/src/appProviders';
+import {
+  appProviders,
+  connectionAtAppAddress,
+  providerDraft,
+  providerConnection,
+} from '../../web/src/appProviders';
 import { all, harness, json, props, app } from './fixtures/appsFixture';
 import { harness as componentHarness } from './fixtures/memoryImportSettingsFixture';
 
@@ -30,12 +35,52 @@ test('provider presets contain only documented endpoints and no credentials or s
   assert.equal(providerDraft('context7')?.authType, 'none');
   assert.equal(providerDraft('aws-knowledge')?.url, 'https://knowledge-mcp.global.api.aws');
   assert.equal(providerDraft('aws-knowledge')?.authType, 'none');
+  assert.deepEqual(
+    appProviders
+      .filter((provider) =>
+        [
+          'miro',
+          'monday',
+          'clickup',
+          'webflow',
+          'todoist',
+          'airtable',
+          'attio',
+          'intercom',
+          'exa',
+          'mintlify-docs',
+        ].includes(provider.id),
+      )
+      .map(({ id, url, authType }) => [id, url, authType]),
+    [
+      ['miro', 'https://mcp.miro.com/', 'oauth'],
+      ['monday', 'https://mcp.monday.com/mcp', 'oauth'],
+      ['clickup', 'https://mcp.clickup.com/mcp', 'oauth'],
+      ['webflow', 'https://mcp.webflow.com/mcp', 'oauth'],
+      ['todoist', 'https://ai.todoist.net/mcp', 'oauth'],
+      ['airtable', 'https://mcp.airtable.com/mcp', 'oauth'],
+      ['attio', 'https://mcp.attio.com/mcp', 'oauth'],
+      ['intercom', 'https://mcp.intercom.com/mcp', 'oauth'],
+      ['exa', 'https://mcp.exa.ai/mcp', 'none'],
+      ['mintlify-docs', 'https://www.mintlify.com/docs/mcp', 'none'],
+    ],
+  );
   const notion = appProviders[0];
   assert.equal(providerConnection(notion, [{ ...app, name: 'Notion' }]), undefined);
   assert.equal(
     providerConnection(notion, [{ ...app, url: notion.url, status: 'needs_auth' }])?.status,
     'needs_auth',
   );
+});
+test('finding a connection after a concurrent add matches the canonical endpoint, never the name', () => {
+  const notionUrl = appProviders[0].url;
+  const notion = { ...app, id: 'notion', name: 'My docs', url: `${notionUrl}/` };
+  const decoy = { ...app, name: 'Notion' };
+  assert.equal(connectionAtAppAddress(notionUrl, [decoy, notion]), notion);
+  assert.equal(connectionAtAppAddress(notionUrl, [decoy]), undefined);
+  assert.equal(connectionAtAppAddress('https://EXAMPLE.com:443/mcp', [app]), app);
+  assert.equal(connectionAtAppAddress('https://example.com/mcp/', [app]), undefined);
+  assert.equal(connectionAtAppAddress('invalid-address', [app]), undefined);
 });
 test('actual provider catalog filters categories and search and never labels an unauthenticated connection connected', async () => {
   const selected: string[] = [],
@@ -63,9 +108,9 @@ test('actual provider catalog filters categories and search and never labels an 
     assert.match(h.copy, /Notion/);
     assert.doesNotMatch(h.copy, /已连接/);
     assert.match(h.copy, /需要重新授权/);
-    all(h.tree, (node) => node.props?.['aria-label'] === '配置 Notion')[0].props.onClick();
+    all(h.tree, (node) => node.props?.['aria-label'] === '继续连接 Notion')[0].props.onClick();
     assert.deepEqual(opened, [app.id]);
-    all(h.tree, (node) => node.props?.['aria-label'] === '配置 Linear')[0].props.onClick();
+    all(h.tree, (node) => node.props?.['aria-label'] === '添加 Linear')[0].props.onClick();
     assert.deepEqual(selected, ['linear']);
     h.setProps({ category: 'code' });
     await h.flush();
@@ -83,8 +128,14 @@ test('actual provider catalog filters categories and search and never labels an 
     h.setProps({ search: '' });
     await h.flush();
     assert.match(h.copy, /Context7/);
+    assert.match(h.copy, /Exa/);
+    assert.match(h.copy, /Mintlify Docs/);
     assert.doesNotMatch(h.copy, /GitHub MCP|Sentry/);
-    h.setProps({ search: '源码解析' });
+    h.setProps({ category: 'productivity', search: '工作看板' });
+    await h.flush();
+    assert.match(h.copy, /monday\.com/);
+    assert.doesNotMatch(h.copy, /Exa|Miro/);
+    h.setProps({ category: 'noAuth', search: '源码解析' });
     await h.flush();
     assert.match(h.copy, /DeepWiki/);
     assert.doesNotMatch(h.copy, /Cloudflare Docs/);
@@ -94,7 +145,7 @@ test('actual provider catalog filters categories and search and never labels an 
     h.setProps({ search: '', category: 'code', canManage: false });
     await h.flush();
     assert.equal(
-      all(h.tree, (node) => node.props?.['aria-label'] === '配置 GitHub')[0].props.disabled,
+      all(h.tree, (node) => node.props?.['aria-label'] === '添加 GitHub')[0].props.disabled,
       true,
     );
   } finally {
@@ -141,19 +192,52 @@ test('choosing a provider uses the real add form, requires consent and preserves
     assert.ok(inputs.some((node) => node.props.value === 'GitHub'));
     assert.equal(inputs.find((node) => node.props.type === 'checkbox').props.checked, false);
     assert.equal(calls.filter((call) => call.method === 'POST').length, 0);
-    const token = inputs.find((node) => node.props.type === 'password');
+    h.button('全部应用').props.onClick();
+    await h.flush();
+    all(h.tree, (node) => node.type?.name === 'AppProviderCatalog')[0].props.onSelect('notion');
+    await h.flush();
+    assert.equal(
+      all(h.tree, (node) => node.type === 'input' && node.props.type === 'url')[0].props.value,
+      'https://mcp.notion.com/mcp',
+    );
+    h.button('全部应用').props.onClick();
+    await h.flush();
+    all(h.tree, (node) => node.type?.name === 'AppProviderCatalog')[0].props.onSelect('github');
+    await h.flush();
+    const token = all(h.tree, (node) => node.type === 'input' && node.props.type === 'password')[0];
     token.props.onChange({ target: { value: 'SYNTHETIC_TOKEN_RETAINED' } });
     await h.flush();
     h.button('全部应用').props.onClick();
     await h.flush();
     all(h.tree, (node) => node.type?.name === 'AppProviderCatalog')[0].props.onSelect('notion');
     await h.flush();
-    assert.match(h.copy, /未完成的连接资料已保留/);
+    assert.match(h.copy, /有一份未完成的连接/);
     h.button('添加').props.onClick();
     await h.flush();
     assert.equal(
       all(h.tree, (node) => node.type === 'input' && node.props.type === 'password')[0].props.value,
       'SYNTHETIC_TOKEN_RETAINED',
+    );
+    h.button('全部应用').props.onClick();
+    await h.flush();
+    all(h.tree, (node) => node.type?.name === 'AppProviderCatalog')[0].props.onSelect('github');
+    await h.flush();
+    assert.equal(
+      all(h.tree, (node) => node.type === 'input' && node.props.type === 'password')[0].props.value,
+      'SYNTHETIC_TOKEN_RETAINED',
+    );
+    h.button('取消').props.onClick();
+    await h.flush();
+    all(h.tree, (node) => node.type?.name === 'AppProviderCatalog')[0].props.onSelect('github');
+    await h.flush();
+    assert.equal(
+      all(h.tree, (node) => node.type === 'input' && node.props.type === 'password')[0].props.value,
+      '',
+    );
+    assert.equal(
+      all(h.tree, (node) => node.type === 'input' && node.props.type === 'checkbox')[0].props
+        .checked,
+      false,
     );
     assert.equal(calls.filter((call) => call.method === 'POST').length, 0);
   } finally {
